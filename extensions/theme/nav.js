@@ -11,6 +11,17 @@
     "/my/avatar", "/users/inventory", "/trades", "/communities",
   ];
   const MESSAGES = "/my/messages";
+  // paths we relabel in the dropdown (Roblox renamed Groups -> Communities; we keep "Groups")
+  const RELABEL = { "/communities": "Groups" };
+
+  // swap the first non-empty text node under a node for new text (keeps the icon)
+  function relabel(root, text) {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) {
+      if (n.nodeValue.trim()) { n.nodeValue = text; return; }
+    }
+  }
 
   const pathOf = (a) => {
     try {
@@ -54,6 +65,7 @@
       item.className = "rc-menu-item";
       item.querySelectorAll('[class*="badge" i], .notification-blue').forEach((b) => b.classList.add("rc-badge"));
       item.style.setProperty("--i", i);
+      if (RELABEL[pathOf(src)]) relabel(item, RELABEL[pathOf(src)]);
       if (pathOf(src) === (location.pathname.replace(/\/+$/, "") || "/")) item.classList.add("rc-here");
       item.addEventListener("click", () => close());
       menu.appendChild(item);
