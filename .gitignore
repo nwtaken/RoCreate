@@ -19,3 +19,6 @@ __pycache__/
 .idea/
 Thumbs.db
 desktop.ini
+
+# Extension signing keys: they only fix the extension IDs, but keep them private.
+installer/keys/

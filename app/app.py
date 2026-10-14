@@ -76,6 +76,7 @@ def build_payload() -> str:
     css = (THEME_DIR / "theme.css").read_text("utf-8")
     content_js = (THEME_DIR / "content.js").read_text("utf-8")
     greeting_js = (THEME_DIR / "greeting.js").read_text("utf-8")
+    nav_js = (THEME_DIR / "nav.js").read_text("utf-8")
 
     # content.js is written as a Chrome content script; give it the tiny slice
     # of the extension API it uses so the same file runs unmodified here.
@@ -126,7 +127,7 @@ def build_payload() -> str:
     #right-navigation-header { margin-right: 132px !important; }
     #header #nav-logo-link { display: flex !important; align-items: center; gap: 10px; text-decoration: none; }
     #header ul.nav.rbx-navbar { margin-left: 28px !important; }
-    #header #nav-logo-link > * { display: none !important; }
+    #header #nav-logo-link > *:not(.rc-chev) { display: none !important; }
     #header #nav-logo-link::before {
       content: ""; width: 26px; height: 26px; flex: none;
       background: url(data:image/svg+xml;base64,__LOGO__) center / contain no-repeat;
@@ -226,7 +227,7 @@ def build_payload() -> str:
   %s
 
   %s
-})();""" % (json.dumps(css), content_js, greeting_js)).replace("__LOGO__", LOGO_B64).replace("__LOGO_O__", LOGO_O_B64)
+})();""" % (json.dumps(css), content_js, greeting_js + chr(10) * 2 + nav_js)).replace("__LOGO__", LOGO_B64).replace("__LOGO_O__", LOGO_O_B64)
 
 
 # --------------------------------------------------------------------------

@@ -40,6 +40,10 @@
   .ext div { flex: 1; } .ext small { display: block; color: var(--dim); }
   .tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: 13px; }
   .tick.ok { border-color: var(--ok); color: var(--ok); }
+  .tick.wait { border-color: #d9a441; color: #d9a441; }
+  .ext .state { color: #d9a441; }
+  .ext .tick.ok ~ div .state { color: var(--ok); }
+  details { margin-top: 14px; color: var(--dim); } details summary { cursor: default; }
   ol { color: var(--dim); padding-left: 20px; margin: 8px 0 12px; } ol b { color: var(--text); }
 </style>
 </head>
@@ -78,7 +82,7 @@
       <h1>RoCreate is installed</h1>
       <p id="finish-none" hidden>You're all set. Launch RoCreate to get started.</p>
       <div id="finish-extra">
-        <p>Last step: add the Chrome extension(s) you chose. Chrome can only load them in Developer mode, so this part is a few clicks.</p>
+        <p>One last tap in Chrome to switch the extension(s) on.</p>
         <div id="chrome-panel-finish"></div>
       </div>
     </section>
@@ -103,13 +107,16 @@
 </div>
 
 <template id="chrome-tpl">
-  <ol>
-    <li>Open the <b>chrome://extensions</b> page.</li>
-    <li>Switch on <b>Developer mode</b> (top right).</li>
-    <li>Drag each folder below onto the page, or click <b>Load unpacked</b> and pick it.</li>
-  </ol>
-  <div class="row" style="margin-bottom:6px"><button class="btn primary" data-act="open-chrome">Open chrome://extensions</button><span class="no-chrome" style="color:var(--bad)" hidden>Chrome was not found. Open it yourself and visit chrome://extensions.</span></div>
+  <p>They are already added to Chrome. The next time Chrome starts it shows an <b>Action required</b> button in its toolbar: click it and choose <b>Add extension</b>.</p>
+  <div class="row" style="margin-bottom:6px"><button class="btn primary" data-act="open-chrome">Open Chrome now</button><span class="no-chrome" style="color:var(--bad)" hidden>Chrome was not found. Start it yourself to finish.</span></div>
   <div class="exts"></div>
+  <p class="restart-note" hidden style="color:#d9a441">Chrome is open right now. Close every Chrome window and start it again, then the button appears.</p>
+  <details><summary>Chrome didn't ask?</summary>
+    <ol>
+      <li>Fully quit Chrome (close every window) and start it again.</li>
+      <li>Still nothing: open <b>chrome://extensions</b>, switch on <b>Developer mode</b>, click <b>Load unpacked</b> and pick the folder below.</li>
+    </ol>
+  </details>
 </template>
 
 <script>
@@ -146,7 +153,7 @@
     const box = host.querySelector(".exts");
     info.extensions.forEach((e) => {
       const row = document.createElement("div"); row.className = "ext"; row.dataset.id = e.id;
-      row.innerHTML = '<span class="tick">&nbsp;</span><div><b></b><small></small></div><button class="btn">Show folder</button>';
+      row.innerHTML = '<span class="tick">&nbsp;</span><div><b></b><small></small><small class="state"></small></div><button class="btn">Show folder</button>';
       row.querySelector("b").textContent = e.name; row.querySelector("small").textContent = e.desc;
       row.querySelector("button").onclick = () => api.show_folder(e.id);
       box.appendChild(row);
@@ -154,9 +161,19 @@
     refreshChrome();
   }
 
+  const STATE = { enabled: ["ok", "&#x2713;", "On"], pending: ["wait", "&#x22ef;", "Waiting for your OK in Chrome"], missing: ["", "&nbsp;", "Not added yet"] };
   async function refreshChrome() {
-    const status = await api.chrome_status();
-    status.forEach((s) => document.querySelectorAll('.ext[data-id="' + s.id + '"] .tick').forEach((t) => { t.classList.toggle("ok", s.loaded); t.innerHTML = s.loaded ? "&#x2713;" : "&nbsp;"; }));
+    const res = await api.chrome_status();
+    const status = res.extensions || res;
+    document.querySelectorAll(".restart-note").forEach((n) => { n.hidden = !res.chromeRunning || status.every((s) => s.state === "enabled"); });
+    status.forEach((s) => {
+      const [cls, glyph, label] = STATE[s.state] || STATE.missing;
+      document.querySelectorAll('.ext[data-id="' + s.id + '"]').forEach((row) => {
+        const t = row.querySelector(".tick");
+        t.className = "tick " + cls; t.innerHTML = glyph; t.title = label;
+        row.querySelector(".state").textContent = label;
+      });
+    });
   }
 
   async function startInstall() {

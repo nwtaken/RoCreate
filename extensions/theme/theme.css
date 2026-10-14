@@ -750,3 +750,85 @@ html.rocreate-on.rc-declutter .left-nav li:has(a[href*="referral"]),
 html.rocreate-on.rc-declutter .left-nav li:has(a[href*="ctx=plus"]) {
   display: none !important;
 }
+
+/* ==========================================================================
+   8. NAVIGATION — the left sidebar is replaced by a dropdown under the logo.
+   Entries are cloned from the sidebar by nav.js, so these rules restyle
+   Roblox's own markup rather than describing new elements.
+   ========================================================================== */
+html.rocreate-on .left-nav { display: none !important; }
+/* Roblox sizes its tiles from these containers, so only the sidebar gap is removed
+   here; widening them stretches single cards to the full viewport. */
+html.rocreate-on #container-main { margin-left: 0 !important; }
+
+/* the logo doubles as the menu button */
+html.rocreate-on #nav-logo-link { cursor: default; }
+html.rocreate-on #nav-logo-link .rc-chev {
+  display: flex !important;
+  align-items: center;
+  margin-left: 2px;
+  color: var(--rc-text-2);
+  transition: transform .22s cubic-bezier(.2, .8, .3, 1), color .15s;
+}
+html.rocreate-on #nav-logo-link:hover .rc-chev { color: var(--rc-text); }
+html.rocreate-on #nav-logo-link .rc-chev svg {
+  width: 13px; height: 13px; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+}
+html.rocreate-on #nav-logo-link.rc-trigger-open .rc-chev { transform: rotate(180deg); }
+
+/* the dropdown */
+html.rocreate-on #rc-menu {
+  position: fixed; top: 52px; left: 18px; z-index: 2147483000;
+  min-width: 232px; padding: 8px;
+  background: var(--rc-surface-1, #16181b);
+  border: 1px solid var(--rc-line, #25272c);
+  border-radius: 14px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .55);
+  display: flex; flex-direction: column; gap: 2px;
+  transform-origin: 28px -8px;
+  opacity: 0; visibility: hidden;
+  transform: translateY(-8px) scale(.96);
+  transition: opacity .16s ease, transform .22s cubic-bezier(.2, .9, .3, 1), visibility .22s;
+}
+html.rocreate-on #rc-menu.rc-open {
+  opacity: 1; visibility: visible; transform: none;
+}
+html.rocreate-on .rc-menu-item {
+  display: flex !important; align-items: center; gap: 12px;
+  padding: 9px 12px; border-radius: 10px;
+  color: var(--rc-text) !important; text-decoration: none !important;
+  font-size: 15px; font-weight: 600; white-space: nowrap;
+  opacity: 0; transform: translateY(-4px);
+  transition: background .12s, opacity .18s ease, transform .18s cubic-bezier(.2, .9, .3, 1);
+  transition-delay: 0s;
+}
+html.rocreate-on #rc-menu.rc-open .rc-menu-item {
+  opacity: 1; transform: none;
+  transition-delay: calc(var(--i) * 22ms + 30ms);
+}
+html.rocreate-on .rc-menu-item:hover { background: var(--rc-hover, rgba(255, 255, 255, .08)); }
+html.rocreate-on .rc-menu-item.rc-here { background: var(--color-shift-200, rgba(255, 255, 255, .1)); }
+html.rocreate-on .rc-menu-item svg,
+html.rocreate-on .rc-menu-item img,
+html.rocreate-on .rc-menu-item [class*="icon"] { flex: none; }
+/* the cloned unread count (Friends, etc.) sits at the far right */
+html.rocreate-on .rc-menu-item .rc-badge { margin-left: auto; }
+
+/* Messages, fused into the notification cluster */
+html.rocreate-on #rc-messages a {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 9px; color: var(--rc-text-2);
+  transition: background .12s, color .12s;
+}
+html.rocreate-on #rc-messages a:hover { background: rgba(255, 255, 255, .08); color: var(--rc-text); }
+html.rocreate-on .rc-msg-icon {
+  width: 22px; height: 22px; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+}
+html.rocreate-on .rc-msg-badge {
+  position: absolute; top: 1px; right: 0;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 99px; background: #e5484d; color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 16px; text-align: center;
+}

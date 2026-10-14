@@ -59,6 +59,7 @@ class Wizard:
             {"id": i, "name": n, "desc": d}
             for i, n, d in EXTENSIONS
             if (self._ext_path(i) / "manifest.json").exists()
+               or i in self._registry()
         ]
 
     def open_url(self, key: str) -> None:
@@ -79,13 +80,26 @@ class Wizard:
     def _ext_path(self, ext_id: str) -> Path:
         return self._install_dir / "extensions" / ext_id
 
+    def _registry(self) -> dict:
+        """ids and versions of the packed .crx files, written by installer/build.py."""
+        try:
+            return json.loads((self._install_dir / "extensions" / "registry.json").read_text("utf-8"))
+        except (OSError, ValueError):
+            return {}
+
     def chrome_status(self) -> list[dict]:
         import chrome_setup
+        reg = self._registry()
         loaded = chrome_setup.loaded_unpacked()
-        return [
-            {"id": i, "loaded": chrome_setup._norm(str(self._ext_path(i))) in loaded}
-            for i, _, _ in EXTENSIONS
-        ]
+        out = []
+        for i, _, _ in EXTENSIONS:
+            state = "missing"
+            if i in reg:
+                state = chrome_setup.extension_state(reg[i]["id"])
+            if state == "missing" and chrome_setup._norm(str(self._ext_path(i))) in loaded:
+                state = "enabled"          # loaded by hand with Load unpacked
+            out.append({"id": i, "state": state, "loaded": state == "enabled"})
+        return {"extensions": out, "chromeRunning": chrome_setup.is_running()}
 
     def open_chrome(self) -> bool:
         import chrome_setup
@@ -146,6 +160,19 @@ class Wizard:
                 except Exception as e:  # offline etc: the app retries on first launch
                     self._emit(note=f"RoValra could not be downloaded now ({e}). It will be retried when RoCreate starts.")
 
+            self._emit(step="Setting up Chrome…", pct=84)
+            import chrome_setup
+            reg = self._registry()
+            for ext in ("redirect", "theme"):
+                if not opts.get(ext) or ext not in reg:
+                    continue
+                info = reg[ext]
+                crx_file = target / "extensions" / info["crx"]
+                if crx_file.exists():
+                    chrome_setup.register_crx(info["id"], crx_file, info["version"])
+            if any(opts.get(e) for e in ("redirect", "theme")):
+                self._emit(note="Chrome will ask you to turn the extension on the next time it starts.")
+
             self._emit(step="Saving your choices…", pct=88)
             paths.SETTINGS.parent.mkdir(parents=True, exist_ok=True)
             try:
@@ -184,6 +211,9 @@ class Wizard:
             for lnk in (si.desktop_dir() / "RoCreate.lnk", si.start_menu_dir() / "RoCreate.lnk"):
                 lnk.unlink(missing_ok=True)
             si.unregister_protocol()
+            import chrome_setup
+            for info in self._registry().values():
+                chrome_setup.unregister_crx(info["id"])
             si.remove_uninstall_entry()
             self._cleanup.append(self._install_dir)
             if opts.get("deleteData"):

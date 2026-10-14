@@ -8,6 +8,7 @@
 
 Needs: pip install pyinstaller pywebview
 """
+import json
 import os
 import shutil
 import subprocess
@@ -17,8 +18,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 APP = ROOT / "app"
+KEYS = ROOT / "installer" / "keys"   # signing keys fix the extension IDs (not in git)
 BUILD = ROOT / "installer" / "build"
 DIST = ROOT / "dist"
+
+sys.path.insert(0, str(ROOT / "installer"))
+import crx  # noqa: E402
 
 
 def pyinstaller(*args) -> None:
@@ -47,11 +52,17 @@ def make_payload(app_dir: Path) -> Path:
         for f in app_dir.rglob("*"):
             if f.is_file():
                 z.write(f, f.relative_to(app_dir))
+        registry = {}
         for name in ("theme", "redirect"):
             ext = ROOT / "extensions" / name
             for f in ext.rglob("*"):
                 if f.is_file() and f.name != "make_icon.py" and "__pycache__" not in f.parts:
                     z.write(f, Path("extensions") / name / f.relative_to(ext))
+            # Signed .crx so the installer can register it with Chrome (see app/chrome_setup.py)
+            packed = BUILD / f"{name}.crx"
+            registry[name] = crx.pack(ext, KEYS / f"{name}.pem", packed)
+            z.write(packed, Path("extensions") / f"{name}.crx")
+        z.writestr("extensions/registry.json", json.dumps(registry, indent=2))
     return payload
 
 
