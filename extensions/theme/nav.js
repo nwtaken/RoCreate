@@ -158,20 +158,16 @@
     }
   }
 
-  // Roblox calls them Communities; this theme keeps the name Groups on the list page
+  // Roblox calls them Communities; this theme keeps "Groups". The list is React-owned, and
+  // rewriting its text or attributes crashes the page ("500 Something went wrong"), so only a
+  // data attribute is set here and theme.css paints the replacement label over the original.
   function renameGroups() {
     const root = document.querySelector(".groups-list-new");
     if (!root) return;
-    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    let n;
-    while ((n = w.nextNode())) {
-      if (n.parentElement.closest("a.groups-list-item")) continue; // never touch real group names
-      const t = n.nodeValue.replace(/Communities/g, "Groups").replace(/^(Create )Community$/, "$1Group");
-      if (t !== n.nodeValue) n.nodeValue = t;
-    }
-    root.querySelectorAll("input[placeholder]").forEach((i) => {
-      const p = i.placeholder.replace("Communities", "Groups");
-      if (p !== i.placeholder) i.placeholder = p;
+    root.querySelectorAll("span, a, button").forEach((el) => {
+      if (el.children.length || el.closest("a.groups-list-item")) return; // never touch real group names
+      const label = el.textContent.trim().replace(/Communities/g, "Groups").replace(/^(Create )Community$/, "$1Group");
+      if (label !== el.textContent.trim() && el.dataset.rcText !== label) el.dataset.rcText = label;
     });
   }
 

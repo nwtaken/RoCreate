@@ -860,3 +860,16 @@ html.rocreate-on a.groups-list-item:hover { background: var(--rc-elevated) !impo
 html.rocreate-on a.groups-list-item.active { background: var(--rc-elevated) !important; box-shadow: inset 3px 0 0 var(--rc-accent); }
 /* Roblox's one-off "Members list moved" tooltip floats over the group header */
 html.rocreate-on .educational-tooltip-content { display: none !important; }
+/* "Communities" -> "Groups" on the list's own labels: nav.js tags them with data-rc-text and the
+   original text is blanked while this label is drawn in its place (text is never edited). */
+html.rocreate-on .groups-list-new [data-rc-text] { font-size: 0 !important; }
+html.rocreate-on .groups-list-new [data-rc-text]::before {
+  content: attr(data-rc-text); font-size: 14px; font-weight: 600; color: var(--rc-text);
+}
+html.rocreate-on .groups-list-create-button [data-rc-text]::before { font-size: 16px; }
+/* the search placeholder is an attribute React owns, so overlay a "Groups" one instead */
+html.rocreate-on .groups-list-search-input::placeholder { color: transparent !important; }
+html.rocreate-on .groups-list-search:has(.groups-list-search-input:placeholder-shown)::after {
+  content: "Search My Groups"; position: absolute; left: 32px; top: 50%; transform: translateY(-50%);
+  font-size: 16px; color: var(--rc-text-2); pointer-events: none;
+}
