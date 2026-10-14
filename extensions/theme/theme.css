@@ -839,79 +839,24 @@ html.rocreate-on .rc-msg-badge {
 }
 
 /* ==========================================================================
-   9. COMMUNITIES ("Groups") — RoValra ships the list as a position:fixed 327px
-   sidebar, so the whole page sat empty to its right and the rows were cramped.
-   Un-fix it, drop the unused legacy details pane, and lay the communities out
-   as a centred, full-width grid of cards.
+   9. COMMUNITIES ("Groups")
    ========================================================================== */
-/* the page gives #content a 327px left margin to clear the fixed sidebar;
-   scoped with :has() so only the groups page is affected */
-html.rocreate-on #content:has(#group-container) { margin-left: 0 !important; }
-/* the active community's cover photo is shown full-width as a hero — drop it
-   so the page is a clean list, not a giant unlabelled banner */
-html.rocreate-on .group-cover-photo-fullwidth,
-html.rocreate-on group-react-cover-photo { display: none !important; }
-
+/* RoValra injects its Bulk Leave toolbar twice; keep one */
+html.rocreate-on .rovalra-bulk-leave-toolbar ~ .rovalra-bulk-leave-toolbar { display: none !important; }
+/* The list is position:fixed at left:289px (the old sidebar's width), so with the sidebar gone it
+   overlapped the details pane and left a dead strip on the left. Pin it to the window edge. */
 html.rocreate-on .groups-list-sidebar {
-  position: static !important;
-  width: 100% !important; max-width: none !important; height: auto !important;
-  background: transparent !important; padding: 0 !important;
-}
-html.rocreate-on #group-container,
-html.rocreate-on .group-details-container,
-html.rocreate-on .group-details-container-desktop-and-tablet {
-  width: 100% !important; max-width: none !important;
-}
-html.rocreate-on .group-react-groups-list,
-html.rocreate-on .group-react-groups-list > div,
-html.rocreate-on .groups-list-new {
-  width: 100% !important; max-width: 1180px; margin: 0 auto !important;
-}
-/* the legacy details column is unused here — clicking a card navigates away */
-html.rocreate-on .group-details.col-xs-12 { display: none !important; }
-
-/* heading → "Groups" */
-html.rocreate-on .groups-list-heading { font-size: 0 !important; margin: 4px 0 14px !important; }
-html.rocreate-on .groups-list-heading::before {
-  content: "Groups"; font-size: 26px; font-weight: 700; color: var(--rc-text);
-}
-
-/* search */
-html.rocreate-on .groups-list-search { max-width: 440px; margin-bottom: 18px !important; }
-html.rocreate-on .groups-list-search-input {
-  background: var(--rc-elevated) !important;
-  border: 1px solid var(--rc-border) !important;
-  border-radius: var(--rc-radius) !important; color: var(--rc-text) !important;
-}
-
-/* the card grid — flatten RoValra's section wrappers so the labels and the
-   community links both become direct grid items (display:contents). */
-html.rocreate-on .groups-list-items-container {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
-  gap: 10px !important;
-}
-html.rocreate-on .groups-list-items-container > div,
-html.rocreate-on .groups-list-items-container > div > div { display: contents !important; }
-html.rocreate-on .groups-list-items-container > div > span.text-caption-large {
-  grid-column: 1 / -1; margin: 14px 0 2px !important;
-  color: var(--rc-text-2) !important; text-transform: uppercase;
-  letter-spacing: .04em; font-weight: 700; font-size: 11px;
-}
-
-/* each community = a card */
-html.rocreate-on a.groups-list-item {
+  left: 0 !important; top: 56px !important;
+  height: calc(100vh - 56px) !important;
   background: var(--rc-surface) !important;
-  border: 1px solid var(--rc-border) !important;
-  border-radius: 12px !important; padding: 12px !important;
-  gap: 12px !important; align-items: center !important;
-  transition: border-color .12s, background .12s, transform .12s;
+  border-right: 1px solid var(--rc-border) !important;
 }
-html.rocreate-on a.groups-list-item:hover {
-  background: var(--rc-elevated) !important;
-  border-color: rgba(255,255,255,.22) !important; transform: translateY(-1px);
-}
-html.rocreate-on a.groups-list-item.active { border-color: var(--rc-accent) !important; }
-html.rocreate-on .groups-list-item-thumbnail { width: 46px !important; height: 46px !important; flex: none !important; }
-html.rocreate-on .groups-list-item-thumbnail .thumbnail-2d-container,
-html.rocreate-on .groups-list-item-thumbnail img { border-radius: 10px !important; overflow: hidden; }
+/* heading says "Groups" (labels and placeholder are renamed in nav.js) */
+html.rocreate-on .groups-list-heading { font-size: 0 !important; }
+html.rocreate-on .groups-list-heading::before { content: "Groups"; font-size: 22px; font-weight: 700; color: var(--rc-text); }
+/* selected group stands out in the list */
+html.rocreate-on a.groups-list-item { border-radius: 10px !important; padding: 8px !important; transition: background .12s; }
+html.rocreate-on a.groups-list-item:hover { background: var(--rc-elevated) !important; }
+html.rocreate-on a.groups-list-item.active { background: var(--rc-elevated) !important; box-shadow: inset 3px 0 0 var(--rc-accent); }
+/* Roblox's one-off "Members list moved" tooltip floats over the group header */
+html.rocreate-on .educational-tooltip-content { display: none !important; }
