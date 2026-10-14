@@ -1,0 +1,21 @@
+# Runtime data. The browser profile holds Roblox login cookies: NEVER commit it.
+profile/
+settings.json
+.data/
+*.log
+
+# Downloaded at install time (GPL-3.0, not redistributed here)
+extensions/rovalra/
+
+# Build output
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

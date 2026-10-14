@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; width: 240px;
+    background: #16181c; color: #f2f3f5;
+    font-family: "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    padding: 14px 16px; background: #111317;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-weight: 600; font-size: 15px;
+  }
+  header span { color: #0a84ff; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; font-size: 13px;
+  }
+  .row + .row { border-top: 1px solid rgba(255,255,255,0.06); }
+  .sub { color: #a7acb3; font-size: 11px; margin-top: 2px; }
+  /* toggle switch */
+  .sw { position: relative; width: 38px; height: 22px; flex: none; }
+  .sw input { opacity: 0; width: 0; height: 0; }
+  .track {
+    position: absolute; inset: 0; background: #3a3f46;
+    border-radius: 999px; transition: background .15s;
+  }
+  .track::before {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; background: #fff; border-radius: 50%;
+    transition: transform .15s;
+  }
+  input:checked + .track { background: #0a84ff; }
+  input:checked + .track::before { transform: translateX(16px); }
+</style>
+</head>
+<body>
+  <header>Ro<span>Create</span></header>
+
+  <div class="row">
+    <div>Theme<div class="sub">Creator-Hub reskin</div></div>
+    <label class="sw"><input type="checkbox" id="enabled"><span class="track"></span></label>
+  </div>
+
+  <div class="row">
+    <div>Declutter<div class="sub">Hide ads &amp; upsells</div></div>
+    <label class="sw"><input type="checkbox" id="declutter"><span class="track"></span></label>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

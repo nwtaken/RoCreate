@@ -1,0 +1,752 @@
+/* ==========================================================================
+   RoCreate — reskins roblox.com to the Creator Hub ("Create tab") look.
+
+   HOW IT WORKS
+   Roblox's current site is built on the "Foundation" design system, which is
+   driven by CSS custom properties (--color-surface-0..300, --color-content-*,
+   --color-state-*, --divider-color, ...). Re-defining those tokens reskins the
+   ENTIRE new UI in one shot — left nav, cards, dialogs, settings — instead of
+   chasing per-component class names (which Roblox renames constantly).
+
+   The TOPBAR is still the legacy Bootstrap navbar (#header, ul.nav.rbx-navbar,
+   #navbar-robux/settings), so it does NOT read those tokens — it gets explicit
+   overrides lower down.
+
+   RoValra COMPAT: RoValra styles its own injected UI with the same Roblox
+   tokens (var(--color-surface-*), var(--color-state-hover), ...), so our token
+   override restyles RoValra to match automatically. We never touch RoValra's
+   private --rovalra-theme-* vars and never hide its injected buttons.
+
+   Everything is gated behind html.rocreate-on (toggled by content.js) so the
+   popup can enable/disable instantly without a reload.
+
+   Token values verified against RoValra's source (which consumes them); exact
+   Roblox token names: --color-surface-{0,100,200,300}, --color-content-
+   {default,emphasis,muted,secondary}, --color-state-{hover,press},
+   --divider-color, --color-common-heavy-divider, --surface-default,
+   --border-default, --stroke-standard, --text-{default,secondary}, --primary.
+   ========================================================================== */
+
+/* ---- Legacy helper palette (used by the Bootstrap-era overrides below) ---- */
+html.rocreate-on {
+  --rc-app:       #0e0f11;
+  --rc-surface:   #16181b;
+  --rc-elevated:  #1d1f23;
+  --rc-header:    #0b0c0e;  /* near-black topbar + any legacy left nav */
+  --rc-border:    rgba(255,255,255,0.10);
+  --rc-text:      #e8eaed;
+  --rc-text-2:    #a7acb3;
+  --rc-accent:    #0a84ff;
+  --rc-accent-h:  #2f9bff;
+  --rc-radius:    10px;
+  --rc-radius-sm: 8px;
+}
+
+/* ==========================================================================
+   1. FOUNDATION TOKEN OVERRIDE — the engine. !important beats Roblox's own
+   non-important token definitions regardless of where they are scoped.
+   ========================================================================== */
+html.rocreate-on,
+html.rocreate-on body {
+  --color-surface-0:   #0e0f11 !important;  /* page / sidebar base (near black) */
+  --color-surface-100: #16181b !important;  /* cards, panels                    */
+  --color-surface-200: #1d1f23 !important;  /* raised surfaces                  */
+  --color-surface-300: #26292e !important;  /* highest surfaces                 */
+  --surface-default:   #16181b !important;
+
+  --color-content-default:   #e8eaed !important;  /* body text (bright)   */
+  --color-content-emphasis:  #ffffff !important;  /* headings / active    */
+  --color-content-secondary: #c2c7cc !important;
+  --color-content-muted:     #a7acb3 !important;  /* secondary / captions */
+  --text-default:   #e8eaed !important;
+  --text-secondary: #a7acb3 !important;
+
+  --color-state-hover: rgba(255,255,255,0.06) !important;  /* nav hover       */
+  --color-state-press: rgba(255,255,255,0.10) !important;
+
+  /* shift scale: the active left-nav item is .bg-shift-200 — Roblox ships a
+     blue-tinted 8% fill; Create uses a solid neutral gray pill */
+  --color-shift-100: rgba(255,255,255,0.04) !important;
+  --color-shift-200: #232428 !important;
+  --color-shift-300: #2b2c31 !important;
+  --color-shift-400: #34363b !important;
+
+  --divider-color:              rgba(255,255,255,0.08) !important;
+  --color-common-heavy-divider: rgba(255,255,255,0.12) !important;
+  --border-default:   rgba(255,255,255,0.10) !important;  /* RoValra reads it */
+  /* NB: --stroke-standard is a border WIDTH (calc(1px*1)) — never recolour it */
+
+  /* Foundation stroke colours: neutral instead of Roblox's blue tint */
+  --color-stroke-muted:    rgba(255,255,255,0.06) !important;
+  --color-stroke-default:  rgba(255,255,255,0.10) !important;
+  --color-stroke-emphasis: rgba(255,255,255,0.16) !important;
+
+  /* standard (secondary) buttons: flat neutral gray, like Create */
+  --color-action-standard-background: rgba(255,255,255,0.08) !important;
+  --color-action-alert-background:    rgba(255,255,255,0.08) !important;
+
+  --primary: #0a84ff !important;
+}
+
+/* ==========================================================================
+   2. BASE SURFACES — belt-and-braces for elements that hardcode a background
+   instead of reading a token (common on legacy dark-theme pages).
+   ========================================================================== */
+html.rocreate-on,
+html.rocreate-on body,
+html.rocreate-on #content,
+html.rocreate-on .content,
+html.rocreate-on .container-main,
+html.rocreate-on #container-main,
+html.rocreate-on .content-page-container {
+  background-color: var(--rc-app) !important;
+  color: var(--rc-text) !important;
+}
+
+/* ==========================================================================
+   3. LEGACY TOPBAR (Bootstrap navbar) — kill the blue gradient, go flat dark.
+   ========================================================================== */
+html.rocreate-on #header,
+html.rocreate-on #header > .container-fluid,
+html.rocreate-on .rbx-header,
+html.rocreate-on nav.rbx-navbar,
+html.rocreate-on .navbar-fixed-top,
+html.rocreate-on .navbar-default,
+html.rocreate-on #right-navigation-header {
+  background: var(--rc-header) !important;
+  background-image: none !important;
+  border-bottom: 1px solid var(--rc-border) !important;
+  box-shadow: none !important;
+}
+
+/* top nav links (Charts / Marketplace / Create / Robux) + right-side items */
+html.rocreate-on ul.nav.rbx-navbar a,
+html.rocreate-on .rbx-navbar .text-nav,
+html.rocreate-on #navbar-robux .text-robux,
+html.rocreate-on #navbar-settings a,
+html.rocreate-on .age-bracket-label.text-header {
+  color: var(--rc-text-2) !important;
+  font-weight: 500 !important;
+}
+html.rocreate-on ul.nav.rbx-navbar a:hover,
+html.rocreate-on #navbar-settings a:hover {
+  color: var(--rc-text) !important;
+}
+/* topbar search pill */
+html.rocreate-on #navbar-search-input,
+html.rocreate-on [data-testid="navigation-search-input"],
+html.rocreate-on .navbar-search input {
+  background: var(--rc-surface) !important;
+  border: 1px solid var(--rc-border) !important;
+  border-radius: 999px !important;
+  color: var(--rc-text) !important;
+}
+
+/* ---- Topbar rebuild: 56px flex row, logo | nav | search ...... icons | avatar.
+   The header is position:fixed, so the content offset (#container-main
+   margin-top) and the fixed left nav (top) move with it. ---- */
+html.rocreate-on #header,
+html.rocreate-on #header > .container-fluid {
+  height: 56px !important;
+  min-height: 56px !important;
+}
+html.rocreate-on #header > .container-fluid {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 16px 0 12px !important;
+}
+html.rocreate-on #container-main { margin-top: 56px !important; }
+html.rocreate-on .left-nav { top: 56px !important; bottom: 0 !important; height: auto !important; }
+
+html.rocreate-on .rbx-navbar-header,
+html.rocreate-on .rbx-navbar-header .navbar-header {
+  display: flex !important;
+  align-items: center !important;
+  float: none !important;
+  width: auto !important;
+  height: 56px !important;
+}
+html.rocreate-on #nav-logo-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  height: 56px !important;
+  padding: 0 !important;
+}
+/* square Roblox mark in front of the wordmark, as on the Create topbar */
+html.rocreate-on #nav-logo-link .icon-logo-r {
+  display: block !important;
+  order: -1 !important;
+  width: 24px !important;
+  height: 24px !important;
+  background-size: 24px 24px !important;
+}
+html.rocreate-on #nav-logo-link .icon-logo {
+  width: 94px !important;
+  height: 24px !important;
+  background-size: 94px 24px !important;
+}
+/* keep the a11y skip link off-screen until it is keyboard-focused */
+html.rocreate-on #skip-to-main-content:not(:focus-visible) {
+  position: absolute !important;
+  top: -200px !important;
+}
+/* only #header draws the bottom line; its children must not paint over it */
+html.rocreate-on #header > .container-fluid,
+html.rocreate-on #right-navigation-header,
+html.rocreate-on .rbx-navbar-header {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* primary nav: compact row right after the logo */
+html.rocreate-on ul.nav.rbx-navbar.hidden-xs.hidden-sm {
+  display: flex !important;
+  align-items: center !important;
+  float: none !important;
+  width: auto !important;
+  margin: 0 0 0 64px !important;
+  padding: 0 !important;
+}
+html.rocreate-on ul.nav.rbx-navbar.hidden-xs.hidden-sm > li {
+  float: none !important;
+  width: auto !important;
+}
+html.rocreate-on ul.nav.rbx-navbar.hidden-xs.hidden-sm > li > a,
+html.rocreate-on #navigation-robux-container a {
+  padding: 0 15px !important;
+  width: auto !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 56px !important;
+  color: var(--rc-text) !important;
+}
+
+/* right half: search sits after the nav, icons pushed to the far edge */
+html.rocreate-on #right-navigation-header {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  float: none !important;
+  width: auto !important;
+  height: 56px !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+html.rocreate-on .navbar-search {
+  flex: none !important;
+  float: none !important;
+  width: 320px !important;
+  margin: 0 0 0 24px !important;
+  padding: 0 !important;
+  height: 36px !important;
+}
+html.rocreate-on .navbar-search .input-group { width: 100% !important; height: 36px !important; }
+html.rocreate-on #navbar-search-input {
+  height: 36px !important;
+  padding-left: 40px !important;
+  font-size: 14px !important;
+}
+html.rocreate-on .navbar-search .input-addon-btn {
+  height: 36px !important;
+  left: 6px !important;
+}
+
+html.rocreate-on .navbar-right.rbx-navbar-right {
+  float: none !important;
+  margin-left: auto !important;
+}
+html.rocreate-on .rbx-navbar-icon-group {
+  align-items: center !important;
+  gap: 4px !important;
+  height: 56px !important;
+}
+html.rocreate-on .rbx-navbar-icon-group > li {
+  margin: 0 !important;
+}
+/* avatar last, as a plain circle (no username), Robux count hidden */
+html.rocreate-on .rbx-navbar-icon-group > .age-bracket-label {
+  order: 99 !important;
+  width: auto !important;
+  margin-left: 8px !important;
+}
+html.rocreate-on .age-bracket-label-username {
+  display: none !important;
+}
+/* Thin dark scrollbars (no arrow buttons) instead of the default grey Windows ones. */
+html.rocreate-on,
+html.rocreate-on * { scrollbar-width: thin; scrollbar-color: #3a3d44 transparent; }
+html.rocreate-on::-webkit-scrollbar,
+html.rocreate-on ::-webkit-scrollbar { width: 10px; height: 10px; background: transparent; }
+html.rocreate-on::-webkit-scrollbar-track,
+html.rocreate-on ::-webkit-scrollbar-track { background: transparent; }
+html.rocreate-on::-webkit-scrollbar-thumb,
+html.rocreate-on ::-webkit-scrollbar-thumb {
+  background: #3a3d44; border-radius: 99px; border: 2px solid transparent; background-clip: content-box;
+}
+html.rocreate-on::-webkit-scrollbar-thumb:hover,
+html.rocreate-on ::-webkit-scrollbar-thumb:hover { background: #565a62; background-clip: content-box; }
+html.rocreate-on::-webkit-scrollbar-button,
+html.rocreate-on ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+html.rocreate-on::-webkit-scrollbar-corner,
+html.rocreate-on ::-webkit-scrollbar-corner { background: transparent; }
+
+/* Robux balance is always shown next to the icon. */
+html.rocreate-on #navbar-robux {
+  display: flex !important;
+  align-items: center !important;
+  width: auto !important;
+  min-width: 40px;
+}
+html.rocreate-on #nav-robux-amount {
+  display: inline-block !important;
+  margin: 0 8px 0 2px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  color: var(--rc-text) !important;
+}
+html.rocreate-on .age-bracket-label .avatar-headshot-xs,
+html.rocreate-on .age-bracket-label .avatar-headshot-xs .thumbnail-2d-container {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+}
+/* Roblox leaves the avatar chip 3px below the 56px bar's centre line; centre it
+   (and the Plus badge beside it) and nudge the search pill up its 1px offset. */
+html.rocreate-on .rbx-navbar-icon-group > .age-bracket-label {
+  height: 56px !important;
+  padding: 0 !important;
+  align-items: center !important;
+}
+html.rocreate-on .age-bracket-label > a { margin: 0 !important; }
+html.rocreate-on .navbar-search .input-group { top: -1px !important; }
+
+/* ==========================================================================
+   4. LEFT NAV — Foundation (.left-nav) is mostly handled by the token override.
+   Here we only shape the active item into the Create-tab rounded gray pill and
+   round the hover, plus a fallback for the legacy #navigation markup.
+   ========================================================================== */
+html.rocreate-on .left-nav nav a[href],
+html.rocreate-on .left-nav nav button,
+html.rocreate-on .left-nav .roseal-left-nav-item .nav-item-link,
+html.rocreate-on #navigation li a {
+  border-radius: var(--rc-radius-sm) !important;
+  font-weight: 600 !important;
+}html.rocreate-on .left-nav nav a[href]:hover,
+html.rocreate-on .left-nav nav button:hover,
+html.rocreate-on #navigation li a:hover {
+  background: rgba(255,255,255,0.06) !important;
+}
+/* kill the white focus box Roblox draws on the last-clicked nav item */
+html.rocreate-on .left-nav a:focus,
+html.rocreate-on .left-nav a:focus-visible,
+html.rocreate-on .left-nav button:focus,
+html.rocreate-on .left-nav button:focus-visible,
+html.rocreate-on .left-nav [tabindex]:focus-visible,
+html.rocreate-on .left-nav .foundation-web-menu-item:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+/* active item: solid rounded gray fill pill, NO border/outline (Create tab) */
+html.rocreate-on .left-nav a[aria-current="page"],
+html.rocreate-on .left-nav [aria-current="page"] .nav-item-link,
+html.rocreate-on .left-nav [aria-current="page"] .foundation-web-menu-item-content,
+html.rocreate-on .left-nav .foundation-web-menu-item[aria-current="page"],
+html.rocreate-on .left-nav li.selected a,
+html.rocreate-on #navigation li.selected a,
+html.rocreate-on #navigation li a.selected-item {
+  background-color: #26282c !important;
+  color: var(--rc-text) !important;
+  border: 1px solid transparent !important;  /* kill Roblox's selected border */
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: var(--rc-radius-sm) !important;
+}
+
+/* ==========================================================================
+   5. LEGACY CARDS / BUTTONS / INPUTS — for pages not yet on Foundation.
+   ========================================================================== */
+/* game cards: no box — just a rounded thumbnail and text, like the
+   "Currently Wearing" row, so every card row on a page looks the same */
+html.rocreate-on .game-card-container,
+html.rocreate-on .grid-item-container,
+html.rocreate-on .game-tile,
+html.rocreate-on .featured-game-container {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+html.rocreate-on .game-card-thumb-container,
+html.rocreate-on .game-card-thumb-container img,
+html.rocreate-on .thumbnail-2d-container img {
+  border-radius: var(--rc-radius) !important;
+}
+/* Charts/carousels: titles are 1 or 2 lines, which left the rating rows
+   ragged. Fix two lines' worth of height so every row lines up. */
+html.rocreate-on .game-card-name.game-name-title {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden !important;
+  height: 36px !important;
+  margin-top: 8px !important;
+  font-size: 13px !important;
+  line-height: 18px !important;
+  white-space: normal !important;
+}
+/* chart filters are filters, not calls to action — neutral, not accent blue */
+html.rocreate-on .filters-container .filter-select.btn-primary-md {
+  background: rgba(255,255,255,0.08) !important;
+  color: var(--rc-text) !important;
+}
+html.rocreate-on .filters-container .filter-select.btn-primary-md:hover {
+  background: rgba(255,255,255,0.14) !important;
+}
+html.rocreate-on .filters-container {
+  gap: 8px !important;
+  margin-bottom: 4px !important;
+}
+
+/* every size suffix: -xs / -sm / -md / -lg */
+html.rocreate-on [class*="btn-primary-"],
+html.rocreate-on [class*="btn-cta-"],
+html.rocreate-on [class*="btn-growth-"] {
+  background: var(--rc-accent) !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: var(--rc-radius-sm) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+html.rocreate-on [class*="btn-primary-"]:hover,
+html.rocreate-on [class*="btn-cta-"]:hover,
+html.rocreate-on [class*="btn-growth-"]:hover {
+  background: var(--rc-accent-h) !important;
+}
+html.rocreate-on [class*="btn-secondary-"],
+html.rocreate-on [class*="btn-control-"],
+html.rocreate-on [class*="btn-generic-more-"] {
+  background: transparent !important;
+  border: 1px solid var(--rc-border) !important;
+  border-radius: var(--rc-radius-sm) !important;
+  color: var(--rc-text) !important;
+}
+html.rocreate-on [class*="btn-secondary-"]:hover,
+html.rocreate-on [class*="btn-control-"]:hover {
+  background: var(--rc-elevated) !important;
+}
+
+html.rocreate-on .input-field,
+html.rocreate-on .form-control {
+  background: var(--rc-surface) !important;
+  border: 1px solid var(--rc-border) !important;
+  border-radius: var(--rc-radius-sm) !important;
+  color: var(--rc-text) !important;
+}
+html.rocreate-on .form-control:focus {
+  border-color: var(--rc-accent) !important;
+  box-shadow: 0 0 0 2px rgba(10,132,255,0.25) !important;
+  outline: none !important;
+}
+
+/* ==========================================================================
+   6. SETTINGS PAGE (legacy markup)
+   ========================================================================== */
+html.rocreate-on #settings-container,
+html.rocreate-on .settings-page {
+  background: var(--rc-app) !important;
+}
+/* settings menu: plain list, bold items, gray pill on the active one */
+html.rocreate-on ul.menu-vertical {
+  background: transparent !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+html.rocreate-on .menu-vertical .menu-option-content {
+  padding: 9px 12px !important;
+  border-radius: var(--rc-radius-sm) !important;
+  color: var(--rc-text) !important;
+}
+html.rocreate-on .menu-vertical .menu-option-content .font-caption-header {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+html.rocreate-on .menu-vertical .menu-option-content:hover {
+  background: rgba(255,255,255,0.06) !important;
+}
+html.rocreate-on .menu-vertical .menu-option-content.active {
+  background: #232428 !important;
+  box-shadow: none !important;   /* Roblox's white inset active bar */
+}
+
+/* ==========================================================================
+   6b. FRIEND / FOLLOWER TILES (ul.hlist.avatar-cards on the friends pages)
+   Wide horizontal cards -> compact vertical tiles: rounded-square avatar,
+   display name truncated so its badges (Plus, verified, RoValra's) stay
+   visible after it, @username underneath. Status text dropped — the presence
+   icon on the avatar already shows it.
+   ========================================================================== */
+html.rocreate-on ul.hlist.avatar-cards {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 20px 16px !important;
+  padding: 8px 0 !important;
+}
+/* bootstrap clearfix pseudos would become invisible flex items */
+html.rocreate-on ul.hlist.avatar-cards::before,
+html.rocreate-on ul.hlist.avatar-cards::after {
+  display: none !important;
+}
+html.rocreate-on ul.avatar-cards > li.avatar-card {
+  float: none !important;
+  width: 106px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+/* Friend-request cards carry an Accept/Ignore bar, so they need a wider tile.
+   Roblox gives that bar its own surface-300 panel + top border, which reads as
+   a detached grey block once the card is a tile — flatten it into the card and
+   keep the two buttons side by side. */
+html.rocreate-on ul.avatar-cards > li.avatar-card:has(.avatar-card-btns) {
+  width: 168px !important;
+}
+html.rocreate-on ul.avatar-cards li:has(.avatar-card-btns) .avatar-card-container,
+html.rocreate-on ul.avatar-cards li:has(.avatar-card-btns) .avatar-card-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  height: 100% !important;
+}
+/* caption grows so every button bar lines up along the bottom of the row */
+html.rocreate-on ul.avatar-cards li:has(.avatar-card-btns) .avatar-card-caption {
+  flex: 1 1 auto !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-card-btns {
+  display: flex !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 10px 0 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-card-btns::before,
+html.rocreate-on ul.avatar-cards .avatar-card-btns::after {
+  display: none !important;   /* bootstrap clearfix, breaks the flex row */
+}
+html.rocreate-on ul.avatar-cards .avatar-card-btns [class^="btn-"] {
+  float: none !important;
+  flex: 1 1 0 !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+/* "Sent from <game>" / mutual friends: Roblox pins this to 34px, so longer
+   game names overflow. Let it wrap to two lines instead. */
+html.rocreate-on ul.avatar-cards .avatar-card-footer {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden !important;
+  height: auto !important;
+  max-height: 32px !important;
+  font-size: 11px !important;
+  line-height: 15px !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-card-container,
+html.rocreate-on ul.avatar-cards .avatar-card-content {
+  width: 100% !important;
+  height: auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-card-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-card-fullbody {
+  float: none !important;
+  width: 90px !important;
+  height: 90px !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
+  background: var(--color-surface-200) !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-card-fullbody .avatar-card-image,
+html.rocreate-on ul.avatar-cards .avatar-card-fullbody img {
+  width: 90px !important;
+  height: 90px !important;
+  border-radius: 12px !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-status {
+  right: -4px !important;
+  bottom: -4px !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-card-caption {
+  float: none !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 8px 0 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-name-container {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 3px !important;
+  max-width: 100% !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-name {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--rc-text) !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-name-container > :not(.avatar-name) {
+  flex: none !important;
+}
+html.rocreate-on ul.avatar-cards .avatar-card-label {
+  font-size: 12px !important;
+  color: var(--rc-text-2) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+/* drop the redundant "Online" line — but keep the extra lines on request
+   cards, where they carry mutual friends / "Sent from <game>" */
+html.rocreate-on ul.avatar-cards
+  > li.avatar-card:not(:has(.avatar-card-btns))
+  .avatar-card-label ~ .avatar-card-label {
+  display: none !important;
+}
+
+/* ---- Profile header: compact action buttons instead of a ~280px bar ---- */
+html.rocreate-on .buttons-show-on-desktop .button-container {
+  width: auto !important;
+  flex: none !important;
+}
+html.rocreate-on .buttons-show-on-desktop > .flex {
+  justify-content: flex-end !important;  /* keep them on the banner's edge */
+}
+html.rocreate-on .buttons-show-on-desktop .button-container > .foundation-web-button {
+  width: auto !important;
+  min-width: 136px !important;
+  padding: 0 20px !important;
+}
+
+/* ---- Friend carousel tiles (Home + profile "Friends" row, and RoValra's
+   redesigned carousel, which reuses .friends-carousel-tile). content.js adds
+   the badges + @username (.rc-ext). ---- */
+html:not(.rocreate-on) .rc-ext { display: none !important; }
+
+html.rocreate-on .friends-carousel-tile .avatar-card-fullbody,
+html.rocreate-on .friends-carousel-tile .avatar-card-image,
+html.rocreate-on .friends-carousel-tile .avatar-card-image img {
+  border-radius: 12px !important;
+}
+html.rocreate-on .friends-carousel-tile .avatar-card-fullbody {
+  background: var(--color-surface-200) !important;
+}
+/* fixed width: long @usernames must ellipsize, not stretch the tile */
+html.rocreate-on .friends-carousel-tile {
+  width: 102px !important;
+  max-width: 102px !important;
+}
+html.rocreate-on .friends-carousel-tile-labels,
+html.rocreate-on .friends-carousel-tile-label {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+html.rocreate-on .friends-carousel-tile-name,
+html.rocreate-on .rovalra-user-card .user-card-name > span {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 3px !important;
+  max-width: 100% !important;
+  overflow: hidden !important;   /* badges must never widen the tile */
+}
+html.rocreate-on .friends-carousel-display-name {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+html.rocreate-on .friends-carousel-tile-name > :not(.friends-carousel-display-name) {
+  flex: none !important;
+}
+html.rocreate-on .friends-carousel-tile-sublabel {
+  font-size: 12px !important;
+  color: var(--rc-text-2) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   7. SCROLLBAR
+   ========================================================================== */
+html.rocreate-on ::-webkit-scrollbar { width: 10px; height: 10px; }
+html.rocreate-on ::-webkit-scrollbar-track { background: var(--rc-app); }
+html.rocreate-on ::-webkit-scrollbar-thumb {
+  background: #3a3f46; border-radius: 999px; border: 2px solid var(--rc-app);
+}
+html.rocreate-on ::-webkit-scrollbar-thumb:hover { background: #4a5059; }
+
+/* ==========================================================================
+   8. RoValra COMPAT — its UI already consumes the tokens above, so this is
+   only a safety net: keep its injected surfaces/buttons readable, and make
+   sure we never flatten away RoValra's own theme feature if the user runs one
+   (we deliberately do NOT redefine any --rovalra-theme-* variable).
+   ========================================================================== */
+html.rocreate-on .roseal-btn,
+html.rocreate-on .foundation-web-button {
+  border-radius: var(--rc-radius-sm) !important;
+}
+/* if the user enables a RoValra custom background, let it show through our base */
+html.rocreate-on body.rovalra-custom-background-image-active,
+html.rocreate-on body.rovalra-custom-background-image-active #content {
+  background-color: transparent !important;
+}
+
+/* ==========================================================================
+   9. DECLUTTER (toggle) — hide ads + Plus upsells. Nothing here matches any
+   rovalra-* / roseal-* element, so RoValra's buttons are never hidden.
+   ========================================================================== */
+html.rocreate-on.rc-declutter #AdZone,
+html.rocreate-on.rc-declutter .ad-container,
+html.rocreate-on.rc-declutter #AdvertisingLeaderboard,
+html.rocreate-on.rc-declutter .abp,
+html.rocreate-on.rc-declutter .premium-upsell,
+html.rocreate-on.rc-declutter [data-testid="upsell-card"],
+html.rocreate-on.rc-declutter .plus-upsell-container,
+/* Plus / Premium upsells (selectors from RoValra's lessPlus feature) */
+html.rocreate-on.rc-declutter .subscribe-upsell-container,
+html.rocreate-on.rc-declutter .trades-upsell-card,
+html.rocreate-on.rc-declutter .subscribe-upsell-banner,
+html.rocreate-on.rc-declutter li.padding-top-xsmall:has(a[href="/plus"]),
+html.rocreate-on.rc-declutter div.buy-robux-content a[href="/plus"],
+/* "Share Plus to get 100 Robux" referral promo card — referral/upsell only,
+   so the plain "Roblox Plus" nav item (a[href$='/plus']) is NOT hidden */
+html.rocreate-on.rc-declutter .left-nav [class*="upsell" i],
+html.rocreate-on.rc-declutter .left-nav [class*="referral" i],
+html.rocreate-on.rc-declutter .left-nav li:has(a[href*="referral"]),
+html.rocreate-on.rc-declutter .left-nav li:has(a[href*="ctx=plus"]) {
+  display: none !important;
+}

@@ -1,0 +1,27 @@
+# Hosts blocked at the network layer (substring match on the request host).
+# Lines starting with # are ignored. Edit freely and restart the app.
+#
+# Deliberately conservative: nothing here is needed to render or use the site.
+# Do NOT add apis.roblox.com, www.roblox.com, *.rbxcdn.com or auth/presence
+# endpoints — the site breaks without them.
+
+# --- third-party analytics / ads ---
+googletagmanager.com
+google-analytics.com
+analytics.google.com
+doubleclick.net
+googlesyndication.com
+adservice.google.com
+adtrafficquality.google
+amazon-adsystem.com
+scorecardresearch.com
+adsrvr.org
+connect.facebook.net
+bat.bing.com
+analytics.tiktok.com
+snap.licdn.com
+clarity.ms
+
+# --- Roblox first-party telemetry (safe to drop) ---
+ecsv2.roblox.com
+ephemeralcounters.api.roblox.com

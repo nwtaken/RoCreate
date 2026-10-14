@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RoCreate Setup</title>
+<style>
+  :root { --bg:#0e0f11; --panel:#16181b; --line:#25272c; --text:#f4f4f5; --dim:#a3a5ad; --blue:#335fff; --ok:#3ecf8e; --bad:#ff5c5c; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 "Segoe UI", system-ui, sans-serif; user-select: none; overflow: hidden; }
+  #wrap { height: 100%; display: flex; flex-direction: column; border: 1px solid var(--line); }
+  header { height: 56px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid var(--line); }
+  header svg { width: 26px; height: 26px; }
+  header b { letter-spacing: .14em; font-size: 15px; }
+  header span { color: var(--dim); }
+  #x { position: absolute; top: 0; right: 0; width: 46px; height: 56px; border: 0; background: none; color: var(--dim); font-size: 15px; cursor: default; }
+  #x:hover { background: #c42b1c; color: #fff; }
+  main { flex: 1; padding: 28px 32px 8px; overflow: hidden; position: relative; }
+  section { display: none; height: 100%; }
+  section.on { display: block; }
+  h1 { margin: 0 0 6px; font-size: 24px; }
+  p { margin: 6px 0; color: var(--dim); }
+  .row { display: flex; gap: 10px; align-items: center; }
+  input[type=text] { flex: 1; background: var(--panel); border: 1px solid var(--line); color: var(--text); border-radius: 9px; padding: 9px 12px; font: inherit; user-select: text; }
+  label.chk { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; margin: 6px 0; background: var(--panel); }
+  label.chk input { margin-top: 4px; accent-color: var(--blue); }
+  label.chk small { display: block; color: var(--dim); }
+  label.chk a { color: #7d9bff; }
+  button.btn { background: #2a2c31; color: var(--text); border: 0; border-radius: 9px; padding: 9px 16px; font: inherit; cursor: default; }
+  button.btn:hover { background: #363940; }
+  button.primary { background: var(--blue); }
+  button.primary:hover { background: #4a72ff; }
+  button:disabled { opacity: .45; }
+  footer { flex: none; display: flex; justify-content: flex-end; gap: 10px; padding: 14px 32px 22px; }
+  .bar { height: 8px; background: var(--panel); border-radius: 99px; overflow: hidden; margin: 22px 0 12px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .25s; }
+  #log { color: var(--dim); font-size: 13px; max-height: 190px; overflow: hidden; }
+  .err { color: var(--bad); }
+  .ext { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; margin: 8px 0; background: var(--panel); }
+  .ext div { flex: 1; } .ext small { display: block; color: var(--dim); }
+  .tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+  .tick.ok { border-color: var(--ok); color: var(--ok); }
+  ol { color: var(--dim); padding-left: 20px; margin: 8px 0 12px; } ol b { color: var(--text); }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header class="pywebview-drag-region">
+    <svg viewBox="0 0 100 100"><defs><mask id="m"><rect width="100" height="100" fill="black"/><g transform="rotate(-15 50 50)"><rect x="14" y="14" width="72" height="72" rx="12" fill="white"/><rect x="37" y="37" width="26" height="26" rx="6" fill="black"/></g></mask></defs><rect width="100" height="100" fill="#f7f7f8" mask="url(#m)"/></svg>
+    <b>ROCREATE</b><span id="hsub">Setup</span>
+  </header>
+  <button id="x" title="Close">&#x2715;</button>
+  <main>
+    <!-- install -->
+    <section id="welcome">
+      <h1>Welcome to RoCreate</h1>
+      <p>Roblox, rebuilt as a fast, clean desktop app: the Creator Hub look, ad and tracker blocking, one-click game launch, and RoValra built in.</p>
+      <p>This wizard installs the app, optionally sets it up with RoValra (by NotValra), and helps you add the Chrome extensions.</p>
+      <p id="ver"></p>
+    </section>
+    <section id="options">
+      <h1>Choose what to set up</h1>
+      <div class="row"><input type="text" id="dir" spellcheck="false"><button class="btn" id="browse">Browse…</button></div>
+      <label class="chk"><input type="checkbox" checked disabled><span>RoCreate app<small>The desktop app with the RoCreate look. Required.</small></span></label>
+      <label class="chk"><input type="checkbox" id="o-rovalra" checked><span>Set up RoCreate with RoValra<small>RoValra by NotValra, open source (GPL-3.0). Downloaded from the Chrome Web Store, not bundled, and kept up to date. <a href="#" id="rv-link">About RoValra</a></small></span></label>
+      <label class="chk"><input type="checkbox" id="o-redirect" checked><span>Include auto redirect?<small>Chrome extension: Roblox links you open in Chrome jump straight into RoCreate.</small></span></label>
+      <label class="chk"><input type="checkbox" id="o-theme"><span>Include the RoCreate theme for Chrome?<small>Optional. The same look on roblox.com inside Chrome (the app already has it built in).</small></span></label>
+      <label class="chk"><input type="checkbox" id="o-ads" checked><span>Block ads and trackers</span></label>
+      <div class="row"><label class="chk" style="flex:1"><input type="checkbox" id="o-desktop" checked><span>Desktop shortcut</span></label><label class="chk" style="flex:1"><input type="checkbox" id="o-startmenu" checked><span>Start menu shortcut</span></label></div>
+    </section>
+    <section id="progress">
+      <h1 id="ptitle">Installing…</h1>
+      <p id="pstep">Preparing…</p>
+      <div class="bar"><i id="pbar"></i></div>
+      <div id="log"></div>
+    </section>
+    <section id="finish">
+      <h1>RoCreate is installed</h1>
+      <p id="finish-none" hidden>You're all set. Launch RoCreate to get started.</p>
+      <div id="finish-extra">
+        <p>Last step: add the Chrome extension(s) you chose. Chrome can only load them in Developer mode, so this part is a few clicks.</p>
+        <div id="chrome-panel-finish"></div>
+      </div>
+    </section>
+    <!-- chrome setup (standalone) -->
+    <section id="chrome">
+      <h1>Chrome extensions</h1>
+      <div id="chrome-panel-solo"></div>
+    </section>
+    <!-- uninstall -->
+    <section id="uninstall">
+      <h1>Uninstall RoCreate</h1>
+      <p>This removes the app, its shortcuts and the rocreate:// link handler.</p>
+      <label class="chk"><input type="checkbox" id="u-data"><span>Also delete my data<small>Your Roblox login, window settings and the downloaded RoValra.</small></span></label>
+      <p>Afterwards, remove the two RoCreate extensions from chrome://extensions.</p>
+    </section>
+    <section id="uninstalled">
+      <h1>RoCreate was removed</h1>
+      <p>Thanks for trying it. You can close this window.</p>
+    </section>
+  </main>
+  <footer id="foot"></footer>
+</div>
+
+<template id="chrome-tpl">
+  <ol>
+    <li>Open the <b>chrome://extensions</b> page.</li>
+    <li>Switch on <b>Developer mode</b> (top right).</li>
+    <li>Drag each folder below onto the page, or click <b>Load unpacked</b> and pick it.</li>
+  </ol>
+  <div class="row" style="margin-bottom:6px"><button class="btn primary" data-act="open-chrome">Open chrome://extensions</button><span class="no-chrome" style="color:var(--bad)" hidden>Chrome was not found. Open it yourself and visit chrome://extensions.</span></div>
+  <div class="exts"></div>
+</template>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  let api, info, page = "", pollTimer = 0, working = false;
+
+  function show(id) {
+    document.querySelectorAll("section").forEach((s) => s.classList.toggle("on", s.id === id));
+    page = id;
+    renderFooter();
+    clearInterval(pollTimer);
+    if (id === "finish" || id === "chrome") { mountChrome(id === "finish" ? "#chrome-panel-finish" : "#chrome-panel-solo"); pollTimer = setInterval(refreshChrome, 1500); }
+  }
+
+  function renderFooter() {
+    const f = $("#foot"); f.innerHTML = "";
+    const add = (label, cls, fn, disabled) => { const b = document.createElement("button"); b.className = "btn " + (cls || ""); b.textContent = label; b.disabled = !!disabled; b.onclick = fn; f.appendChild(b); return b; };
+    if (page === "welcome") { add("Cancel", "", () => api.close()); add("Next", "primary", () => show("options"), !info.payloadOk); }
+    else if (page === "options") { add("Back", "", () => show("welcome")); add("Install", "primary", startInstall); }
+    else if (page === "progress") { add("Please wait…", "", () => {}, true); }
+    else if (page === "finish") {
+      add("Launch RoCreate and close", "primary", async () => { await api.launch_app(); api.close(); });
+      add("Close", "", () => api.close());
+    }
+    else if (page === "chrome") { add("Close", "primary", () => api.close()); }
+    else if (page === "uninstall") { add("Cancel", "", () => api.close()); add("Uninstall", "primary", startUninstall); }
+    else if (page === "uninstalled") { add("Close", "primary", () => api.finish_uninstall()); }
+  }
+
+  function mountChrome(sel) {
+    const host = $(sel); host.innerHTML = "";
+    host.appendChild($("#chrome-tpl").content.cloneNode(true));
+    host.querySelector('[data-act="open-chrome"]').onclick = async () => { if (!(await api.open_chrome())) host.querySelector(".no-chrome").hidden = false; };
+    const box = host.querySelector(".exts");
+    info.extensions.forEach((e) => {
+      const row = document.createElement("div"); row.className = "ext"; row.dataset.id = e.id;
+      row.innerHTML = '<span class="tick">&nbsp;</span><div><b></b><small></small></div><button class="btn">Show folder</button>';
+      row.querySelector("b").textContent = e.name; row.querySelector("small").textContent = e.desc;
+      row.querySelector("button").onclick = () => api.show_folder(e.id);
+      box.appendChild(row);
+    });
+    refreshChrome();
+  }
+
+  async function refreshChrome() {
+    const status = await api.chrome_status();
+    status.forEach((s) => document.querySelectorAll('.ext[data-id="' + s.id + '"] .tick').forEach((t) => { t.classList.toggle("ok", s.loaded); t.innerHTML = s.loaded ? "&#x2713;" : "&nbsp;"; }));
+  }
+
+  async function startInstall() {
+    const opts = { dir: $("#dir").value.trim(), rovalra: $("#o-rovalra").checked, redirect: $("#o-redirect").checked, theme: $("#o-theme").checked,
+      blockAds: $("#o-ads").checked, desktop: $("#o-desktop").checked, startmenu: $("#o-startmenu").checked };
+    working = true; $("#log").innerHTML = ""; $("#ptitle").textContent = "Installing…"; show("progress");
+    api.start_install(opts);
+  }
+  function startUninstall() { $("#ptitle").textContent = "Uninstalling…"; show("progress"); api.start_uninstall({ deleteData: $("#u-data").checked }); }
+
+  window.onWizard = (d) => {
+    if (d.pct != null) $("#pbar").style.width = d.pct + "%";
+    if (d.step) $("#pstep").textContent = d.step;
+    if (d.note) { const p = document.createElement("p"); p.textContent = d.note; $("#log").appendChild(p); }
+    if (d.error) { const p = document.createElement("p"); p.className = "err"; p.textContent = "Something went wrong: " + d.error; $("#log").appendChild(p); $("#pstep").textContent = "Setup could not finish."; $("#ptitle").textContent = "Failed"; const f = $("#foot"); f.innerHTML = ""; const b = document.createElement("button"); b.className = "btn primary"; b.textContent = "Close"; b.onclick = () => api.close(); f.appendChild(b); }
+    if (d.done) {
+      if (info.mode === "uninstall") return show("uninstalled");
+      api.installed_extensions().then((exts) => {
+        info.extensions = exts;
+        $("#finish-extra").hidden = exts.length === 0;
+        $("#finish-none").hidden = exts.length !== 0;
+        show("finish");
+      });
+    }
+  };
+
+  window.addEventListener("pywebviewready", async () => {
+    api = window.pywebview.api;
+    info = await api.get_info();
+    $("#ver").textContent = "Version " + info.version;
+    $("#dir").value = info.defaultDir;
+    $("#x").onclick = () => api.close();
+    $("#rv-link").onclick = (e) => { e.preventDefault(); api.open_url("rovalra"); };
+    $("#browse").onclick = async () => { const p = await api.browse($("#dir").value); if (p) $("#dir").value = p; };
+    $("#hsub").textContent = info.mode === "install" ? "Setup" : info.mode === "uninstall" ? "Uninstall" : "Chrome setup";
+    show(info.mode === "install" ? "welcome" : info.mode === "uninstall" ? "uninstall" : "chrome");
+  });
+</script>
+</body>
+</html>

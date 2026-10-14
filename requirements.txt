@@ -1,0 +1,2 @@
+pywebview>=6.2        # window + WebView2 bridge (pulls in pythonnet)
+pyinstaller>=6.10     # only needed to build RoCreate-Setup.exe

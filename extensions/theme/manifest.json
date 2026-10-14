@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "RoCreate — Roblox Like the Creator Hub",
+  "version": "0.3.0",
+  "description": "Reskins Roblox to look like the Creator Hub: clean, flat and lightweight. Works alongside RoValra.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "RoCreate",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.roblox.com/*"],
+      "exclude_matches": [
+        "*://create.roblox.com/*",
+        "*://*.devforum.roblox.com/*"
+      ],
+      "css": ["theme.css"],
+      "js": ["content.js", "greeting.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
