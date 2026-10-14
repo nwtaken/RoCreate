@@ -757,16 +757,13 @@ html.rocreate-on.rc-declutter .left-nav li:has(a[href*="ctx=plus"]) {
    Roblox's own markup rather than describing new elements.
    ========================================================================== */
 html.rocreate-on .left-nav { display: none !important; }
-/* Roblox sizes its tiles from these containers, so only the sidebar gap is removed
-   here; widening them stretches single cards to the full viewport. */
-html.rocreate-on #container-main { margin-left: 0 !important; }
-/* Without the sidebar the fixed-width content block was left-aligned, dumping all
-   the slack on the right. Centre it (margin only, never a width change) so the
-   leftover space sits evenly on both sides instead of as one big right-hand gap. */
-html.rocreate-on #container-main > .content,
-html.rocreate-on #container-main .content-page-container {
-  margin-left: auto !important;
-  margin-right: auto !important;
+/* This layout reserves the sidebar's 289px on the RIGHT of #container-main
+   (margin-right), not the left, so with the sidebar hidden that space was left
+   empty. Zero both margins so the content fills the window and the game grid
+   reflows to more columns. */
+html.rocreate-on #container-main {
+  margin-left: 0 !important; margin-right: 0 !important;
+  width: auto !important;   /* Roblox pins this to calc(100% - 289px) for the sidebar */
 }
 
 /* the logo doubles as the menu button */
