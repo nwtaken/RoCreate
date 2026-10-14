@@ -760,6 +760,14 @@ html.rocreate-on .left-nav { display: none !important; }
 /* Roblox sizes its tiles from these containers, so only the sidebar gap is removed
    here; widening them stretches single cards to the full viewport. */
 html.rocreate-on #container-main { margin-left: 0 !important; }
+/* Without the sidebar the fixed-width content block was left-aligned, dumping all
+   the slack on the right. Centre it (margin only, never a width change) so the
+   leftover space sits evenly on both sides instead of as one big right-hand gap. */
+html.rocreate-on #container-main > .content,
+html.rocreate-on #container-main .content-page-container {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
 
 /* the logo doubles as the menu button */
 html.rocreate-on #nav-logo-link { cursor: default; }

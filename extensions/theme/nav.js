@@ -121,18 +121,28 @@
     group.insertBefore(li, bell || group.firstChild);
   }
 
+  const countOf = (a) => (a ? (a.textContent.match(/\d[\d,.KkMm+]*/) || [])[0] || "" : "");
+
+  let lastSig = "";
   function refreshCounts() {
-    const menu = document.getElementById("rc-menu");
-    if (menu && !open) {
-      const fresh = buildMenu();
-      if (fresh) menu.replaceChildren(...fresh.children);
-    }
-    const badge = document.querySelector("#rc-messages .rc-msg-badge");
-    const src = sidebarLinks().find((a) => pathOf(a).startsWith(MESSAGES));
-    if (badge && src) {
-      const c = (src.textContent.match(/\d[\d,.KkMm+]*/) || [])[0];
-      badge.textContent = c || "";
-      badge.hidden = !c;
+    const links = sidebarLinks();
+
+    // Rebuilding writes to the DOM, which wakes our own observer, so do it only when
+    // the sidebar text actually changed — otherwise this loops forever and tanks the fps.
+    const sig = links.map((a) => pathOf(a) + ":" + a.textContent.trim()).join("|");
+    if (sig !== lastSig) {
+      lastSig = sig;
+      const menu = document.getElementById("rc-menu");
+      if (menu && !open) {
+        const fresh = buildMenu();
+        if (fresh) menu.replaceChildren(...fresh.children);
+      }
+      const badge = document.querySelector("#rc-messages .rc-msg-badge");
+      if (badge) {
+        const c = countOf(links.find((a) => pathOf(a).startsWith(MESSAGES)));
+        badge.textContent = c;
+        badge.hidden = !c;
+      }
     }
   }
 
