@@ -113,6 +113,16 @@ def build_payload() -> str:
       position: fixed; top: 0; left: 0; right: 132px; height: 10px;
       z-index: 2147483646;
     }
+    .rc-grip { position: fixed; z-index: 2147483647; background: transparent; }
+    .rc-grip[data-e="left"], .rc-grip[data-e="right"] { top: 10px; bottom: 10px; width: 5px; cursor: ew-resize; }
+    .rc-grip[data-e="top"], .rc-grip[data-e="bottom"] { left: 10px; right: 10px; height: 5px; cursor: ns-resize; }
+    .rc-grip[data-e="left"] { left: 0; } .rc-grip[data-e="right"] { right: 0; }
+    .rc-grip[data-e="top"] { top: 0; right: 132px; } .rc-grip[data-e="bottom"] { bottom: 0; }
+    .rc-grip[data-e="topleft"], .rc-grip[data-e="bottomright"] { width: 10px; height: 10px; cursor: nwse-resize; }
+    .rc-grip[data-e="topright"], .rc-grip[data-e="bottomleft"] { width: 10px; height: 10px; cursor: nesw-resize; }
+    .rc-grip[data-e="topleft"] { top: 0; left: 0; } .rc-grip[data-e="topright"] { top: 0; right: 0; width: 4px; height: 4px; }
+    .rc-grip[data-e="bottomleft"] { bottom: 0; left: 0; } .rc-grip[data-e="bottomright"] { bottom: 0; right: 0; }
+    html.rc-nosize .rc-grip { display: none; }
     #right-navigation-header { margin-right: 132px !important; }
     #header #nav-logo-link { display: flex !important; align-items: center; gap: 10px; text-decoration: none; }
     #header ul.nav.rbx-navbar { margin-left: 28px !important; }
@@ -167,12 +177,24 @@ def build_payload() -> str:
       if (window.pywebview && window.pywebview.api) window.pywebview.api.toggle_maximize().then(syncState);
     });
     document.body.appendChild(drag);
+
+    ['left','right','top','bottom','topleft','topright','bottomleft','bottomright'].forEach(function(edge) {
+      var g = document.createElement('div');
+      g.className = 'rc-grip'; g.dataset.e = edge;
+      g.addEventListener('mousedown', function(ev) {
+        if (ev.button !== 0) return;
+        ev.preventDefault();
+        if (window.pywebview && window.pywebview.api) window.pywebview.api.start_resize(edge);
+      });
+      document.body.appendChild(g);
+    });
   }
 
   // The window's real state is the source of truth (Win+Up, snapping, F11 all change it).
   function syncState(s) {
     var bar = document.getElementById('rc-titlebar');
     if (bar && s) bar.classList.toggle('rc-max', !!s.maximized);
+    if (s) document.documentElement.classList.toggle('rc-nosize', !!(s.maximized || s.fullscreen));
   }
   var syncTimer = 0;
   window.addEventListener('resize', function() {
@@ -514,6 +536,27 @@ class WindowApi:
 
     def get_state(self):
         return self._ui(self._state)
+
+    _HIT = {"left": 10, "right": 11, "top": 12, "topleft": 13, "topright": 14,
+            "bottom": 15, "bottomleft": 16, "bottomright": 17}
+
+    def start_resize(self, edge):
+        """Hand the drag to Windows' own sizing loop (a frameless window has no border to grab)."""
+        import ctypes
+        code = self._HIT.get(edge)
+        if code is None or self._fullscreen:
+            return
+
+        def go(f):
+            from System.Windows.Forms import FormWindowState
+            if f.WindowState == FormWindowState.Maximized:
+                return None
+            user32 = ctypes.windll.user32
+            user32.ReleaseCapture()
+            user32.PostMessageW(f.Handle.ToInt64(), 0x00A1, code, 0)  # WM_NCLBUTTONDOWN
+            return None
+
+        self._ui(go)
 
     def minimize(self):
         from System.Windows.Forms import FormWindowState
