@@ -136,12 +136,19 @@
     if (!id || !anchor || pagePainted === id) return;
     pagePainted = id;
     const name = meta.dataset.placeName || document.querySelector(".game-name")?.textContent || "";
+    // placeholder tiles right away, so the strip doesn't pop in late
+    document.getElementById("rcx-panel")?.remove();
+    const panel = document.createElement("div");
+    panel.id = "rcx-panel";
+    panel.className = "col-xs-12";
+    panel.innerHTML = `<div class="rcx-panel-grid">${'<div class="rcx-tile rcx-skel"><div class="rcx-label"></div><div class="rcx-value"></div></div>'.repeat(6)}</div>`;
+    anchor.after(panel);
     const [list, extra] = await Promise.all([
       ask({ type: "rcx-stats", games: [{ id, name }], search: true }),
       ask({ type: "rcx-details", id }),
     ]);
     const s = list?.[id];
-    if (!s || s.missing) return;
+    if (!s || s.missing) return panel.remove();
     const d = extra || {};
     const tile = (label, value, sub = "", title = "") =>
       `<div class="rcx-tile" title="${esc(title)}"><div class="rcx-label">${label}</div>` +
@@ -155,7 +162,7 @@
       tile("Playing", fmt(s.playing), trend(d.playersWeek), s.playing != null ? Number(s.playing).toLocaleString() + " players" : ""),
       // how well the game earns for its size: revenue estimate per player online now
       s.revenue != null && s.playing > 0
-        ? tile("Per player", "R$ " + fmt(s.revenue / s.playing), "revenue per player now", "Estimated revenue divided by the players online right now")
+        ? tile("Per player", "R$ " + fmt(s.revenue / s.playing), "right now", "Estimated revenue divided by the players online right now")
         : "",
       tile("Visits", fmt(s.visits), trend(d.visitsWeek), s.visits != null ? Number(s.visits).toLocaleString() + " visits" : ""),
       tile("Rating", s.likeRatio != null ? Math.round(s.likeRatio) + "%" : "–", "likes"),
@@ -163,12 +170,9 @@
       d.rank ? tile("Global rank", "#" + Number(d.rank).toLocaleString(), d.momentum ? esc(d.momentum) : "") : "",
       d.session ? tile("Avg. session", Math.round(d.session) + " min") : "",
     ].join("");
-    document.getElementById("rcx-panel")?.remove();
-    const panel = document.createElement("div");
-    panel.id = "rcx-panel";
-    panel.className = "col-xs-12";
     panel.innerHTML =
       `<div class="rcx-panel-grid">${tiles}</div>` +
+      `<div class="rcx-chart7" hidden></div>` +
       `<div class="rcx-panel-foot"><button type="button" class="rcx-watch"></button>` +
       `<button type="button" class="rcx-watch rcx-copy" data-copy="${esc(id)}" title="Copy the universe ID">Universe ${esc(id)}</button>` +
       (meta.dataset.placeId ? `<button type="button" class="rcx-watch rcx-copy" data-copy="${esc(meta.dataset.placeId)}" title="Copy the place ID">Place ${esc(meta.dataset.placeId)}</button>` : "") +
@@ -197,7 +201,20 @@
       }));
     }
     panel.rcxLabel = label;
-    anchor.after(panel);
+    if (!panel.isConnected) anchor.after(panel);
+    // players over the last 7 days, full width under the tiles
+    ask({ type: "rcx-history", id }).then((h) => {
+      const box = panel.querySelector(".rcx-chart7");
+      if (!box || !h?.points || h.points.length < 3) return;
+      const ys = h.points.map((p) => p[1]);
+      const now = ys[ys.length - 1], change = ys[0] ? ((now - ys[0]) / ys[0]) * 100 : null;
+      box.innerHTML =
+        `<div class="rcx-chart7-head"><span>Players, last 7 days` +
+        (change == null ? "" : ` · <span class="${change >= 0 ? "rcx-up" : "rcx-down"}">${pct(change)}</span>`) +
+        `</span><span>Now <b>${fmt(now)}</b> · Peak <b>${fmt(Math.max(...ys))}</b> · Low <b>${fmt(Math.min(...ys))}</b></span></div>` +
+        sparkSvg(h.points, 1000, 80).replace("<svg ", '<svg preserveAspectRatio="none" ');
+      box.hidden = false;
+    });
   }
 
   /* ---- Charts: sort every row by a stat (control under the page title) ----
@@ -208,9 +225,14 @@
     ["revenue", "Revenue"],
     ["visits", "Visits"],
     ["trend", "Rising"],
+    ["perplayer", "Per player"],
   ];
   const sortValue = (st) =>
-    !st || st.missing ? null : sortBy === "revenue" ? st.revenue : sortBy === "visits" ? st.visits : st.revenueTrend;
+    !st || st.missing ? null
+      : sortBy === "revenue" ? st.revenue
+      : sortBy === "visits" ? st.visits
+      : sortBy === "perplayer" ? (st.revenue != null && st.playing > 0 ? st.revenue / st.playing : null)
+      : st.revenueTrend;
 
   function applySort() {
     let css = "";

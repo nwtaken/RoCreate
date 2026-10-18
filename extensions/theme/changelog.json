@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.9.2",
+    "date": "2026-10-18",
+    "changes": [
+      "Game pages: a full 7-day player chart under the stats",
+      "Placeholder tiles while game stats load, instead of the strip popping in late",
+      "Sort the Games page by revenue per player"
+    ]
+  },
+  {
     "version": "0.9.1",
     "date": "2026-10-18",
     "changes": [
