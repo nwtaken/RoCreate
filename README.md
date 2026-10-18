@@ -38,8 +38,9 @@ public games, plus its top earner.
 <p align="center"><img src="docs/img/group.jpg" alt="A community page with RoCreate's totals" width="90%"></p>
 
 **Everything in one popup.** Switch features on or off, pick an accent color, follow your
-watchlist (searchable and sortable) and get spike alerts when a watched game jumps. It shows
-what's new after every update, and Alt+Shift+R opens it.
+watchlist (searchable and sortable, with a 7-day sparkline per game, and exportable as CSV) and
+get spike alerts when a watched game jumps. It shows what's new after every update, and
+Alt+Shift+R opens it.
 
 <p align="center"><img src="docs/img/popup.png" alt="The RoCreate popup" width="300"></p>
 
@@ -55,7 +56,7 @@ owns with prices and price filters, mutual friends and previous usernames.
 <p align="center"><img src="docs/img/items.jpg" alt="Official Roblox items with their prices" width="90%"></p>
 
 **Your Robux, in full.** The Robux menu shows your pending Robux and the funds of every group
-you manage. *(Example data.)*
+you manage, when they were last updated, and a Refresh button. *(Example data.)*
 
 <p align="center"><img src="docs/img/robux-menu.jpg" alt="The Robux menu with pending Robux and group funds (example data)" width="70%"></p>
 

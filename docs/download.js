@@ -171,8 +171,21 @@
   $("#get-all").addEventListener("click", (e) => download(e.currentTarget, { ...ALL }));
   $("#get-custom").addEventListener("click", (e) => download(e.currentTarget, chosen()));
 
-  // show which version a download gets
+  // show which version a download gets, and what's new in it
   get("manifest.json")
     .then((m) => ($("#version").textContent = "Version " + JSON.parse(text(m)).version))
+    .catch(() => {});
+  get("changelog.json")
+    .then((c) => {
+      const latest = JSON.parse(text(c))[0];
+      if (!latest) return;
+      const box = $("#whatsnew");
+      const ul = document.createElement("ul");
+      for (const line of latest.changes) ul.append(Object.assign(document.createElement("li"), { textContent: line }));
+      const head = Object.assign(document.createElement("b"), { textContent: `New in ${latest.version}` });
+      const more = Object.assign(document.createElement("a"), { href: "changelog.html", textContent: "Full changelog" });
+      box.replaceChildren(head, ul, more);
+      box.hidden = false;
+    })
     .catch(() => {});
 })();
