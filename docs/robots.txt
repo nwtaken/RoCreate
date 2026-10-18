@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://rocreate.org/sitemap.xml

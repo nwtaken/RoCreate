@@ -32,8 +32,32 @@
       if (c.dataset.s !== "roblox") c.classList.toggle("on", !!s[c.dataset.s]);
     }
   }
-  boxes.forEach((b) => b.addEventListener("change", refresh));
+  // a link can preselect features: download.html#f=stats,robux (also remembered in this browser)
+  const fromHash = new URLSearchParams(location.hash.slice(1)).get("f");
+  const saved = fromHash != null ? fromHash : localStorage.getItem("rc-build");
+  if (saved != null) {
+    const on = new Set(saved.split(",").filter(Boolean));
+    for (const b of boxes) b.checked = on.has(b.dataset.f);
+  }
+  const remember = () => {
+    const f = chosen();
+    const list = Object.keys(f).filter((k) => f[k]).join(",");
+    localStorage.setItem("rc-build", list);
+    return list;
+  };
+  boxes.forEach((b) => b.addEventListener("change", () => { refresh(); remember(); }));
   refresh();
+  $("#share").addEventListener("click", (e) => {
+    const list = remember();
+    const url = `${location.origin}${location.pathname}#f=${list}`;
+    const done = (text) => {
+      e.target.textContent = text;
+      setTimeout(() => (e.target.textContent = "Copy a link to this build"), 1800);
+    };
+    history.replaceState(null, "", "#f=" + list); // the address bar always has it too
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => done("Link copied"), () => done("Link is in the address bar"));
+    else done("Link is in the address bar");
+  });
 
   /* ---- fetching the extension ---- */
   async function get(path) {
