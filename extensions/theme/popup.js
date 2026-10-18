@@ -189,3 +189,8 @@ document.getElementById("wl-csv").addEventListener("click", (e) => {
 
 chrome.storage.onChanged.addListener((c, area) => area === "sync" && c.watch && load());
 load();
+
+document.getElementById("options").addEventListener("click", (e) => {
+  e.preventDefault();
+  chrome.runtime.openOptionsPage();
+});

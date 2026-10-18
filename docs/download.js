@@ -70,9 +70,15 @@
     files.add(manifest.background.service_worker);
     for (const f of Object.values(manifest.icons || {})) files.add(f);
     for (const f of Object.values(manifest.action?.default_icon || {})) files.add(f);
+    files.add("changelog.json"); // read by the popup's What's new card
     const popupPath = manifest.action?.default_popup;
     const popup = popupPath ? await get(popupPath) : null;
     if (popup) for (const m of text(popup).matchAll(/(?:src|href)="([\w./-]+)"/g)) files.add(m[1]);
+    const optionsPath = manifest.options_ui?.page;
+    if (optionsPath) {
+      files.add(optionsPath);
+      for (const m of text(await get(optionsPath)).matchAll(/(?:src|href)="([\w./-]+)"/g)) files.add(m[1]);
+    }
 
     const out = [
       { name: "RoCreate/manifest.json", data: bytes(JSON.stringify(manifest, null, 2) + "\n") },

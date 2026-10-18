@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.10.0",
+    "date": "2026-10-18",
+    "changes": [
+      "An options page (Options in the popup): back up and restore your settings and watchlist, clear cached data, or reset everything",
+      "Copies built on the download page now include the What's new card"
+    ]
+  },
+  {
     "version": "0.9.9",
     "date": "2026-10-18",
     "changes": [

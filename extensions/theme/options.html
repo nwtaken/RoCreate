@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RoCreate options</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0e0f12; color: #f2f3f5; font-family: "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 40px 24px 60px; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  header img { width: 36px; height: 36px; border-radius: 8px; }
+  h1 { font-size: 24px; margin: 0; }
+  .ver { color: #a7acb3; font-size: 13px; }
+  section { background: #16181c; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px 22px; margin-bottom: 16px; }
+  h2 { font-size: 16px; margin: 0 0 4px; }
+  p { color: #a7acb3; font-size: 14px; margin: 0 0 14px; line-height: 1.5; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  button, .file { background: #23262c; color: #f2f3f5; border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; padding: 9px 14px; font-weight: 600; font-size: 14px; font-family: inherit; cursor: pointer; }
+  button:hover, .file:hover { border-color: rgba(255,255,255,0.3); }
+  button.primary { background: #0a84ff; border-color: #0a84ff; }
+  button.danger { color: #ff6b6b; }
+  .file input { display: none; }
+  .status { font-size: 13px; color: #4ef0d1; }
+  .status.err { color: #ff6b6b; }
+  a { color: #8ab4ff; }
+  footer { color: #6b7079; font-size: 13px; margin-top: 24px; display: flex; gap: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="icons/icon-48.png" alt="">
+    <div><h1>RoCreate options</h1><div class="ver" id="ver"></div></div>
+  </header>
+
+  <section>
+    <h2>Backup and restore</h2>
+    <p>Save your settings and watchlist to a file, and load them again on another computer or after a reinstall.</p>
+    <div class="actions">
+      <button type="button" class="primary" id="export">Download backup</button>
+      <label class="file">Restore from file<input type="file" id="import" accept="application/json,.json"></label>
+      <span class="status" id="backup-status"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cached data</h2>
+    <p>RoCreate keeps stats, item prices and values on your device so pages load fast. Clearing it is safe: everything is fetched again when you need it.</p>
+    <div class="actions">
+      <button type="button" id="clear-cache">Clear cached data</button>
+      <span class="status" id="cache-status"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reset</h2>
+    <p>Turn every setting back to its default and empty your watchlist.</p>
+    <div class="actions">
+      <button type="button" class="danger" id="reset">Reset everything</button>
+      <span class="status" id="reset-status"></span>
+    </div>
+  </section>
+
+  <footer>
+    <a href="https://rocreate.org" target="_blank" rel="noopener">rocreate.org</a>
+    <a href="https://rocreate.org/changelog.html" target="_blank" rel="noopener">Changelog</a>
+    <a href="https://rocreate.org/privacy.html" target="_blank" rel="noopener">Privacy</a>
+    <a href="https://github.com/nwtaken/RoCreate/issues" target="_blank" rel="noopener">Report a problem</a>
+  </footer>
+</main>
+<script src="options.js"></script>
+</body>
+</html>
