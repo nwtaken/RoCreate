@@ -11,6 +11,27 @@ function save() {
 
 for (const b of boxes) b.addEventListener("change", save);
 
+// features this copy doesn't include (config.json, written by the download page) get no switch
+fetch(chrome.runtime.getURL("config.json"))
+  .then((r) => r.json())
+  .then(({ features: f = {} }) => {
+    const off = (name) => f[name] === false;
+    const hide = (id) => document.getElementById(id)?.closest(".row")?.remove();
+    if (off("stats")) {
+      hide("stats");
+      document.querySelector(".section")?.remove();
+      document.getElementById("watch")?.remove();
+    }
+    if (off("robux")) hide("robux");
+    if (off("profile")) hide("profile");
+    if (off("admins") && off("flags")) hide("users");
+    else if (off("admins") || off("flags")) {
+      const sub = document.getElementById("users").closest(".row").querySelector(".sub");
+      sub.textContent = off("flags") ? "Roblox admins" : "Flagged & ex-verified accounts";
+    }
+  })
+  .catch(() => {});
+
 /* ---- watchlist: games starred on their page, with live stats (background.js) ---- */
 const fmt = (n) => {
   if (n == null || !isFinite(n)) return "–";
@@ -21,6 +42,7 @@ const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? 
 
 function render(list, stats = {}) {
   const box = document.getElementById("watch");
+  if (!box) return;
   if (!list.length) {
     box.replaceChildren(el("div", "empty", "Open a game and press ☆ Watch under its stats."));
     return;

@@ -1,0 +1,12 @@
+{
+  "features": {
+    "stats": true,
+    "robux": true,
+    "profile": true,
+    "profileValue": true,
+    "profileRevenue": true,
+    "profileVerify": true,
+    "admins": true,
+    "flags": true
+  }
+}

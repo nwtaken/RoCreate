@@ -265,8 +265,8 @@
     panel.innerHTML =
       `<div class="rcp-top"><h2 class="rcp-title">Insights</h2><div class="rcp-tabs"></div><div class="rcp-actions">` +
       `<button type="button" data-copy="${uid}" title="Copy user ID">Copy ID</button>` +
-      `<a href="https://www.rolimons.com/player/${uid}" target="_blank" rel="noopener" title="Open on Rolimons">Rolimons ↗</a>` +
-      `<a href="https://robloxverifieds.com/user/${uid}" target="_blank" rel="noopener" title="Open on RobloxVerifieds">Verifieds ↗</a>` +
+      (cfg.profileValue === false ? "" : `<a href="https://www.rolimons.com/player/${uid}" target="_blank" rel="noopener" title="Open on Rolimons">Rolimons ↗</a>`) +
+      (cfg.profileVerify === false ? "" : `<a href="https://robloxverifieds.com/user/${uid}" target="_blank" rel="noopener" title="Open on RobloxVerifieds">Verifieds ↗</a>`) +
       `</div></div><div class="rcp-body"></div>`;
     panel.addEventListener("click", (e) => {
       const t = e.target.closest("[data-tab]");
@@ -512,8 +512,10 @@
     return true;
   }
 
-  chrome.storage.sync.get({ profile: true }, (s) => {
+  let cfg = {}; // which parts this copy includes (config.json, via background.js)
+  chrome.storage.sync.get({ profile: true }, async (s) => {
     if (!s.profile) return;
+    cfg = (await ask({ type: "rcx-config" })) || {};
     let tries = 0;
     const t = setInterval(() => {
       if (document.getElementById("rcp-panel") || start() || ++tries > 80) clearInterval(t);

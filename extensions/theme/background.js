@@ -7,6 +7,14 @@
      2. a name search per game that wasn't in those pages
    Game pages also get /games/roblox/<id> (rank, momentum) and kpi_trends (week %). */
 
+/* What this copy includes. config.json lists the features; the download page on
+   rocreate.org writes it and leaves out the scripts and site permissions of anything
+   unticked. A service is only contacted when a feature that needs it is on. */
+const config = fetch(chrome.runtime.getURL("config.json"))
+  .then((r) => r.json())
+  .then((c) => c.features || {})
+  .catch(() => ({}));
+
 const API = "https://creatorexchange.io/api";
 const TTL = 30 * 60 * 1000;         // stats are refreshed every 30 minutes
 const MISS_TTL = 6 * 60 * 60 * 1000; // a game Creator Exchange doesn't track: ask again in 6 hours
@@ -270,8 +278,8 @@ async function admins(ids) {
   return out;
 }
 
-async function usersInfo(ids) {
-  const [rv, adm] = await Promise.all([rvData(), admins(ids)]);
+async function usersInfo(ids, withFlags, withAdmins) {
+  const [rv, adm] = await Promise.all([withFlags ? rvData() : { flagged: {}, ex: {} }, withAdmins ? admins(ids) : {}]);
   const out = {};
   for (const id of ids) {
     const u = {};
@@ -380,35 +388,42 @@ async function rolimons(id) {
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
-  if (msg?.type === "rcx-rolimons" && /^\d{1,15}$/.test(String(msg.id))) {
-    rolimons(String(msg.id)).then(reply, () => reply(null));
-    return true;
-  }
-  if (msg?.type === "rcx-rvuser" && /^\d{1,15}$/.test(String(msg.id))) {
-    rvUser(String(msg.id)).then(reply, () => reply(null));
-    return true;
-  }
-  if (msg?.type === "rcx-users" && Array.isArray(msg.ids)) {
-    const ids = [...new Set(msg.ids.map(String).filter((id) => /^\d{1,15}$/.test(id)))].slice(0, 200);
-    usersInfo(ids).then(reply, () => reply({}));
-    return true;
-  }
-  if (msg?.type === "rcx-history" && /^\d{1,15}$/.test(String(msg.id))) {
-    history(String(msg.id)).then(reply, () => reply(null));
-    return true;
-  }
-  if (msg?.type === "rcx-stats" && Array.isArray(msg.games)) {
-    const games = msg.games
-      .filter((g) => /^\d{1,15}$/.test(String(g.id)))
-      .slice(0, 200)
-      .map((g) => ({ id: String(g.id), name: String(g.name || "").slice(0, 120) }));
-    statsFor(games, !!msg.search).then(reply, () => reply({}));
-    return true; // async reply
-  }
-  if (msg?.type === "rcx-details" && /^\d{1,15}$/.test(String(msg.id))) {
-    details(String(msg.id)).then(reply, () => reply(null));
-    return true;
-  }
+  const id = String(msg?.id);
+  const okId = /^\d{1,15}$/.test(id);
+  const job = (async () => {
+    const f = await config;
+    const on = (name) => f[name] !== false;
+    const profile = (part) => on("profile") && on(part);
+    switch (msg?.type) {
+      case "rcx-config":
+        return f;
+      case "rcx-rolimons":
+        return okId && profile("profileValue") ? rolimons(id) : null;
+      case "rcx-rvuser":
+        return okId && profile("profileVerify") ? rvUser(id) : null;
+      case "rcx-users": {
+        if (!Array.isArray(msg.ids)) return {};
+        const ids = [...new Set(msg.ids.map(String).filter((x) => /^\d{1,15}$/.test(x)))].slice(0, 200);
+        return usersInfo(ids, on("flags"), on("admins"));
+      }
+      case "rcx-history":
+        return okId && on("stats") ? history(id) : null;
+      case "rcx-details":
+        return okId && on("stats") ? details(id) : null;
+      case "rcx-stats": {
+        // game cards and the watchlist, or the revenue tile on profiles
+        if (!Array.isArray(msg.games) || !(on("stats") || profile("profileRevenue"))) return {};
+        const games = msg.games
+          .filter((g) => /^\d{1,15}$/.test(String(g.id)))
+          .slice(0, 200)
+          .map((g) => ({ id: String(g.id), name: String(g.name || "").slice(0, 120) }));
+        return statsFor(games, !!msg.search);
+      }
+    }
+    return null;
+  })();
+  job.then(reply, () => reply(msg?.type === "rcx-users" || msg?.type === "rcx-stats" ? {} : null));
+  return true; // async reply
 });
 
 /* ---- auto-update for the unpacked copy ----

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download RoCreate</title>
+  <meta name="description" content="Get every RoCreate feature, or pick exactly which features you want and which services RoCreate may contact.">
+  <meta property="og:title" content="Download RoCreate">
+  <meta property="og:description" content="Get every RoCreate feature, or pick exactly which features you want and which services RoCreate may contact.">
+  <meta property="og:image" content="https://rocreate.org/img/games.jpg">
+  <link rel="icon" href="img/icon-128.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="img/icon-128.png" alt="">ROCREATE</a>
+      <nav>
+        <a class="hide-sm" href="/#features">Features</a>
+        <a href="download.html">Download</a>
+        <a class="hide-sm" href="/#faq">FAQ</a>
+        <a href="https://github.com/nwtaken/RoCreate">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero hero-sm">
+      <div class="wrap">
+        <h1>Download RoCreate</h1>
+        <p class="lead">Get everything in one click, or choose exactly which features you want and which services RoCreate may contact.</p>
+        <p class="note" id="version"></p>
+      </div>
+    </section>
+
+    <section class="pick">
+      <div class="wrap choose">
+        <div class="card big">
+          <p class="eyebrow">Everything</p>
+          <h2>The full bundle</h2>
+          <p>Every feature, ready to go. Includes a link to add RoValra.</p>
+          <div class="cta left">
+            <span class="btn" aria-disabled="true" title="RoCreate isn't on the Chrome Web Store yet">Chrome Web Store · coming soon</span>
+            <button class="btn primary" type="button" id="get-all">Download the full bundle</button>
+          </div>
+          <p class="note">The Chrome Web Store version will update itself. Until it's listed, the full bundle is a ZIP.</p>
+        </div>
+        <div class="card big">
+          <p class="eyebrow">Custom</p>
+          <h2>Build your own</h2>
+          <p>Pick features and services. Anything you leave out isn't in your copy at all, and RoCreate never contacts its service.</p>
+          <div class="cta left">
+            <a class="btn" href="#custom">Choose features</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="custom">
+      <div class="wrap">
+        <p class="eyebrow">Custom</p>
+        <h2>Build your RoCreate</h2>
+
+        <h3 class="group">Features</h3>
+        <div class="options">
+          <label class="option">
+            <input type="checkbox" checked disabled>
+            <span><b>Creator Hub theme</b><span class="desc">The clean, dark look for all of roblox.com. Always included; you can switch it off any time from the popup.</span><span class="chips"><i class="chip">Roblox</i></span></span>
+          </label>
+          <label class="option">
+            <input type="checkbox" data-f="stats" checked>
+            <span><b>Game stats</b><span class="desc">Revenue and visits on every game card, a stats strip on game pages, sorting, a 7-day player graph and a watchlist.</span><span class="chips"><i class="chip">Creator Exchange</i></span></span>
+          </label>
+          <label class="option">
+            <input type="checkbox" data-f="robux" checked>
+            <span><b>Robux menu</b><span class="desc">Your pending Robux and the funds of every group you manage.</span><span class="chips"><i class="chip">Roblox</i></span></span>
+          </label>
+          <div class="option-group">
+            <label class="option">
+              <input type="checkbox" data-f="profile" checked>
+              <span><b>Profile insights</b><span class="desc">Account age, last seen, official Roblox items with their prices, and mutual friends.</span><span class="chips"><i class="chip">Roblox</i></span></span>
+            </label>
+            <div class="sub-options" id="profile-parts">
+              <label class="option small">
+                <input type="checkbox" data-f="profileValue" checked>
+                <span><b>Inventory value and history</b><span class="chips"><i class="chip">Rolimons</i></span></span>
+              </label>
+              <label class="option small">
+                <input type="checkbox" data-f="profileRevenue" checked>
+                <span><b>Game revenue estimate</b><span class="chips"><i class="chip">Creator Exchange</i></span></span>
+              </label>
+              <label class="option small">
+                <input type="checkbox" data-f="profileVerify">
+                <span><b>"Why verified?" tab</b><span class="chips"><i class="chip">RobloxVerifieds</i></span></span>
+              </label>
+            </div>
+          </div>
+          <label class="option">
+            <input type="checkbox" data-f="admins" checked>
+            <span><b>Roblox admin badges</b><span class="desc">The Roblox logo next to real Roblox staff, anywhere on the site.</span><span class="chips"><i class="chip">Roblox</i></span></span>
+          </label>
+          <label class="option">
+            <input type="checkbox" data-f="flags">
+            <span><b>Flagged account badges</b><span class="desc">A red verified badge on accounts flagged on RobloxVerifieds, or that lost their verified badge. Hover it for the reasons.</span><span class="chips"><i class="chip">RobloxVerifieds</i></span></span>
+          </label>
+        </div>
+
+        <h3 class="group">Services your copy may contact</h3>
+        <p class="note left">Only these. RoCreate has no server of its own.</p>
+        <div class="services" id="services">
+          <span class="chip on" data-s="roblox">roblox.com</span>
+          <span class="chip" data-s="creatorexchange">creatorexchange.io</span>
+          <span class="chip" data-s="rolimons">rolimons.com</span>
+          <span class="chip" data-s="robloxverifieds">robloxverifieds.com</span>
+        </div>
+
+        <h3 class="group">Other extensions</h3>
+        <div class="option static">
+          <svg class="ext-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 2.5a2.5 2.5 0 0 1 2.5 2.5v1H17a1 1 0 0 1 1 1v4.5h1a2.5 2.5 0 0 1 0 5h-1V21a1 1 0 0 1-1 1h-4.5v-1a2.5 2.5 0 0 0-5 0v1H3a1 1 0 0 1-1-1v-4.5h1a2.5 2.5 0 0 0 0-5H2V7a1 1 0 0 1 1-1h4.5V5A2.5 2.5 0 0 1 10 2.5Z"/></svg>
+          <span><b>RoValra</b><span class="desc">Lots of extra Roblox features, like picking a server's region. RoCreate is built to run next to it.</span>
+            <span class="seg" role="radiogroup" aria-label="RoValra">
+              <label><input type="radio" name="rovalra" value="add" checked><span>Add RoValra</span></label>
+              <label><input type="radio" name="rovalra" value="have"><span>I already have it</span></label>
+              <label><input type="radio" name="rovalra" value="no"><span>No thanks</span></label>
+            </span>
+          </span>
+        </div>
+
+        <div class="build">
+          <button class="btn primary" type="button" id="get-custom">Download my RoCreate</button>
+          <span class="note" id="status"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="done" class="install" hidden>
+      <div class="wrap">
+        <p class="eyebrow">Almost there</p>
+        <h2>Add it to Chrome</h2>
+        <ol class="steps">
+          <li>Unzip <b>RoCreate.zip</b> and keep the <b>RoCreate</b> folder somewhere permanent, because Chrome loads the extension from it.</li>
+          <li>Open <code>chrome://extensions</code> and turn on <b>Developer mode</b> in the top right.</li>
+          <li>Click <b>Load unpacked</b> and pick the <b>RoCreate</b> folder.</li>
+        </ol>
+        <p class="note left" id="rovalra-step" hidden>Then add RoValra: <a class="btn small" href="https://chromewebstore.google.com/detail/njcickgebhnpgmoodjdgohkclfplejli" target="_blank" rel="noopener">Get RoValra on the Chrome Web Store</a></p>
+        <p class="note left"><b>Updating later:</b> download again and unzip over the same folder. RoCreate notices the new version and reloads itself within a minute.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <a href="/">RoCreate</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="https://github.com/nwtaken/RoCreate">GitHub</a>
+      <a href="https://github.com/nwtaken/RoCreate/issues">Report a problem</a>
+      <span class="legal">RoCreate isn't affiliated with Roblox Corporation. Roblox is a trademark of Roblox Corporation. RoValra is made by its own developers.</span>
+    </div>
+  </footer>
+  <script src="download.js"></script>
+</body>
+</html>
