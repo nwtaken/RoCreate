@@ -174,3 +174,12 @@ html.rc-streamer #navbar-robux button:hover,
 html.rc-streamer .rcx-menu > :first-child:hover,
 html.rc-streamer .rcx-rbx-row:hover .rcx-rbx-amount,
 html.rc-streamer .rcx-rbx-row:hover .rcx-rbx-usd { filter: none; }
+/* streamer mode on Settings > Account info: names, phone, email, birthday and age group
+   stay blurred until you point at the row */
+html.rc-streamer #settings-container .settings-text-lines-container { filter: blur(7px); transition: filter .15s; }
+html.rc-streamer #settings-container .account-settings-text-field:hover .settings-text-lines-container { filter: none; }
+html.rc-streamer #settings-container .gender-button { filter: blur(7px); transition: filter .15s; }
+html.rc-streamer #settings-container .collapsible-user-input:hover .gender-button { filter: none; }
+/* rows without the label + value split, like "Previous usernames: ..." */
+html.rc-streamer #rbx-account-info-header .settings-text-field-container:not(:has(.account-settings-text-field)):not(:has(button)) { filter: blur(7px); transition: filter .15s; }
+html.rc-streamer #rbx-account-info-header .settings-text-field-container:not(:has(.account-settings-text-field)):not(:has(button)):hover { filter: none; }
