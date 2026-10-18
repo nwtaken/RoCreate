@@ -5,7 +5,7 @@
    then refreshed. Setting: chrome.storage.sync { robux: bool }. */
 (() => {
   let on = true;
-  let cache = null; // { at, rows, empty } — also kept in chrome.storage.local, so it survives reloads
+  let cache = null; // { at, rows, empty }, also kept in chrome.storage.local, so it survives reloads
   let loading = null;
   const FRESH = 10 * 60 * 1000;      // refresh in the background after 10 minutes
   const DENIED_TTL = 6 * 3600 * 1000; // groups whose funds you can't see: ask again after 6 hours

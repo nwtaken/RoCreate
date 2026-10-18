@@ -15,7 +15,7 @@
   let watchList = []; // [{ id, place, name }], for the strip on Home
 
   const fmt = (n, digits = 1) => {
-    if (n == null || !isFinite(n)) return "–";
+    if (n == null || !isFinite(n)) return "-";
     const a = Math.abs(n);
     for (const [v, s] of [[1e12, "T"], [1e9, "B"], [1e6, "M"], [1e3, "K"]]) {
       if (a >= v) return +(n / v).toFixed(digits) + s;
@@ -166,7 +166,7 @@
         ? tile("Per player", "R$ " + fmt(s.revenue / s.playing), "right now", "Estimated revenue divided by the players online right now")
         : "",
       tile("Visits", fmt(s.visits), trend(d.visitsWeek), s.visits != null ? Number(s.visits).toLocaleString() + " visits" : ""),
-      tile("Rating", s.likeRatio != null ? Math.round(s.likeRatio) + "%" : "–", s.favorites != null ? fmt(s.favorites) + " favorites" : "likes"),
+      tile("Rating", s.likeRatio != null ? Math.round(s.likeRatio) + "%" : "-", s.favorites != null ? fmt(s.favorites) + " favorites" : "likes"),
       d.rank ? tile("Global rank", "#" + Number(d.rank).toLocaleString(), d.momentum ? esc(d.momentum) : "") : "",
       d.session ? tile("Avg. session", Math.round(d.session) + " min") : "",
     ].join("");

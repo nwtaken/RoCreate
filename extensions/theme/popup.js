@@ -76,7 +76,7 @@ Promise.all([fetch(chrome.runtime.getURL("changelog.json")).then((r) => r.json()
 
 /* ---- watchlist: games starred on their page, with live stats (background.js) ---- */
 const fmt = (n) => {
-  if (n == null || !isFinite(n)) return "–";
+  if (n == null || !isFinite(n)) return "-";
   for (const [v, s] of [[1e9, "B"], [1e6, "M"], [1e3, "K"]]) if (Math.abs(n) >= v) return +(n / v).toFixed(1) + s;
   return String(Math.round(n));
 };

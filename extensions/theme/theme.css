@@ -1,15 +1,15 @@
 /* ==========================================================================
-   RoCreate — reskins roblox.com to the Creator Hub ("Create tab") look.
+   RoCreate: reskins roblox.com to the Creator Hub ("Create tab") look.
 
    HOW IT WORKS
    Roblox's current site is built on the "Foundation" design system, which is
    driven by CSS custom properties (--color-surface-0..300, --color-content-*,
    --color-state-*, --divider-color, ...). Re-defining those tokens reskins the
-   ENTIRE new UI in one shot — left nav, cards, dialogs, settings — instead of
+   ENTIRE new UI in one shot, left nav, cards, dialogs, settings, instead of
    chasing per-component class names (which Roblox renames constantly).
 
    The TOPBAR is still the legacy Bootstrap navbar (#header, ul.nav.rbx-navbar,
-   #navbar-robux/settings), so it does NOT read those tokens — it gets explicit
+   #navbar-robux/settings), so it does NOT read those tokens, it gets explicit
    overrides lower down.
 
    RoValra COMPAT: RoValra styles its own injected UI with the same Roblox
@@ -43,7 +43,7 @@ html.rocreate-on {
 }
 
 /* ==========================================================================
-   1. FOUNDATION TOKEN OVERRIDE — the engine. !important beats Roblox's own
+   1. FOUNDATION TOKEN OVERRIDE: the engine. !important beats Roblox's own
    non-important token definitions regardless of where they are scoped.
    ========================================================================== */
 html.rocreate-on,
@@ -64,7 +64,7 @@ html.rocreate-on body {
   --color-state-hover: rgba(255,255,255,0.06) !important;  /* nav hover       */
   --color-state-press: rgba(255,255,255,0.10) !important;
 
-  /* shift scale: the active left-nav item is .bg-shift-200 — Roblox ships a
+  /* shift scale: the active left-nav item is .bg-shift-200, Roblox ships a
      blue-tinted 8% fill; Create uses a solid neutral gray pill */
   --color-shift-100: rgba(255,255,255,0.04) !important;
   --color-shift-200: #232428 !important;
@@ -74,7 +74,7 @@ html.rocreate-on body {
   --divider-color:              rgba(255,255,255,0.08) !important;
   --color-common-heavy-divider: rgba(255,255,255,0.12) !important;
   --border-default:   rgba(255,255,255,0.10) !important;  /* RoValra reads it */
-  /* NB: --stroke-standard is a border WIDTH (calc(1px*1)) — never recolour it */
+  /* NB: --stroke-standard is a border WIDTH (calc(1px*1)), never recolour it */
 
   /* Foundation stroke colours: neutral instead of Roblox's blue tint */
   --color-stroke-muted:    rgba(255,255,255,0.06) !important;
@@ -89,7 +89,7 @@ html.rocreate-on body {
 }
 
 /* ==========================================================================
-   2. BASE SURFACES — belt-and-braces for elements that hardcode a background
+   2. BASE SURFACES: belt-and-braces for elements that hardcode a background
    instead of reading a token (common on legacy dark-theme pages).
    ========================================================================== */
 html.rocreate-on,
@@ -104,7 +104,7 @@ html.rocreate-on .content-page-container {
 }
 
 /* ==========================================================================
-   3. LEGACY TOPBAR (Bootstrap navbar) — kill the blue gradient, go flat dark.
+   3. LEGACY TOPBAR (Bootstrap navbar), kill the blue gradient, go flat dark.
    ========================================================================== */
 html.rocreate-on #header,
 html.rocreate-on #header > .container-fluid,
@@ -353,7 +353,7 @@ html.rocreate-on .age-bracket-label > a { margin: 0 !important; }
 html.rocreate-on .navbar-search .input-group { top: -1px !important; }
 
 /* ==========================================================================
-   4. LEFT NAV — Foundation (.left-nav) is mostly handled by the token override.
+   4. LEFT NAV: Foundation (.left-nav) is mostly handled by the token override.
    Here we only shape the active item into the Create-tab rounded gray pill and
    round the hover, plus a fallback for the legacy #navigation markup.
    ========================================================================== */
@@ -396,9 +396,9 @@ html.rocreate-on #navigation li a.selected-item {
 }
 
 /* ==========================================================================
-   5. LEGACY CARDS / BUTTONS / INPUTS — for pages not yet on Foundation.
+   5. LEGACY CARDS / BUTTONS / INPUTS: for pages not yet on Foundation.
    ========================================================================== */
-/* game cards: no box — just a rounded thumbnail and text, like the
+/* game cards: no box, just a rounded thumbnail and text, like the
    "Currently Wearing" row, so every card row on a page looks the same */
 html.rocreate-on .game-card-container,
 html.rocreate-on .grid-item-container,
@@ -426,7 +426,7 @@ html.rocreate-on .game-card-name.game-name-title {
   line-height: 18px !important;
   white-space: normal !important;
 }
-/* chart filters are filters, not calls to action — neutral, not accent blue */
+/* chart filters are filters, not calls to action, neutral, not accent blue */
 html.rocreate-on .filters-container .filter-select.btn-primary-md {
   background: rgba(255,255,255,0.08) !important;
   color: var(--rc-text) !important;
@@ -516,7 +516,7 @@ html.rocreate-on .menu-vertical .menu-option-content.active {
    6b. FRIEND / FOLLOWER TILES (ul.hlist.avatar-cards on the friends pages)
    Wide horizontal cards -> compact vertical tiles: rounded-square avatar,
    display name truncated so its badges (Plus, verified, RoValra's) stay
-   visible after it, @username underneath. Status text dropped — the presence
+   visible after it, @username underneath. Status text dropped, the presence
    icon on the avatar already shows it.
    ========================================================================== */
 html.rocreate-on ul.hlist.avatar-cards {
@@ -539,7 +539,7 @@ html.rocreate-on ul.avatar-cards > li.avatar-card {
 }
 /* Friend-request cards carry an Accept/Ignore bar, so they need a wider tile.
    Roblox gives that bar its own surface-300 panel + top border, which reads as
-   a detached grey block once the card is a tile — flatten it into the card and
+   a detached grey block once the card is a tile, flatten it into the card and
    keep the two buttons side by side. */
 html.rocreate-on ul.avatar-cards > li.avatar-card:has(.avatar-card-btns) {
   width: 168px !important;
@@ -653,7 +653,7 @@ html.rocreate-on ul.avatar-cards .avatar-card-label {
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
-/* drop the redundant "Online" line — but keep the extra lines on request
+/* drop the redundant "Online" line, but keep the extra lines on request
    cards, where they carry mutual friends / "Sent from <game>" */
 html.rocreate-on ul.avatar-cards
   > li.avatar-card:not(:has(.avatar-card-btns))
@@ -739,7 +739,7 @@ html.rocreate-on ::-webkit-scrollbar-thumb {
 html.rocreate-on ::-webkit-scrollbar-thumb:hover { background: #4a5059; }
 
 /* ==========================================================================
-   8. RoValra COMPAT — its UI already consumes the tokens above, so this is
+   8. RoValra COMPAT, its UI already consumes the tokens above, so this is
    only a safety net: keep its injected surfaces/buttons readable, and make
    sure we never flatten away RoValra's own theme feature if the user runs one
    (we deliberately do NOT redefine any --rovalra-theme-* variable).
@@ -755,7 +755,7 @@ html.rocreate-on body.rovalra-custom-background-image-active #content {
 }
 
 /* ==========================================================================
-   9. DECLUTTER (toggle) — hide ads + Plus upsells. Nothing here matches any
+   9. DECLUTTER (toggle), hide ads + Plus upsells. Nothing here matches any
    rovalra-* / roseal-* element, so RoValra's buttons are never hidden.
    ========================================================================== */
 html.rocreate-on.rc-declutter #AdZone,
@@ -771,7 +771,7 @@ html.rocreate-on.rc-declutter .trades-upsell-card,
 html.rocreate-on.rc-declutter .subscribe-upsell-banner,
 html.rocreate-on.rc-declutter li.padding-top-xsmall:has(a[href="/plus"]),
 html.rocreate-on.rc-declutter div.buy-robux-content a[href="/plus"],
-/* "Share Plus to get 100 Robux" referral promo card — referral/upsell only,
+/* "Share Plus to get 100 Robux" referral promo card, referral/upsell only,
    so the plain "Roblox Plus" nav item (a[href$='/plus']) is NOT hidden */
 html.rocreate-on.rc-declutter .left-nav [class*="upsell" i],
 html.rocreate-on.rc-declutter .left-nav [class*="referral" i],
@@ -781,7 +781,7 @@ html.rocreate-on.rc-declutter .left-nav li:has(a[href*="ctx=plus"]) {
 }
 
 /* ==========================================================================
-   8. NAVIGATION — the left sidebar is replaced by a dropdown under the logo.
+   8. NAVIGATION: the left sidebar is replaced by a dropdown under the logo.
    Entries are cloned from the sidebar by nav.js, so these rules restyle
    Roblox's own markup rather than describing new elements.
    ========================================================================== */

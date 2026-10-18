@@ -126,7 +126,7 @@ function badge(cls) {
 
 function decorate(tile, p) {
   // Never duplicate a badge Roblox or another extension (RoValra) already
-  // rendered — match on the icon kind, not on who added it.
+  // rendered, match on the icon kind, not on who added it.
   const name = tile.querySelector(".friends-carousel-tile-name");
   if (name) {
     if (p.isVerified && !name.querySelector('[class*="verified"]')) {

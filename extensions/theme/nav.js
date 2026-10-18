@@ -140,7 +140,7 @@
     const links = sidebarLinks();
 
     // Rebuilding writes to the DOM, which wakes our own observer, so do it only when
-    // the sidebar text actually changed — otherwise this loops forever and tanks the fps.
+    // the sidebar text actually changed, otherwise this loops forever and tanks the fps.
     const sig = links.map((a) => pathOf(a) + ":" + a.textContent.trim()).join("|");
     if (sig !== lastSig) {
       lastSig = sig;

@@ -17,12 +17,12 @@
   /* ---- helpers ---- */
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const fmt = (n, d = 1) => {
-    if (n == null || !isFinite(n)) return "–";
+    if (n == null || !isFinite(n)) return "-";
     const a = Math.abs(n);
     for (const [v, s] of [[1e12, "T"], [1e9, "B"], [1e6, "M"], [1e3, "K"]]) if (a >= v) return +(n / v).toFixed(d) + s;
     return Math.round(n).toLocaleString();
   };
-  const full = (n) => (n == null ? "–" : Number(n).toLocaleString());
+  const full = (n) => (n == null ? "-" : Number(n).toLocaleString());
   const day = (t) => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
   function ago(t) {
     const s = (Date.now() - t) / 1000;
@@ -137,7 +137,7 @@
     const tiles =
       tile("Value", r.privacy && !r.value ? "Private" : `R$ ${full(r.value)}`, r.privacy ? "inventory is private" : "") +
       tile("RAP", r.privacy && !r.rap ? "Private" : `R$ ${full(r.rap)}`) +
-      tile("Rank", r.rank ? "#" + full(r.rank) : "–") +
+      tile("Rank", r.rank ? "#" + full(r.rank) : "-") +
       (peak ? tile("Peak value", `R$ ${fmt(peak[1])}`, day(peak[0])) : "");
     const chart = show.length >= 2
       ? `<div class="rcp-chart-wrap"><div class="rcp-ranges">${[["1m", 30], ["3m", 91], ["1y", 365], ["All", 0]].map(([t, d]) => `<button type="button" data-days="${d}" class="${d === rangeDays ? "rcp-on" : ""}">${t}</button>`).join("")}` +
