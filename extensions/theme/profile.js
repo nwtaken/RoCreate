@@ -88,6 +88,7 @@
       tile("Status", `<span class="rcp-dot ${status[0]}"></span>${status[1]}`, esc(status[2])),
       r ? tile("Inventory value", r.privacy && !r.value ? "Private" : "R$ " + fmt(r.value), r.rap != null ? "RAP R$ " + fmt(r.rap) : "", "Rolimons") : "",
       S.games?.revenue ? tile("Est. game revenue", "R$ " + fmt(S.games.revenue), `${S.games.count} experience${S.games.count > 1 ? "s" : ""}`, "Creator Exchange") : "",
+      S.owned ? tile("Owns", `${S.owned.count} communit${S.owned.count > 1 ? "ies" : "y"}`, esc(S.owned.biggest), "Communities this account owns") : "",
       S.items?.count ? tile("Roblox items", `${full(S.items.count)}`, `R$ ${fmt(S.items.total)} known`, "Official Roblox items, not limiteds") : "",
       v?.reason || v?.flags?.length ? tile(
         v.flags?.length ? '<span class="rcp-bad">Flagged</span>' : "Why verified?",

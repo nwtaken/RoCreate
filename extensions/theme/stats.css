@@ -145,4 +145,7 @@ a.rcx-rbx-row:hover { background: rgba(127, 135, 150, .14); }
 .rcx-rbx-amount { display: inline-flex; align-items: center; gap: 4px; flex: none; font-weight: 700; }
 .rcx-rbx-icon { width: 16px !important; height: 16px !important; background-size: 16px !important; font-size: 16px; }
 .rcx-pending .rcx-rbx-amount { color: #f5a623; }
+.rcx-rbx-fresh { font-weight: 500; font-size: 12px; padding-top: 4px; padding-bottom: 6px; }
+.rcx-rbx-fresh > span { opacity: .55; }
+.rcx-rbx-refresh { background: none; border: 0; padding: 0; cursor: pointer; color: var(--rc-accent, #0a84ff); font: inherit; font-weight: 700; }
 .rcx-rbx-empty { font-weight: 500; font-size: 12px; opacity: .55; padding-top: 4px; padding-bottom: 4px; }

@@ -147,12 +147,30 @@
       })
       .join("") +
       (data.empty ? `<div class="rcx-rbx-row rcx-rbx-empty">+${data.empty} group${data.empty > 1 ? "s" : ""} with 0 Robux</div>` : "") +
-      (loading ? '<div class="rcx-rbx-row rcx-rbx-empty">Updating…</div>' : "") +
+      (loading ? '<div class="rcx-rbx-row rcx-rbx-empty">Updating…</div>'
+        : data.at ? `<div class="rcx-rbx-row rcx-rbx-fresh"><span>Updated ${ago(data.at)}</span><button type="button" class="rcx-rbx-refresh">Refresh</button></div>` : "") +
       '<div role="separator" class="foundation-web-menu-separator"></div>';
     // right below the balance row at the top of the menu
     const first = menu.firstElementChild;
     if (first) first.after(box);
     else menu.prepend(box);
+    const refresh = box.querySelector(".rcx-rbx-refresh");
+    if (refresh) {
+      // clicks stay inside: the menu would otherwise treat them as picking an item and close
+      refresh.addEventListener("pointerdown", (e) => e.stopPropagation());
+      refresh.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onProgress = (partial) => menu.isConnected && render(menu, partial);
+        const p = load();
+        render(menu, cache || data);
+        p.then((fresh) => menu.isConnected && render(menu, fresh)).catch(() => {}).finally(() => (onProgress = null));
+      });
+    }
+  }
+  function ago(t) {
+    const m = Math.round((Date.now() - t) / 60000);
+    return m < 1 ? "just now" : m < 60 ? `${m} min ago` : `${Math.round(m / 60)} h ago`;
   }
 
   // the menu mounts a moment after the button flips to aria-expanded="true"

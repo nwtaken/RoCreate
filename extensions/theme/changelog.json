@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.9.8",
+    "date": "2026-10-18",
+    "changes": [
+      "Robux menu: shows when its numbers were updated, with a Refresh button",
+      "Profiles: an Owns tile with how many communities the account owns, and the biggest one"
+    ]
+  },
+  {
     "version": "0.9.7",
     "date": "2026-10-18",
     "changes": [
