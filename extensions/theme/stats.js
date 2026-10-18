@@ -1,6 +1,6 @@
 /* Game stats on roblox.com from Creator Exchange (creatorexchange.io): estimated
    revenue and its trend plus total visits on every game card, and a stats strip on
-   game pages, a 7-day player sparkline when you hover a card, a sort control on
+   game pages, a 7-day player graph when you point at a card's stats, a sort control on
    Charts, and a watchlist (star on the game page, listed in the popup). The numbers
    come from background.js. chrome.storage.sync: { stats, sort, watch: [{ id, place, name }] }.
 
@@ -58,9 +58,9 @@
   function cardHtml(s) {
     return (
       (watched.has(s.universeId) ? '<span class="rcx-pill rcx-star" title="On your watchlist">★</span>' : "") +
-      `<span class="rcx-pill rcx-rev" title="Estimated revenue (Creator Exchange)${trendTitle(s.revenueTrend)}">` +
-      `${ICON.robux}${fmt(s.revenue)}${arrow(s.revenueTrend)}</span>` +
-      `<span class="rcx-pill" title="${s.visits != null ? Number(s.visits).toLocaleString() : "?"} visits (Creator Exchange)">${ICON.visits}${fmt(s.visits, 0)}</span>`
+      // exact numbers and the player graph open when you point at these (showSpark)
+      `<span class="rcx-pill rcx-rev">${ICON.robux}${fmt(s.revenue)}${arrow(s.revenueTrend)}</span>` +
+      `<span class="rcx-pill">${ICON.visits}${fmt(s.visits, 0)}</span>`
     );
   }
 
@@ -280,34 +280,47 @@
     if (!id || !st || st.missing) return;
     sparkFor = a;
     const h = await ask({ type: "rcx-history", id });
-    if (sparkFor !== a || !h || !h.points || h.points.length < 3) return;
-    const pts = h.points, ys = pts.map((p) => p[1]);
-    const now = ys[ys.length - 1], change = ys[0] ? ((now - ys[0]) / ys[0]) * 100 : null;
+    if (sparkFor !== a) return;
     const el = spark();
+    let graph = "";
+    if (h?.points?.length >= 3) {
+      const pts = h.points, ys = pts.map((p) => p[1]);
+      const now = ys[ys.length - 1], change = ys[0] ? ((now - ys[0]) / ys[0]) * 100 : null;
+      graph =
+        `<div class="rcx-spark-sub">Players, last 7 days` +
+        (change == null ? "" : ` · <span class="${change >= 0 ? "rcx-up" : "rcx-down"}">${pct(change)}</span>`) + `</div>` +
+        sparkSvg(pts, 220, 56) +
+        `<div class="rcx-spark-row"><span>Now <b>${fmt(now)}</b></span><span>Peak <b>${fmt(Math.max(...ys))}</b></span><span>Low <b>${fmt(Math.min(...ys))}</b></span></div>`;
+    }
     el.innerHTML =
       `<div class="rcx-spark-title">${esc(st.name || nameOf(a))}</div>` +
-      `<div class="rcx-spark-sub">Players, last 7 days` +
-      (change == null ? "" : ` · <span class="${change >= 0 ? "rcx-up" : "rcx-down"}">${pct(change)}</span>`) + `</div>` +
-      sparkSvg(pts, 220, 56) +
-      `<div class="rcx-spark-row"><span>Now <b>${fmt(now)}</b></span><span>Peak <b>${fmt(Math.max(...ys))}</b></span><span>Low <b>${fmt(Math.min(...ys))}</b></span></div>`;
+      `<div class="rcx-spark-facts"><div><i>Est. revenue</i><b>R$ ${fmt(st.revenue)}</b>${arrow(st.revenueTrend)}` +
+      (st.revenueTrend == null ? "" : ` <span class="${st.revenueTrend >= 0 ? "rcx-up" : "rcx-down"}">${pct(st.revenueTrend)}</span>`) +
+      `</div><div><i>Visits</i><b>${fmt(st.visits, 1)}</b></div></div>` + graph;
+    // beside the card, not over it: Roblox's own hover card (Play button) opens below the thumbnail
     const r = (a.querySelector(THUMB) || a).getBoundingClientRect();
-    const W = 244, H = el.offsetHeight || 140;
-    let left = Math.min(Math.max(8, r.left + r.width / 2 - W / 2), innerWidth - W - 8);
-    let top = r.bottom + 8;
-    if (top + H > innerHeight - 8) top = Math.max(8, r.top - H - 8);
+    const W = 244, H = el.offsetHeight || 160;
+    let left = r.right + 10, top = Math.min(Math.max(8, r.top), innerHeight - H - 8);
+    if (left + W > innerWidth - 8) left = r.left - W - 10;
+    if (left < 8) { // no room on either side: above the thumbnail
+      left = Math.min(Math.max(8, r.left + r.width / 2 - W / 2), innerWidth - W - 8);
+      top = Math.max(8, r.top - H - 8);
+    }
     el.style.left = left + "px";
     el.style.top = top + "px";
     el.classList.add("rcx-show");
   }
 
+  // only the stats pills in the thumbnail's corner open it, so hovering a card
+  // still leaves Roblox's hover card and its Play button alone
   document.addEventListener("mouseover", (e) => {
     if (!on) return;
-    const a = e.target.closest?.("a.game-card-link");
+    const a = e.target.closest?.(".rcx-card")?.closest("a.game-card-link") || null;
     if (a === sparkFor) return;
     hideSpark();
     if (a) {
       sparkFor = a;
-      sparkTimer = setTimeout(() => showSpark(a), 450);
+      sparkTimer = setTimeout(() => showSpark(a), 250);
     }
   }, true);
   addEventListener("scroll", hideSpark, true);

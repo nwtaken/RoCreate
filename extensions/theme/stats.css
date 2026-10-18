@@ -87,6 +87,9 @@ html:not(.rcx-on) #rcx-sort, html:not(.rcx-on) #rcx-spark { display: none !impor
 #rcx-spark.rcx-show { opacity: 1; transform: none; }
 .rcx-spark-title { font-weight: 800; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rcx-spark-sub { margin: 2px 0 8px; opacity: .7; }
+.rcx-spark-facts { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin: 8px 0 10px; white-space: nowrap; }
+.rcx-spark-facts i { display: block; font-style: normal; font-size: 11px; opacity: .7; margin-bottom: 1px; }
+.rcx-spark-facts b { font-weight: 800; font-size: 14px; }
 #rcx-spark svg { display: block; }
 #rcx-spark svg .rcx-line { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
 #rcx-spark svg .rcx-area { fill: currentColor; opacity: .14; stroke: none; }
