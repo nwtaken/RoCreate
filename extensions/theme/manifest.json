@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RoCreate: Roblox Like the Creator Hub",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "description": "Reskins Roblox to look like the Creator Hub: clean, flat and lightweight, with game stats from Creator Exchange. Works alongside RoValra.",
   "icons": {
     "16": "icons/icon-16.png",

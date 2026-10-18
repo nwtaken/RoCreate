@@ -28,6 +28,13 @@ html:not(.rcx-on) #rcx-panel { display: none !important; }
 
 #rcx-group { margin: 14px 0 16px; }
 #rcx-group .rcx-value { overflow: hidden; text-overflow: ellipsis; }
+.rcx-group-top { margin-top: 8px; border-radius: 12px; overflow: hidden; border: 1px solid var(--rc-line, rgba(127, 135, 150, .18)); }
+.rcx-group-row { display: grid; grid-template-columns: 1fr auto 110px; gap: 14px; align-items: center; padding: 9px 14px; font: 600 13px/1.2 "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif; color: inherit !important; text-decoration: none !important; }
+.rcx-group-row + .rcx-group-row { border-top: 1px solid var(--rc-line, rgba(127, 135, 150, .14)); }
+.rcx-group-row:hover { background: rgba(127, 135, 150, .1); }
+.rcx-group-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rcx-group-num { white-space: nowrap; font-weight: 800; color: #2fd4b4; text-align: right; }
+.rcx-group-num.rcx-dim { color: inherit; opacity: .7; font-weight: 600; }
 #rcx-panel { margin: 18px 0 6px; padding: 0 !important; float: none; clear: both; width: 100%; }
 .rcx-panel-grid {
   display: grid; gap: 8px;

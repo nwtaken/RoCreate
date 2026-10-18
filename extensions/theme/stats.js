@@ -272,7 +272,8 @@
     if (!games.length) return;
     games.sort((a, b) => (b.placeVisits || 0) - (a.placeVisits || 0));
     const st = (await ask({ type: "rcx-stats", games: games.slice(0, 30).map((g) => ({ id: String(g.id), name: g.name })), search: true })) || {};
-    const tracked = games.map((g) => st[String(g.id)]).filter((x) => x && !x.missing);
+    // games Creator Exchange tracks with real activity (it also lists empty test places)
+    const tracked = games.map((g) => st[String(g.id)]).filter((x) => x && !x.missing && (x.revenue > 0 || x.playing > 0));
     const sum = (k) => tracked.reduce((n, x) => n + (x[k] || 0), 0);
     const top = [...tracked].sort((a, b) => (b.revenue || 0) - (a.revenue || 0))[0];
     const tile = (label, value, sub = "") =>
@@ -286,7 +287,15 @@
       (tracked.length ? tile("Playing now", fmt(sum("playing")), "in tracked games") : "") +
       tile("Visits", fmt(games.reduce((n, g) => n + (g.placeVisits || 0), 0)), "all public games") +
       (top ? tile("Top earner", esc(top.name || ""), "R$ " + fmt(top.revenue)) : "") +
-      `</div><a class="rcx-source" href="https://creatorexchange.io" target="_blank" rel="noopener">Estimates by Creator Exchange ↗</a>`;
+      `</div>` +
+      // its biggest earners, linked to their pages
+      (tracked.length > 1 ? `<div class="rcx-group-top">` + [...tracked].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 5).map((x) => {
+        const g = games.find((y) => String(y.id) === String(x.universeId));
+        const href = g?.rootPlace?.id ? `/games/${g.rootPlace.id}` : `https://creatorexchange.io/roblox-game/${x.universeId}`;
+        return `<a class="rcx-group-row" href="${href}"><span class="rcx-group-name">${esc(x.name || g?.name || "")}</span>` +
+          `<span class="rcx-group-num">R$ ${fmt(x.revenue)}${arrow(x.revenueTrend)}</span><span class="rcx-group-num rcx-dim">${fmt(x.playing)} playing</span></a>`;
+      }).join("") + `</div>` : "") +
+      `<a class="rcx-source" href="https://creatorexchange.io" target="_blank" rel="noopener">Estimates by Creator Exchange ↗</a>`;
     tabs.before(box);
   }
 

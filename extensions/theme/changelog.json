@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.12.5",
+    "date": "2026-10-18",
+    "changes": [
+      "Community pages: a list of the group's top earning games with revenue and players",
+      "Community totals skip empty test places"
+    ]
+  },
+  {
     "version": "0.12.4",
     "date": "2026-10-18",
     "changes": [
