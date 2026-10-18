@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.12.4",
+    "date": "2026-10-18",
+    "changes": [
+      "Popup works better with a keyboard and screen readers: named switches and a visible focus ring"
+    ]
+  },
+  {
     "version": "0.12.3",
     "date": "2026-10-18",
     "changes": [

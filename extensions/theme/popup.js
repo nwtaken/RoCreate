@@ -16,6 +16,7 @@ function showAccent(name) {
 }
 for (const [name, color] of Object.entries(ACCENTS)) {
   const b = Object.assign(document.createElement("button"), { type: "button", title: name[0].toUpperCase() + name.slice(1) });
+  b.setAttribute("aria-label", "Accent " + name);
   b.dataset.name = name;
   b.style.background = color;
   b.addEventListener("click", () => {
@@ -30,7 +31,11 @@ function save() {
   chrome.storage.sync.set(Object.fromEntries(boxes.map((b) => [b.id, b.checked])));
 }
 
-for (const b of boxes) b.addEventListener("change", save);
+for (const b of boxes) {
+  b.addEventListener("change", save);
+  // screen readers: name each switch after its row ("Theme", "Spike alerts", ...)
+  b.setAttribute("aria-label", b.closest(".row")?.firstElementChild?.firstChild?.textContent.trim() || b.id);
+}
 
 // features this copy doesn't include (config.json, written by the download page) get no switch
 fetch(chrome.runtime.getURL("config.json"))
