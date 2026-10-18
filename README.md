@@ -4,14 +4,19 @@
   <a href="https://github.com/nwtaken/RoCreate/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/nwtaken/RoCreate?style=flat-square&color=335fff"></a>
   <a href="https://github.com/nwtaken/RoCreate/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/nwtaken/RoCreate/total?style=flat-square&color=3b3b3b"></a>
   <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-3b3b3b?style=flat-square">
-  <img alt="Python and WebView2" src="https://img.shields.io/badge/Python-WebView2-3b3b3b?style=flat-square">
+  <img alt="macOS" src="https://img.shields.io/badge/macOS-14%2B-3b3b3b?style=flat-square">
+  <img alt="Python, WebView2 and Qt WebEngine" src="https://img.shields.io/badge/Python-WebView2%20%7C%20Qt%20WebEngine-3b3b3b?style=flat-square">
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-3b3b3b?style=flat-square"></a>
 </p>
+
+**Website: [rocreate.org](https://rocreate.org)**, with the RoCreate extension for Chrome.
 
 RoCreate is Roblox as a desktop app. It wraps roblox.com in a lightweight window, restyles it
 to look like the Creator Hub, blocks ads and trackers, launches games straight into the Roblox
 player, and loads [RoValra](https://github.com/NotValra/RoValra) so you keep all of its features.
-It uses the WebView2 runtime that already ships with Windows, so there is no bundled browser.
+On Windows it uses the WebView2 runtime that already ships with Windows, so there is no bundled
+browser. On macOS it runs on Qt WebEngine (Chromium), because Safari's web view can't load
+Chrome extensions such as RoValra.
 
 <p align="center"><img src="docs/screenshots/home.jpg" alt="The RoCreate home page with a time-aware greeting" width="90%"></p>
 
@@ -39,6 +44,20 @@ The setup wizard lets you pick what you want:
 Chrome only loads unpacked extensions in Developer mode, so the last page of the wizard opens
 `chrome://extensions`, shows you each extension's folder, and ticks it off as soon as Chrome has
 loaded it. You can bring that page back any time with `RoCreate.exe --chrome-setup`.
+
+### macOS
+
+There's no Mac download yet. To build it, run `python installer/build.py` on a Mac: it makes
+`dist/RoCreate.dmg`. Open it and drag **RoCreate** into **Applications**. RoValra is downloaded
+the first time the app starts, and ad blocking is on.
+
+> RoCreate isn't notarized yet, so macOS blocks it the first time. Open it once, then go to
+> **System Settings → Privacy & Security** and click **Open Anyway**.
+
+The Chrome extensions are in the DMG's **Chrome extensions** folder. Copy that folder somewhere
+permanent (Chrome keeps loading from it), open `chrome://extensions`, turn on **Developer mode**,
+click **Load unpacked** and pick `redirect` and/or `theme`. Roblox links opened in Chrome then go
+straight to the app, the same as on Windows.
 
 ## What you get
 
@@ -77,14 +96,17 @@ loaded it. You can bring that page back any time with `RoCreate.exe --chrome-set
 ## Privacy and safety
 
 - RoCreate has no account, server or telemetry. You sign in to Roblox exactly as you would in a
-  browser, and that login stays in a local profile at `%LOCALAPPDATA%\RoCreate\profile`. It is
-  never in the install folder or in this repository.
+  browser, and that login stays in a local profile at `%LOCALAPPDATA%\RoCreate\profile`
+  (`~/Library/Application Support/RoCreate/profile` on macOS). It is never in the install folder
+  or in this repository.
 - The app talks to Roblox, and to the Chrome Web Store when it downloads or updates RoValra.
   That is all.
 - The blocklist only drops third-party analytics and Roblox's own telemetry hosts.
 - `rocreate://` links and the local socket only accept `https` links on `roblox.com`.
 - Uninstalling (`RoCreate.exe --uninstall` or Windows Settings → Apps) removes the app, its
   shortcuts and its registry entries. Tick *Also delete my data* to remove the login profile too.
+  On macOS, drag RoCreate.app to the Trash; delete `~/Library/Application Support/RoCreate` to
+  remove the login profile too.
 
 RoCreate isn't affiliated with Roblox Corporation or with RoValra. See [NOTICE.md](NOTICE.md).
 
@@ -97,26 +119,36 @@ RoCreate isn't affiliated with Roblox Corporation or with RoValra. See [NOTICE.m
 - **RoValra** is a Manifest V3 Chrome extension, which WebView2 can load unpacked. It is
   downloaded from the Chrome Web Store into your data folder, never bundled here, so it stays
   under its own GPL-3.0 licence and updates from its real source.
+- **macOS** uses Qt WebEngine instead. It loads RoValra too, with two small fixes RoCreate applies
+  to your downloaded copy: stubs for the two extension APIs Qt doesn't have (`permissions` and
+  `contextMenus`, so RoValra's background worker starts), and its images and stylesheets are
+  served to the page over a `rocreate-ext://` scheme, because Qt won't let roblox.com load them
+  from the extension directly. Play opens the place straight in the Roblox app with a
+  `roblox://experiences/start` link (no website "joining" step), and when you leave the game
+  RoCreate reads that from Roblox's own log, hides the Roblox app (it stays running, so the next
+  launch is instant) and comes back to the front. Nothing touches the Roblox client itself.
 - **Opening links:** the redirect extension rewrites `roblox.com` navigations to
   `rocreate://open?u=…`; the app registers that protocol per user, forwards the link to an
   already-running window over a local socket, and the Chrome tab closes itself once the app has
   confirmed it got the link.
 
-## macOS and Linux
+## Linux
 
-Not supported yet. The app needs the Windows WebView2 runtime, and macOS's built-in web view
-can't host Chrome extensions such as RoValra. The two Chrome extensions are plain Manifest V3 and
-should work in Chrome on any system; a macOS app would need a Chromium-based shell.
+Not supported yet. The two Chrome extensions are plain Manifest V3 and work in Chrome on any
+system.
 
 ## Building from source
 
-Needs Python 3.12+ on Windows.
+Needs Python 3.12+ on Windows or macOS.
 
 ```sh
 pip install -r requirements.txt
 python app/app.py              # run from source
-python installer/build.py      # build dist/RoCreate-Setup.exe
+python installer/build.py      # build dist/RoCreate-Setup.exe (Windows) or dist/RoCreate.dmg (macOS)
 ```
+
+The DMG is built for the Mac's own architecture (an Intel build also runs on Apple silicon
+through Rosetta).
 
 ```
 app/                   the desktop app and the setup wizard (wizard_ui/)

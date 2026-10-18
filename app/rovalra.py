@@ -66,6 +66,56 @@ def install(dest: Path, log=print) -> str:
     return version
 
 
+# Qt WebEngine (the macOS app) has no chrome.permissions or chrome.contextMenus, and RoValra's
+# service worker stops at the first line that touches them. Stubs keep it running; the
+# features behind those optional permissions just report "not granted".
+_QT_SHIM_MARK = "/* rocreate-qt-shim */"
+_QT_WORKER_SHIM = _QT_SHIM_MARK + """
+(() => {
+  const ev = () => ({ addListener() {}, removeListener() {}, hasListener: () => false });
+  const done = (v, cb) => (typeof cb === "function" ? (cb(v), undefined) : Promise.resolve(v));
+  if (!chrome.permissions) chrome.permissions = {
+    contains: (_p, cb) => done(false, cb), request: (_p, cb) => done(false, cb),
+    remove: (_p, cb) => done(false, cb), getAll: (cb) => done({ permissions: [], origins: [] }, cb),
+    onAdded: ev(), onRemoved: ev(),
+  };
+  if (!chrome.contextMenus) chrome.contextMenus = {
+    create: () => 0, update: (_i, _p, cb) => done(undefined, cb),
+    remove: (_i, cb) => done(undefined, cb), removeAll: (cb) => done(undefined, cb), onClicked: ev(),
+  };
+})();
+"""
+# Qt WebEngine also refuses to let roblox.com load the extension's web-accessible files
+# (images, CSS), so the content script gets its URLs from the app's own scheme instead.
+QT_SCHEME = "rocreate-ext"
+_QT_CONTENT_SHIM = _QT_SHIM_MARK + """
+try { chrome.runtime.getURL = (p) => "%s://rovalra/" + String(p).replace(/^\\/+/, ""); } catch (e) {}
+""" % QT_SCHEME
+
+
+def _prepend(path: Path, shim: str) -> None:
+    try:
+        code = path.read_text("utf-8")
+    except OSError:
+        return
+    if not code.startswith(_QT_SHIM_MARK):
+        path.write_text(shim + code, "utf-8")
+
+
+def patch_for_qt(dest: Path) -> None:
+    """Prepend the stubs to RoValra's service worker and content scripts (idempotent)."""
+    try:
+        manifest = json.loads((dest / "manifest.json").read_text("utf-8"))
+    except (OSError, ValueError):
+        return
+    worker = (manifest.get("background") or {}).get("service_worker")
+    if worker:
+        _prepend(dest / worker, _QT_WORKER_SHIM)
+    for script in manifest.get("content_scripts") or []:
+        if script.get("world", "ISOLATED") == "ISOLATED" and script.get("js"):
+            _prepend(dest / script["js"][0], _QT_CONTENT_SHIM)
+
+
 def update_if_stale(dest: Path, stamp: Path, days: int = 7, log=print) -> None:
     """Weekly background refresh; the new copy is picked up on the next launch."""
     try:

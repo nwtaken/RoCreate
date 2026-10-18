@@ -1,2 +1,3 @@
-pywebview>=6.2        # window + WebView2 bridge (pulls in pythonnet)
-pyinstaller>=6.10     # only needed to build RoCreate-Setup.exe
+pywebview>=6.2; sys_platform == "win32"   # window + WebView2 bridge (pulls in pythonnet)
+PySide6>=6.10; sys_platform == "darwin"   # macOS: Qt WebEngine (Chromium), which can load RoValra
+pyinstaller>=6.10     # only needed to build the installer

@@ -1,4 +1,4 @@
-"""RoCreate — a lightweight Roblox website shell (Windows, WebView2).
+"""RoCreate — a lightweight Roblox website shell (Windows: WebView2; macOS: see mac_app.py).
 
 Uses the WebView2 runtime that is already installed on Windows, so the app
 itself is small instead of bundling Chromium like Electron would.
@@ -15,7 +15,6 @@ Run from a checkout: python app/app.py
 """
 from __future__ import annotations
 
-import base64
 import json
 import os
 import re
@@ -34,19 +33,6 @@ START_URL = "https://www.roblox.com/home"
 
 _handlers = []  # keep .NET delegates alive; GC'd handlers silently stop firing
 
-# Same mark as icon.ico (tilted rounded square, square cut out), white on transparent.
-LOGO_SVG = (
-    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><mask id='m'>"
-    "<rect width='100' height='100' fill='black'/><g transform='rotate(-15 50 50)'>"
-    "<rect x='14' y='14' width='72' height='72' rx='12' fill='white'/>"
-    "<rect x='37' y='37' width='26' height='26' rx='6' fill='black'/></g></mask></defs>"
-    "<rect width='100' height='100' fill='#f7f7f8' mask='url(#m)'/></svg>"
-)
-LOGO_B64 = base64.b64encode(LOGO_SVG.encode()).decode()
-# Sized variant used as the "O" of the wordmark (a CSS content image needs an intrinsic size).
-LOGO_O_B64 = base64.b64encode(
-    LOGO_SVG.replace("viewBox='0 0 100 100'", "width='18' height='12' viewBox='-5 8 126 84'", 1).encode()
-).decode()
 
 
 # --------------------------------------------------------------------------
@@ -72,7 +58,7 @@ def save_settings(window) -> None:
 # --------------------------------------------------------------------------
 # injected payload: the RoCreate theme (same files as the Chrome extension)
 # --------------------------------------------------------------------------
-def build_payload() -> str:
+def build_payload(window_controls: bool = True, instant_play: bool = False) -> str:
     css = (THEME_DIR / "theme.css").read_text("utf-8")
     content_js = (THEME_DIR / "content.js").read_text("utf-8")
     greeting_js = (THEME_DIR / "greeting.js").read_text("utf-8")
@@ -91,6 +77,11 @@ def build_payload() -> str:
   };
 
   const css = %s;
+  // false on macOS, where the window keeps its native title bar
+  const CONTROLS = %s;
+  // macOS: Play opens the place straight in the Roblox app (roblox:// deep link), skipping
+  // the website's "joining" step and its launch ticket
+  const INSTANT_PLAY = %s;
 
   const TITLEBAR_CSS = `
     #rc-titlebar {
@@ -124,25 +115,14 @@ def build_payload() -> str:
     .rc-grip[data-e="topleft"] { top: 0; left: 0; } .rc-grip[data-e="topright"] { top: 0; right: 0; width: 4px; height: 4px; }
     .rc-grip[data-e="bottomleft"] { bottom: 0; left: 0; } .rc-grip[data-e="bottomright"] { bottom: 0; right: 0; }
     html.rc-nosize .rc-grip { display: none; }
-    #right-navigation-header { margin-right: 132px !important; }
-    #header #nav-logo-link { display: flex !important; align-items: center; gap: 10px; text-decoration: none; }
-    #header ul.nav.rbx-navbar { margin-left: 28px !important; }
-    #header #nav-logo-link > *:not(.rc-chev) { display: none !important; }
-    #header #nav-logo-link::before {
-      content: ""; width: 26px; height: 26px; flex: none;
-      background: url(data:image/svg+xml;base64,__LOGO__) center / contain no-repeat;
-    }
-    #header #nav-logo-link::after {
-      content: "R" url(data:image/svg+xml;base64,__LOGO_O__) "CREATE";
-      font-weight: 800; font-size: 17px; letter-spacing: .14em; color: #fff; line-height: 1; white-space: nowrap; flex: none;
-    }
   `;
 
   function injectStyle() {
     if (document.getElementById('rocreate-theme')) return;
     var s = document.createElement('style');
     s.id = 'rocreate-theme';
-    s.textContent = css + TITLEBAR_CSS;
+    s.textContent = css + TITLEBAR_CSS +
+      (CONTROLS ? '#right-navigation-header { margin-right: 132px !important; }' : '');
     var target = document.head || document.documentElement;
     if (target) { target.appendChild(s); return; }
     new MutationObserver(function(_, obs) {
@@ -211,23 +191,37 @@ def build_payload() -> str:
     window.pywebview.api.toggle_fullscreen().then(syncState);
   }, true);
 
+  if (INSTANT_PLAY) document.addEventListener('click', function(e) {
+    var btn = e.target.closest && e.target.closest('[data-testid="play-button"]');
+    var meta = document.getElementById('game-detail-meta-data');
+    var placeId = meta && meta.dataset.placeId;
+    if (!btn || btn.disabled || !/^[0-9]+$/.test(placeId || '')) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    var link = new URLSearchParams(location.search).get('privateServerLinkCode');
+    location.href = 'roblox://experiences/start?placeId=' + placeId +
+      (link ? '&linkCode=' + encodeURIComponent(link) : '');
+  }, true);
+
   injectStyle();
-  if (document.body) injectTitlebar();
-  else new MutationObserver(function(_, obs) {
-    if (!document.body) return;
-    obs.disconnect();
-    injectTitlebar();
-  }).observe(document, {childList: true, subtree: true});
+  if (CONTROLS) {
+    if (document.body) injectTitlebar();
+    else new MutationObserver(function(_, obs) {
+      if (!document.body) return;
+      obs.disconnect();
+      injectTitlebar();
+    }).observe(document, {childList: true, subtree: true});
 
-  // Re-inject if Roblox rebuilds the header (SPA navigation)
-  new MutationObserver(function() {
-    if (!document.getElementById('rc-titlebar')) injectTitlebar();
-  }).observe(document, {childList: true, subtree: true});
+    // Re-inject if Roblox rebuilds the header (SPA navigation)
+    new MutationObserver(function() {
+      if (!document.getElementById('rc-titlebar')) injectTitlebar();
+    }).observe(document, {childList: true, subtree: true});
+  }
 
   %s
 
   %s
-})();""" % (json.dumps(css), content_js, greeting_js + chr(10) * 2 + nav_js)).replace("__LOGO__", LOGO_B64).replace("__LOGO_O__", LOGO_O_B64)
+})();""" % (json.dumps(css), json.dumps(window_controls), json.dumps(instant_play), content_js, greeting_js + chr(10) * 2 + nav_js))
 
 
 # --------------------------------------------------------------------------
@@ -491,7 +485,24 @@ def attach(window) -> None:
         daemon=True,
     ).start()
     if _ipc_server is not None:
-        threading.Thread(target=serve_ipc, args=(_ipc_server, window, inst), daemon=True).start()
+        threading.Thread(target=serve_ipc, args=(_ipc_server, lambda url: open_link(window, inst, url)), daemon=True).start()
+
+
+def open_link(window, inst, url: str | None) -> None:
+    from System import Func, Object
+
+    def front():
+        from System.Windows.Forms import FormWindowState
+        if inst.WindowState == FormWindowState.Minimized:
+            inst.WindowState = FormWindowState.Normal
+        inst.Activate()
+        inst.TopMost = True
+        inst.TopMost = False
+        return None
+
+    if url:
+        window.load_url(url)
+    inst.Invoke(Func[Object](front))
 
 
 class WindowApi:
@@ -637,7 +648,8 @@ def forward_to_running(url: str | None, rid: str = "") -> bool:
     import ctypes
     try:
         with socket.create_connection(("127.0.0.1", IPC_PORT), timeout=10) as s:
-            ctypes.windll.user32.AllowSetForegroundWindow(-1)  # lets the running window come to front
+            if sys.platform == "win32":
+                ctypes.windll.user32.AllowSetForegroundWindow(-1)  # lets the running window come to front
             s.sendall(f"{url or ''}\t{rid}\n".encode())
             return s.recv(16) == b"rocreate\n"
     except OSError:
@@ -647,7 +659,8 @@ def forward_to_running(url: str | None, rid: str = "") -> bool:
 def bind_ipc():
     server = socket.socket()
     try:
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):  # Windows; elsewhere a bound port is exclusive already
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
         server.bind(("127.0.0.1", IPC_PORT))
         server.listen(8)
         return server
@@ -656,18 +669,8 @@ def bind_ipc():
         return None
 
 
-def serve_ipc(server, window, inst) -> None:
-    from System import Func, Object
-
-    def front():
-        from System.Windows.Forms import FormWindowState
-        if inst.WindowState == FormWindowState.Minimized:
-            inst.WindowState = FormWindowState.Normal
-        inst.Activate()
-        inst.TopMost = True
-        inst.TopMost = False
-        return None
-
+def serve_ipc(server, open_link) -> None:
+    """open_link(url or None) loads the link and brings the window to the front."""
     while True:
         try:
             conn, _ = server.accept()
@@ -692,11 +695,9 @@ def serve_ipc(server, window, inst) -> None:
                 conn.sendall(b"rocreate\n")
             except OSError:
                 continue
-        if url and is_roblox_url(url):
-            window.load_url(url)
         if rid:
             _seen.add(rid)
-        inst.Invoke(Func[Object](front))
+        open_link(url if url and is_roblox_url(url) else None)
 
 
 def register_protocol() -> None:
@@ -715,8 +716,11 @@ _ipc_server = None
 
 def main() -> int:
     global START_URL, _ipc_server
+    if sys.platform == "darwin":
+        import mac_app
+        return mac_app.main()
     if sys.platform != "win32":
-        _log("RoCreate currently runs on Windows only (it needs the WebView2 runtime).")
+        _log("RoCreate runs on Windows and macOS only.")
         return 1
     if "--uninstall" in sys.argv or "--chrome-setup" in sys.argv:
         import wizard
