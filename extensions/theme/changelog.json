@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.9.9",
+    "date": "2026-10-18",
+    "changes": [
+      "Home: your watchlist as a strip under the greeting, with revenue, trend and players for each game"
+    ]
+  },
+  {
     "version": "0.9.8",
     "date": "2026-10-18",
     "changes": [

@@ -54,6 +54,19 @@ html:not(.rcx-on) #rcx-sort, html:not(.rcx-on) #rcx-spark { display: none !impor
 .rcx-pill.rcx-star { color: #ffc940; }
 
 
+/* Home: watchlist strip under the title */
+html:not(.rcx-on) #rcx-home { display: none !important; }
+#rcx-home { margin: 10px 0 18px; font-family: "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif; }
+.rcx-home-head { display: flex; align-items: baseline; gap: 12px; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.rcx-home-note { font-size: 11px; font-weight: 600; opacity: .5; }
+.rcx-home-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.rcx-home-tile { flex: 0 0 168px; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; text-decoration: none !important; color: inherit !important;
+  background: var(--rc-surface-1, rgba(127, 135, 150, .1)); border: 1px solid var(--rc-line, rgba(127, 135, 150, .18)); }
+.rcx-home-tile:hover { border-color: var(--rc-accent, #0a84ff); }
+.rcx-home-name { font-size: 13px; line-height: 20px; height: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rcx-home-rev { font-size: 16px; font-weight: 800; color: #2fd4b4; white-space: nowrap; }
+.rcx-home-sub { font-size: 12px; opacity: .7; white-space: nowrap; }
+
 /* game page: placeholder tiles while loading, and the 7-day player chart */
 .rcx-tile.rcx-skel { position: relative; overflow: hidden; min-height: 64px; background: var(--rc-surface-1, rgba(127, 135, 150, .1)); border-color: var(--rc-line, rgba(127, 135, 150, .18)); }
 .rcx-skel .rcx-label, .rcx-skel .rcx-value { border-radius: 6px; background: rgba(127, 135, 150, .18); }

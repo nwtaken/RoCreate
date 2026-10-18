@@ -12,6 +12,7 @@
   let on = DEFAULTS.stats;
   let sortBy = DEFAULTS.sort;
   let watched = new Set();
+  let watchList = []; // [{ id, place, name }], for the strip on Home
 
   const fmt = (n, digits = 1) => {
     if (n == null || !isFinite(n)) return "–";
@@ -216,6 +217,39 @@
     });
   }
 
+  /* ---- Home: your watchlist as a strip under the page title ---- */
+  let homeFor = "", homeBusy = false;
+  async function scanHome() {
+    if (location.pathname.replace(/\/+$/, "") !== "/home") return;
+    const strip = document.getElementById("rcx-home");
+    const key = watchList.map((g) => g.id).join(",");
+    if (!watchList.length) return strip?.remove();
+    const skip = '.left-nav, [role="dialog"], [class*="dialog"], [class*="modal"], footer, #header';
+    const title = document.querySelector("[data-rc-greeting]") || [...document.querySelectorAll("h1")].find((h) => !h.closest(skip) && h.textContent.trim());
+    if (!title) return;
+    if (strip && homeFor === key) {
+      if (!strip.isConnected || strip.previousElementSibling !== title) title.after(strip); // React re-rendered around it
+      return;
+    }
+    if (homeBusy) return;
+    homeBusy = true;
+    const st = (await ask({ type: "rcx-stats", games: watchList.map((g) => ({ id: String(g.id), name: String(g.name || "") })), search: true })) || {};
+    homeBusy = false;
+    homeFor = key;
+    const box = strip || Object.assign(document.createElement("div"), { id: "rcx-home" });
+    box.innerHTML =
+      `<div class="rcx-home-head"><span>Your watchlist</span><span class="rcx-home-note">Estimates by Creator Exchange</span></div><div class="rcx-home-row">` +
+      watchList.slice(0, 12).map((g) => {
+        const s = st[g.id] || {};
+        const href = g.place ? `/games/${encodeURIComponent(g.place)}` : `https://creatorexchange.io/roblox-game/${encodeURIComponent(g.id)}`;
+        return `<a class="rcx-home-tile" href="${href}"${g.place ? "" : ' target="_blank" rel="noopener"'}>` +
+          `<span class="rcx-home-name">${esc(s.name || g.name || g.id)}</span>` +
+          `<span class="rcx-home-rev">${s.revenue != null ? "R$ " + fmt(s.revenue) + arrow(s.revenueTrend) : "not tracked"}</span>` +
+          `<span class="rcx-home-sub">${s.playing != null ? fmt(s.playing) + " playing" : ""}</span></a>`;
+      }).join("") + `</div>`;
+    if (!box.isConnected || box.previousElementSibling !== title) title.after(box);
+  }
+
   /* ---- community pages: totals across the group's experiences ----
      The group's public games (Roblox) with Creator Exchange's estimates for the tracked ones,
      in a strip above the About / Events tabs. */
@@ -410,6 +444,7 @@
       scanCards();
       scanGamePage();
       scanGroupPage();
+      scanHome();
       placeSortControl();
     }, 250);
   };
@@ -423,7 +458,9 @@
   }
 
   function setWatch(list) {
-    watched = new Set((list || []).map((g) => g.id));
+    watchList = list || [];
+    watched = new Set(watchList.map((g) => g.id));
+    homeFor = ""; // redraw the Home strip with the new list
     for (const a of document.querySelectorAll("a.game-card-link")) {
       const id = universeOf(a);
       if (id && stats.get(id)) paintCard(a, stats.get(id));
@@ -450,7 +487,7 @@
   function start() {
     rcWatch((records) => {
       // our own inserts don't need a rescan
-      if (!records.overflow && records.every((r) => r.target.closest?.(".rcx-card, #rcx-panel, #rcx-sort") || [...r.addedNodes].every((n) => n.nodeType !== 1 || n.classList?.contains("rcx-card") || ["rcx-panel", "rcx-sort"].includes(n.id)))) return;
+      if (!records.overflow && records.every((r) => r.target.closest?.(".rcx-card, #rcx-panel, #rcx-sort, #rcx-home, #rcx-group") || [...r.addedNodes].every((n) => n.nodeType !== 1 || n.classList?.contains("rcx-card") || ["rcx-panel", "rcx-sort", "rcx-home", "rcx-group"].includes(n.id)))) return;
       queue();
     });
     queue();
