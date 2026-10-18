@@ -492,6 +492,60 @@ chrome.notifications?.onClicked.addListener(async (nid) => {
   chrome.tabs.create({ url: g?.place ? `https://www.roblox.com/games/${g.place}` : `https://creatorexchange.io/roblox-game/${id}` });
   chrome.notifications.clear(nid);
 });
+/* ---- sales alerts: a notification when your pending Robux or a group's funds go up ----
+   Off until switched on in the popup (sync setting `sales`). Every 15 minutes, for the
+   signed-in account: the pending Robux, and the funds of the groups that had Robux at the
+   last Robux-menu load (robux.js keeps those in rbx:<userId>), one request at a time. */
+const robloxJson = (url) => fetch(url, { credentials: "include" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+async function checkSales() {
+  const f = await config;
+  if (f.robux === false || f.sales === false) return;
+  const { sales, robux } = await chrome.storage.sync.get({ sales: false, robux: true });
+  if (!sales || !robux) return;
+  const me = await robloxJson("https://users.roblox.com/v1/users/authenticated");
+  if (!me?.id) return;
+  const menu = (await chrome.storage.local.get("rbx:" + me.id))["rbx:" + me.id];
+  const groups = (menu?.rows || [])
+    .map((r) => ({ id: r.href?.match(/[?&]id=(\d+)/)?.[1], name: r.label }))
+    .filter((g) => g.id)
+    .slice(0, 10);
+  const now = {};
+  const totals = await robloxJson(`https://economy.roblox.com/v2/users/${me.id}/transaction-totals?timeFrame=Year&transactionType=summary`);
+  if (totals) now.pending = totals.pendingRobuxTotal ?? 0;
+  for (const g of groups) {
+    const c = await robloxJson(`https://economy.roblox.com/v1/groups/${g.id}/currency`);
+    if (c) now["g" + g.id] = c.robux ?? 0;
+    await new Promise((r) => setTimeout(r, 400));
+  }
+  const key = "rc:salesSnap:" + me.id;
+  const before = (await chrome.storage.local.get(key))[key];
+  if (before) {
+    const lines = [];
+    const gain = (k) => (now[k] != null && before[k] != null && now[k] > before[k] ? now[k] - before[k] : 0);
+    if (gain("pending")) lines.push(`Pending +R$ ${gain("pending").toLocaleString()}`);
+    for (const g of groups) if (gain("g" + g.id)) lines.push(`${g.name} +R$ ${gain("g" + g.id).toLocaleString()}`);
+    if (lines.length) {
+      chrome.notifications.create(`rc-sales:${Date.now()}`, {
+        type: "basic", iconUrl: "icons/icon-128.png", title: "You made sales", message: lines.slice(0, 4).join("\n"), priority: 1,
+      });
+    }
+  }
+  await chrome.storage.local.set({ [key]: { ...before, ...now } }); // a failed request keeps its last value
+}
+chrome.notifications?.onClicked.addListener((nid) => {
+  if (!nid.startsWith("rc-sales:")) return;
+  chrome.tabs.create({ url: "https://www.roblox.com/transactions" });
+  chrome.notifications.clear(nid);
+});
+chrome.alarms.onAlarm.addListener((a) => a.name === "rc-watch-check" && checkSales().catch(() => {}));
+chrome.storage.onChanged.addListener(async (c, area) => {
+  if (area !== "sync" || !c.sales?.newValue) return;
+  // switching on starts from a fresh baseline
+  const all = await chrome.storage.local.get(null);
+  await chrome.storage.local.remove(Object.keys(all).filter((k) => k.startsWith("rc:salesSnap:")));
+  checkSales().catch(() => {});
+});
+
 chrome.alarms.create("rc-watch-check", { periodInMinutes: 15 });
 chrome.alarms.onAlarm.addListener((a) => a.name === "rc-watch-check" && checkWatchlist().catch(() => {}));
 // turning alerts on starts from a fresh baseline instead of comparing with an old one

@@ -8,6 +8,7 @@
     "profileVerify": true,
     "admins": true,
     "flags": true,
-    "alerts": true
+    "alerts": true,
+    "sales": true
   }
 }
