@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.12.2",
+    "date": "2026-10-18",
+    "changes": [
+      "Sort the Games page by players online"
+    ]
+  },
+  {
     "version": "0.12.1",
     "date": "2026-10-18",
     "changes": [

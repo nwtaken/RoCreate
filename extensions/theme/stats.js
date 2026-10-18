@@ -298,12 +298,14 @@
     ["revenue", "Revenue"],
     ["visits", "Visits"],
     ["trend", "Rising"],
+    ["playing", "Players"],
     ["perplayer", "Per player"],
   ];
   const sortValue = (st) =>
     !st || st.missing ? null
       : sortBy === "revenue" ? st.revenue
       : sortBy === "visits" ? st.visits
+      : sortBy === "playing" ? st.playing
       : sortBy === "perplayer" ? (st.revenue != null && st.playing > 0 ? st.revenue / st.playing : null)
       : st.revenueTrend;
 
