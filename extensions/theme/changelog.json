@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.10.1",
+    "date": "2026-10-18",
+    "changes": [
+      "Spike alerts pause while Game stats is switched off"
+    ]
+  },
+  {
     "version": "0.10.0",
     "date": "2026-10-18",
     "changes": [

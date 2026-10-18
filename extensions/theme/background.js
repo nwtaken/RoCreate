@@ -462,8 +462,8 @@ const short = (n) => {
 async function checkWatchlist() {
   const f = await config;
   if (f.stats === false || f.alerts === false) return;
-  const { alerts, watch } = await chrome.storage.sync.get({ alerts: false, watch: [] });
-  if (!alerts || !watch.length) return;
+  const { alerts, stats, watch } = await chrome.storage.sync.get({ alerts: false, stats: true, watch: [] });
+  if (!alerts || !stats || !watch.length) return; // alerts follow the Game stats switch too
   const st = await statsFor(watch.map((g) => ({ id: String(g.id), name: String(g.name || "") })), true);
   const { "rc:alertSnap": before = {} } = await chrome.storage.local.get("rc:alertSnap");
   const now = {};
