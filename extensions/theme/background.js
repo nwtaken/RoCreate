@@ -451,6 +451,54 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   const old = Object.keys(all).filter((k) => k === "oic" || k === "oic:retryAfter" || k.startsWith("ois:"));
   if (old.length) await chrome.storage.local.remove(old);
 });
+/* ---- spike alerts: a notification when a watched game's players jump ----
+   Off until switched on in the popup (sync setting `alerts`). Every 15 minutes the
+   watchlist's player counts (Creator Exchange, cached) are compared with the last check. */
+const SPIKE_RATIO = 1.5, SPIKE_MIN = 100;
+const short = (n) => {
+  for (const [v, x] of [[1e9, "B"], [1e6, "M"], [1e3, "K"]]) if (n >= v) return +(n / v).toFixed(1) + x;
+  return String(Math.round(n));
+};
+async function checkWatchlist() {
+  const f = await config;
+  if (f.stats === false || f.alerts === false) return;
+  const { alerts, watch } = await chrome.storage.sync.get({ alerts: false, watch: [] });
+  if (!alerts || !watch.length) return;
+  const st = await statsFor(watch.map((g) => ({ id: String(g.id), name: String(g.name || "") })), true);
+  const { "rc:alertSnap": before = {} } = await chrome.storage.local.get("rc:alertSnap");
+  const now = {};
+  for (const g of watch) {
+    const playing = st[g.id]?.playing;
+    if (playing == null) continue;
+    now[g.id] = playing;
+    const was = before[g.id];
+    if (was != null && playing >= was * SPIKE_RATIO && playing - was >= SPIKE_MIN) {
+      chrome.notifications.create(`rc-spike:${g.id}:${Date.now()}`, {
+        type: "basic",
+        iconUrl: "icons/icon-128.png",
+        title: `${st[g.id].name || g.name} is spiking`,
+        message: `${short(playing)} playing, up ${Math.round((playing / was - 1) * 100)}% since the last check.`,
+        priority: 1,
+      });
+    }
+  }
+  await chrome.storage.local.set({ "rc:alertSnap": now });
+}
+chrome.notifications?.onClicked.addListener(async (nid) => {
+  const id = nid.startsWith("rc-spike:") && nid.split(":")[1];
+  if (!id) return;
+  const { watch } = await chrome.storage.sync.get({ watch: [] });
+  const g = watch.find((w) => String(w.id) === id);
+  chrome.tabs.create({ url: g?.place ? `https://www.roblox.com/games/${g.place}` : `https://creatorexchange.io/roblox-game/${id}` });
+  chrome.notifications.clear(nid);
+});
+chrome.alarms.create("rc-watch-check", { periodInMinutes: 15 });
+chrome.alarms.onAlarm.addListener((a) => a.name === "rc-watch-check" && checkWatchlist().catch(() => {}));
+// turning alerts on starts from a fresh baseline instead of comparing with an old one
+chrome.storage.onChanged.addListener((c, area) => {
+  if (area === "sync" && c.alerts?.newValue) chrome.storage.local.remove("rc:alertSnap").then(() => checkWatchlist().catch(() => {}));
+});
+
 chrome.alarms.create("rc-update-check", { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener((a) => a.name === "rc-update-check" && checkForUpdate());
 checkForUpdate();

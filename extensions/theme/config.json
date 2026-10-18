@@ -7,6 +7,7 @@
     "profileRevenue": true,
     "profileVerify": true,
     "admins": true,
-    "flags": true
+    "flags": true,
+    "alerts": true
   }
 }

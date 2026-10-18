@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.9.3",
+    "date": "2026-10-18",
+    "changes": [
+      "Spike alerts: a notification when a game on your watchlist suddenly jumps in players (switch it on in the popup)"
+    ]
+  },
+  {
     "version": "0.9.2",
     "date": "2026-10-18",
     "changes": [

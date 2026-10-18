@@ -1,4 +1,4 @@
-const DEFAULTS = { enabled: true, declutter: true, stats: true, users: true, robux: true, profile: true };
+const DEFAULTS = { enabled: true, declutter: true, stats: true, alerts: false, users: true, robux: true, profile: true };
 const boxes = Object.keys(DEFAULTS).map((id) => document.getElementById(id));
 const version = chrome.runtime.getManifest().version;
 document.getElementById("ver").textContent = "Version " + version;
@@ -19,6 +19,7 @@ fetch(chrome.runtime.getURL("config.json"))
   .then(({ features: f = {} }) => {
     const off = (name) => f[name] === false;
     const hide = (id) => document.getElementById(id)?.closest(".row")?.remove();
+    if (off("alerts") || off("stats")) hide("alerts");
     if (off("stats")) {
       hide("stats");
       document.getElementById("watchlist")?.remove();
@@ -30,7 +31,7 @@ fetch(chrome.runtime.getURL("config.json"))
       const sub = document.getElementById("users").closest(".row").querySelector(".sub");
       sub.textContent = off("flags") ? "Roblox admins" : "Flagged & ex-verified accounts";
     }
-    if (!["stats", "users", "profile", "robux"].some((id) => document.getElementById(id))) document.getElementById("features-head").remove();
+    if (!["stats", "alerts", "users", "profile", "robux"].some((id) => document.getElementById(id))) document.getElementById("features-head").remove();
   })
   .catch(() => {});
 

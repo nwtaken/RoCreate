@@ -4,13 +4,14 @@
    anywhere. */
 (() => {
   const RAW = "https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/";
-  const ALL = { stats: true, robux: true, profile: true, profileValue: true, profileRevenue: true, profileVerify: true, admins: true, flags: true };
+  const ALL = { stats: true, alerts: true, robux: true, profile: true, profileValue: true, profileRevenue: true, profileVerify: true, admins: true, flags: true };
   const $ = (s) => document.querySelector(s);
   const boxes = [...document.querySelectorAll("input[data-f]")];
 
   const chosen = () => {
     const f = Object.fromEntries(boxes.map((b) => [b.dataset.f, b.checked]));
     if (!f.profile) f.profileValue = f.profileRevenue = f.profileVerify = false;
+    if (!f.stats) f.alerts = false;
     return f;
   };
   // which outside services a set of features talks to
@@ -23,6 +24,8 @@
   function refresh() {
     const f = chosen();
     $("#profile-parts").classList.toggle("off", !f.profile);
+    $("#stats-parts").classList.toggle("off", !f.stats);
+    for (const b of $("#stats-parts").querySelectorAll("input")) b.disabled = !f.stats;
     for (const b of $("#profile-parts").querySelectorAll("input")) b.disabled = !f.profile;
     const s = services(f);
     for (const c of document.querySelectorAll("#services [data-s]")) {
@@ -52,6 +55,7 @@
       cs.js = (cs.js || []).filter((f) => !leave.has(f));
       if (cs.css) cs.css = cs.css.filter((f) => !leave.has(f));
     }
+    if (!features.alerts) manifest.permissions = (manifest.permissions || []).filter((p) => p !== "notifications");
     const s = services(features);
     manifest.host_permissions = (manifest.host_permissions || []).filter((h) =>
       h.includes("creatorexchange.io") ? s.creatorexchange
