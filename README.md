@@ -56,7 +56,8 @@ owns with prices and price filters, mutual friends and previous usernames.
 <p align="center"><img src="docs/img/items.jpg" alt="Official Roblox items with their prices" width="90%"></p>
 
 **Your Robux, in full.** The Robux menu shows your pending Robux and the funds of every group
-you manage, when they were last updated, and a Refresh button. *(Example data.)*
+you manage, when they were last updated, and a Refresh button. Switch on sales alerts to get a
+notification when your pending Robux or a group's funds go up. *(Example data.)*
 
 <p align="center"><img src="docs/img/robux-menu.jpg" alt="The Robux menu with pending Robux and group funds (example data)" width="70%"></p>
 
