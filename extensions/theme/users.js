@@ -151,11 +151,10 @@
   chrome.storage.onChanged.addListener((c, area) => area === "sync" && c.users && setOn(!!c.users.newValue));
 
   function start() {
-    new MutationObserver((records, obs) => {
-      if (!rcAlive()) return obs.disconnect();
-      if (records.every((r) => r.target.closest?.(".rcx-ubadges"))) return;
+    rcWatch((records) => {
+      if (!records.overflow && records.every((r) => r.target.closest?.(".rcx-ubadges"))) return;
       queue();
-    }).observe(document.body, { childList: true, subtree: true });
+    });
     queue();
   }
   if (document.body) start();

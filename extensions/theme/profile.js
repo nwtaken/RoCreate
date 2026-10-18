@@ -285,7 +285,7 @@
     if (!place()) return false;
     draw();
     // Roblox re-renders parts of the page; put the same panel back if it gets dropped
-    new MutationObserver(() => panel.isConnected || place()).observe(document.body, { childList: true, subtree: true });
+    rcWatch(() => panel.isConnected || place());
     return true;
   }
 

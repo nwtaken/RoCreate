@@ -384,12 +384,11 @@
   });
 
   function start() {
-    new MutationObserver((records, obs) => {
-      if (!rcAlive()) return obs.disconnect();
+    rcWatch((records) => {
       // our own inserts don't need a rescan
-      if (records.every((r) => r.target.closest?.(".rcx-card, #rcx-panel, #rcx-sort") || [...r.addedNodes].every((n) => n.nodeType !== 1 || n.classList?.contains("rcx-card") || ["rcx-panel", "rcx-sort"].includes(n.id)))) return;
+      if (!records.overflow && records.every((r) => r.target.closest?.(".rcx-card, #rcx-panel, #rcx-sort") || [...r.addedNodes].every((n) => n.nodeType !== 1 || n.classList?.contains("rcx-card") || ["rcx-panel", "rcx-sort"].includes(n.id)))) return;
       queue();
-    }).observe(document.body, { childList: true, subtree: true });
+    });
     queue();
   }
   if (document.body) start();

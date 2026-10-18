@@ -96,7 +96,7 @@
   };
 
   function start() {
-    new MutationObserver(queue).observe(document.body, { childList: true, subtree: true, characterData: true });
+    rcWatch(queue, { text: true }); // React rewrites the title's text in place
     apply();
   }
   if (document.body) start();

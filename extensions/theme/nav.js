@@ -186,7 +186,7 @@
   };
 
   function start() {
-    new MutationObserver(queue).observe(document.body, { childList: true, subtree: true });
+    rcWatch(queue);
     document.addEventListener("click", (e) => {
       if (open && !e.target.closest("#rc-menu") && !e.target.closest("#nav-logo-link")) close();
     });

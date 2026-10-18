@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.9.1",
+    "date": "2026-10-18",
+    "changes": [
+      "Faster on busy pages: one shared page watcher instead of seven, about a third less script time in our test"
+    ]
+  },
+  {
     "version": "0.9.0",
     "date": "2026-10-18",
     "changes": [

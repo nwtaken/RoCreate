@@ -16,6 +16,37 @@ globalThis.rcAlive = () => {
   }
 };
 
+/* One MutationObserver for all of RoCreate's scripts. Each registers a callback with
+   rcWatch(fn); a burst of page changes reaches all of them together, at most every 100 ms,
+   instead of every script's own observer reacting to every change. Callbacks registered
+   with { text: true } also hear about text-only changes; the rest skip those. */
+const rcWatchers = [];
+let rcRecords = [], rcTimer = 0, rcObserver = null;
+function rcFlush() {
+  rcTimer = 0;
+  const records = rcRecords;
+  rcRecords = [];
+  if (!rcAlive()) return rcObserver?.disconnect();
+  const textOnly = records.every((r) => r.type === "characterData");
+  for (const w of rcWatchers) {
+    if (textOnly && !w.text) continue;
+    try {
+      w.fn(records);
+    } catch {}
+  }
+}
+globalThis.rcWatch = (fn, opts = {}) => {
+  rcWatchers.push({ fn, text: !!opts.text });
+  if (rcObserver) return;
+  rcObserver = new MutationObserver((records) => {
+    // a huge burst only needs to be known about, not kept record by record
+    if (rcRecords.length < 400) rcRecords.push(...records);
+    else rcRecords.overflow = true;
+    if (!rcTimer) rcTimer = setTimeout(rcFlush, 100);
+  });
+  rcObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+};
+
 let current = DEFAULTS;
 let forcedDark = false;
 
@@ -144,7 +175,7 @@ function queueScan() {
 
 function onBody() {
   apply(current); // <html> exists now; also flips <body> to dark
-  new MutationObserver(queueScan).observe(document.body, { childList: true, subtree: true });
+  rcWatch(queueScan);
   // Roblox's JS rewrites the body class after load, undoing the dark flip
   new MutationObserver(syncBodyTheme).observe(document.body, {
     attributes: true,
