@@ -5,6 +5,17 @@
 
 const DEFAULTS = { enabled: true, declutter: true };
 
+// When the extension updates itself, tabs that were already open keep running the old
+// scripts, but every chrome.* call in them throws. The other scripts check rcAlive() and
+// go quiet instead; a page refresh loads the new version.
+globalThis.rcAlive = () => {
+  try {
+    return !!chrome.runtime?.id;
+  } catch {
+    return false;
+  }
+};
+
 let current = DEFAULTS;
 let forcedDark = false;
 

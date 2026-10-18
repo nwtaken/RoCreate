@@ -132,6 +132,21 @@ html.rocreate-on ul.nav.rbx-navbar a:hover,
 html.rocreate-on #navbar-settings a:hover {
   color: var(--rc-text) !important;
 }
+/* "Charts" is called "Games" here. Roblox's own text stays (rewriting it can crash the
+   React parts of the page); it is made transparent and the new label painted over it. */
+html.rocreate-on :is(#nav-charts-md-link, #nav-charts-sm-link),
+html.rocreate-on .games-list-header > h1 {
+  position: relative !important;
+  color: transparent !important;
+}
+html.rocreate-on :is(#nav-charts-md-link, #nav-charts-sm-link)::after,
+html.rocreate-on .games-list-header > h1::after {
+  content: "Games";
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  display: flex; align-items: center;
+  color: var(--rc-text);
+}
+html.rocreate-on :is(#nav-charts-md-link, #nav-charts-sm-link)::after { justify-content: center; }
 /* topbar search pill */
 html.rocreate-on #navbar-search-input,
 html.rocreate-on [data-testid="navigation-search-input"],
@@ -185,6 +200,20 @@ html.rocreate-on #nav-logo-link .icon-logo {
   width: 94px !important;
   height: 24px !important;
   background-size: 94px 24px !important;
+}
+/* RoCreate mark + wordmark in place of the Roblox logo (same mark as the app icon) */
+html.rocreate-on #header #nav-logo-link { gap: 10px !important; text-decoration: none !important; }
+html.rocreate-on #header ul.nav.rbx-navbar { margin-left: 28px !important; }
+/* the logged-out header caps the logo box at 76px, so the wordmark ran under "Charts" */
+html.rocreate-on #header .rbx-navbar-header { flex: none !important; max-width: none !important; }
+html.rocreate-on #header #nav-logo-link > *:not(.rc-chev) { display: none !important; }
+html.rocreate-on #header #nav-logo-link::before {
+  content: ""; width: 26px; height: 26px; flex: none;
+  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJz48ZGVmcz48bWFzayBpZD0nbSc+PHJlY3Qgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnIGZpbGw9J2JsYWNrJy8+PGcgdHJhbnNmb3JtPSdyb3RhdGUoLTE1IDUwIDUwKSc+PHJlY3QgeD0nMTQnIHk9JzE0JyB3aWR0aD0nNzInIGhlaWdodD0nNzInIHJ4PScxMicgZmlsbD0nd2hpdGUnLz48cmVjdCB4PSczNycgeT0nMzcnIHdpZHRoPScyNicgaGVpZ2h0PScyNicgcng9JzYnIGZpbGw9J2JsYWNrJy8+PC9nPjwvbWFzaz48L2RlZnM+PHJlY3Qgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnIGZpbGw9JyNmN2Y3ZjgnIG1hc2s9J3VybCgjbSknLz48L3N2Zz4=) center / contain no-repeat;
+}
+html.rocreate-on #header #nav-logo-link::after {
+  content: "R" url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxOCcgaGVpZ2h0PScxMicgdmlld0JveD0nLTUgOCAxMjYgODQnPjxkZWZzPjxtYXNrIGlkPSdtJz48cmVjdCB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgZmlsbD0nYmxhY2snLz48ZyB0cmFuc2Zvcm09J3JvdGF0ZSgtMTUgNTAgNTApJz48cmVjdCB4PScxNCcgeT0nMTQnIHdpZHRoPSc3MicgaGVpZ2h0PSc3Micgcng9JzEyJyBmaWxsPSd3aGl0ZScvPjxyZWN0IHg9JzM3JyB5PSczNycgd2lkdGg9JzI2JyBoZWlnaHQ9JzI2JyByeD0nNicgZmlsbD0nYmxhY2snLz48L2c+PC9tYXNrPjwvZGVmcz48cmVjdCB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgZmlsbD0nI2Y3ZjdmOCcgbWFzaz0ndXJsKCNtKScvPjwvc3ZnPg==) "CREATE";
+  font-weight: 800; font-size: 17px; letter-spacing: .14em; color: #fff; line-height: 1; white-space: nowrap; flex: none;
 }
 /* keep the a11y skip link off-screen until it is keyboard-focused */
 html.rocreate-on #skip-to-main-content:not(:focus-visible) {
@@ -800,6 +829,9 @@ html.rocreate-on #rc-menu.rc-open {
   opacity: 1; visibility: visible; transform: none;
 }
 html.rocreate-on .rc-menu-item {
+  /* relative: the cloned links carry Roblox's "absolute inset-0" hover layer, which
+     would otherwise cover the whole menu and send every click to the last item */
+  position: relative;
   display: flex !important; align-items: center; gap: 12px;
   padding: 9px 12px; border-radius: 10px;
   color: var(--rc-text) !important; text-decoration: none !important;

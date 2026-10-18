@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "RoCreate \u2014 Roblox Like the Creator Hub",
-  "version": "0.4.1",
-  "description": "Reskins Roblox to look like the Creator Hub: clean, flat and lightweight. Works alongside RoValra.",
+  "name": "RoCreate — Roblox Like the Creator Hub",
+  "version": "0.8.13",
+  "description": "Reskins Roblox to look like the Creator Hub: clean, flat and lightweight, with game stats from Creator Exchange. Works alongside RoValra.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
@@ -18,7 +18,8 @@
     }
   },
   "permissions": [
-    "storage"
+    "storage",
+    "alarms"
   ],
   "content_scripts": [
     {
@@ -30,14 +31,30 @@
         "*://*.devforum.roblox.com/*"
       ],
       "css": [
-        "theme.css"
+        "theme.css",
+        "stats.css",
+        "profile.css"
       ],
       "js": [
         "content.js",
         "greeting.js",
-        "nav.js"
+        "nav.js",
+        "stats.js",
+        "users.js",
+        "robux.js",
+        "profile.js"
       ],
       "run_at": "document_start"
     }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://creatorexchange.io/*",
+    "https://robloxverifieds.com/*",
+    "https://accountinformation.roblox.com/*",
+    "https://api.rolimons.com/*",
+    "https://www.rolimons.com/*"
   ]
 }

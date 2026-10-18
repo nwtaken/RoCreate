@@ -1,0 +1,111 @@
+/* Profile insights (profile.js): one section, styled like the profile's own sections */
+#rcp-panel {
+  margin: 0 0 28px; padding: 16px 18px 18px; border-radius: 16px;
+  background: var(--rc-surface-1, rgba(127, 135, 150, .07));
+  border: 1px solid var(--rc-line, rgba(127, 135, 150, .16));
+  font: 500 14px/1.35 "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: inherit; clear: both; float: none; width: auto;
+}
+.rcp-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.rcp-title { margin: 0 !important; font-size: 20px !important; font-weight: 800 !important; line-height: 1 !important; }
+.rcp-tabs { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: rgba(127, 135, 150, .1); flex-wrap: wrap; }
+.rcp-tabs button {
+  height: 30px; padding: 0 12px; border: 0; border-radius: 8px; cursor: pointer;
+  background: transparent; color: inherit; font: 600 13px/1 inherit; opacity: .7;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.rcp-tabs button:hover { opacity: 1; }
+.rcp-tabs button.rcp-on { opacity: 1; background: var(--rc-surface-2, rgba(127, 135, 150, .2)); }
+.rcp-tabs b { font-size: 9px; }
+.rcp-actions { display: flex; gap: 6px; margin-left: auto; }
+.rcp-actions > *, .rcp-names button, .rcp-ranges button {
+  height: 28px; padding: 0 10px; border-radius: 8px; cursor: pointer;
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--rc-line, rgba(127, 135, 150, .28)); background: transparent;
+  color: inherit !important; text-decoration: none !important; font: 600 12px/1 inherit; opacity: .85;
+}
+.rcp-actions > *:hover, .rcp-names button:hover, .rcp-ranges button:hover { opacity: 1; background: rgba(127, 135, 150, .14); }
+.rcp-count { opacity: .6; font-weight: 700; }
+.rcp-names { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.rcp-names .rcp-muted { margin-right: 2px; }
+
+.rcp-tiles { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.rcp-tile { padding: 11px 13px; border-radius: 12px; background: rgba(127, 135, 150, .08); border: 1px solid rgba(127, 135, 150, .12); min-width: 0; }
+.rcp-label { font-size: 12px; font-weight: 600; opacity: .6; }
+.rcp-value { margin-top: 3px; font-size: 19px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+.rcp-sub { margin-top: 2px; font-size: 12px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rcp-muted { opacity: .6; font-size: 12px; }
+.rcp-more { margin-top: 6px; }
+.rcp-good { color: #2ecc71; } .rcp-mid { color: #f5a623; } .rcp-bad { color: #ff6b6b; }
+
+.rcp-dot { width: 9px; height: 9px; border-radius: 50%; background: #6b7079; flex: none; }
+.rcp-online { background: #00a2ff; } .rcp-ingame { background: #02b757; } .rcp-studio { background: #f68802; }
+
+/* value chart */
+.rcp-chart-wrap { position: relative; margin-top: 12px; }
+.rcp-ranges { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.rcp-ranges button.rcp-on { background: rgba(78, 240, 209, .14); color: #4ef0d1 !important; border-color: rgba(78, 240, 209, .35); }
+.rcp-legend { margin-left: auto; font-size: 12px; opacity: .8; display: flex; align-items: center; gap: 6px; }
+.rcp-legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-left: 6px; }
+.rcp-val-key { background: #3fa9f5; } .rcp-rap-key { background: #39b54a; }
+.rcp-chart { width: 100%; height: 190px; display: block; overflow: visible; }
+.rcp-chart text { fill: currentColor; opacity: .55; font-size: 11px; }
+.rcp-grid { stroke: currentColor; opacity: .1; }
+.rcp-val, .rcp-rap { fill: none; stroke-width: 2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.rcp-val { stroke: #3fa9f5; } .rcp-rap { stroke: #39b54a; }
+.rcp-cursor { visibility: hidden; } .rcp-cursor.rcp-show { visibility: visible; }
+.rcp-cursor { stroke: currentColor; opacity: .35; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.rcp-tip {
+  position: absolute; top: 34px; width: 150px; padding: 8px 10px; border-radius: 10px; pointer-events: none;
+  background: rgba(20, 22, 26, .96); color: #f2f3f5; border: 1px solid rgba(255, 255, 255, .08);
+  display: flex; flex-direction: column; gap: 2px; font-size: 12px;
+}
+.rcp-val-t { color: #3fa9f5; } .rcp-rap-t { color: #39b54a; }
+
+/* verification */
+.rcp-reason { padding: 12px 14px; border-radius: 12px; background: rgba(127, 135, 150, .08); }
+.rcp-reason-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rcp-pill { padding: 3px 10px; border-radius: 999px; font-weight: 800; font-size: 13px; background: rgba(127, 135, 150, .15); }
+.rcp-score { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.rcp-score .rcp-bar i { background: currentColor; }
+.rcp-bar { width: 120px; height: 6px; border-radius: 3px; background: rgba(127, 135, 150, .2); overflow: hidden; }
+.rcp-bar i { display: block; height: 100%; background: currentColor; }
+.rcp-summary { margin-top: 8px; font-weight: 600; }
+.rcp-evidence { margin: 6px 0 0 18px; padding: 0; opacity: .85; }
+.rcp-evidence li { margin: 2px 0; }
+.rcp-flags { margin-top: 10px; display: grid; gap: 6px; }
+.rcp-flag { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; padding: 8px 12px; border-radius: 10px; background: rgba(229, 72, 77, .1); border: 1px solid rgba(229, 72, 77, .35); }
+.rcp-flag b { color: #ff6b6b; }
+.rcp-history { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; font-weight: 600; }
+.rcp-history span, .rcp-history a { padding: 3px 9px; color: inherit; text-decoration: none; border-radius: 999px; background: rgba(127, 135, 150, .12); }
+.rcp-got { color: #3fa9f5; } .rcp-lost { color: #ff6b6b; }
+.rcp-linked { margin-top: 10px; font-size: 13px; }
+.rcp-linked a { color: #3fa9f5 !important; }
+
+/* lists */
+.rcp-list { display: grid; gap: 4px; margin-top: 10px; }
+.rcp-tiles + .rcp-list { margin-top: 12px; }
+.rcp-sec .rcp-body > .rcp-list:first-child { margin-top: 0; }
+.rcp-row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 10px; color: inherit !important; text-decoration: none !important; }
+.rcp-row:hover { background: rgba(127, 135, 150, .1); }
+.rcp-row img, .rcp-ph { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; background: rgba(127, 135, 150, .15); }
+.rcp-row-name { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcp-row-meta { font-size: 12px; opacity: .7; white-space: nowrap; }
+.rcp-rev { color: #4ef0d1; font-weight: 700; }
+.rcp-crown { color: #ffc940; margin-right: 6px; }
+
+.rcp-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; }
+.rcp-people a { display: flex; flex-direction: column; align-items: center; gap: 4px; color: inherit !important; text-decoration: none !important; min-width: 0; }
+.rcp-people img, .rcp-round { width: 48px; height: 48px; border-radius: 50%; background: rgba(127, 135, 150, .15); }
+.rcp-people span { font-size: 12px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcp-est { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.rcp-note { margin: -4px 0 10px; }
+.rcp-wrap { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 16px; line-height: 1.15; }
+.rcp-value:has(.rcp-wrap) { white-space: normal; }
+.rcp-subhead { margin: 14px 0 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; opacity: .6; }
+.rcp-off { color: #f5a623; font-weight: 700; margin-right: 4px; }
+.rcp-tag { color: #7aa2ff; font-weight: 700; margin-right: 4px; }
+.rcp-filters { margin: 0 0 12px; }
+.rcp-filters .rcp-muted { margin-right: 4px; }
+.rcp-progress { height: 4px; border-radius: 2px; background: rgba(127, 135, 150, .18); overflow: hidden; margin: 0 0 6px; }
+.rcp-progress i { display: block; height: 100%; background: #4ef0d1; transition: width .3s; }

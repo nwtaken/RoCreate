@@ -1,0 +1,127 @@
+/* Creator Exchange stats (stats.js). Not tied to the theme toggle, so it has its own
+   colours that read on both the dark theme and Roblox's own light/dark themes. */
+html:not(.rcx-on) .rcx-card,
+html:not(.rcx-on) #rcx-panel { display: none !important; }
+
+/* cards: two small pills over the thumbnail's top-right corner (Roblox puts "New!" top-left,
+   RoValra its price badge bottom-right) */
+:is(.game-card-thumb-container, .featured-game-icon-container, .game-card-thumb):has(> .rcx-card) { position: relative !important; }
+.rcx-card {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+}
+.rcx-pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  height: 20px; padding: 0 6px; border-radius: 6px;
+  background: rgba(14, 15, 17, .78); color: #fff;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  font: 700 11px/1 "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+}
+.rcx-pill.rcx-rev { color: #4ef0d1; }
+.rcx-pill svg {
+  width: 11px; height: 11px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round;
+}
+.rcx-up { color: #2ecc71; font-weight: 700; }
+.rcx-down { color: #ff6b6b; font-weight: 700; }
+
+#rcx-panel { margin: 18px 0 6px; padding: 0 !important; float: none; clear: both; width: 100%; }
+.rcx-panel-grid {
+  display: grid; gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+}
+.rcx-tile {
+  padding: 12px 14px; border-radius: 12px;
+  background: var(--rc-surface-1, rgba(127, 135, 150, .1));
+  border: 1px solid var(--rc-line, rgba(127, 135, 150, .18));
+  font-family: "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.rcx-tile:first-child { background: rgba(78, 240, 209, .08); border-color: rgba(78, 240, 209, .28); }
+.rcx-tile:first-child .rcx-value { color: #2fd4b4; }
+.rcx-label { font-size: 12px; font-weight: 600; opacity: .65; text-transform: uppercase; letter-spacing: .04em; }
+.rcx-value { margin-top: 4px; font-size: 22px; font-weight: 800; line-height: 1.1; white-space: nowrap; }
+.rcx-sub { margin-top: 3px; font-size: 12px; opacity: .8; white-space: nowrap; }
+.rcx-source {
+  display: inline-block; margin-top: 8px; font-size: 12px; opacity: .6;
+  color: inherit !important; text-decoration: none !important;
+}
+.rcx-source:hover { opacity: 1; }
+
+html:not(.rcx-on) #rcx-sort, html:not(.rcx-on) #rcx-spark { display: none !important; }
+.rcx-pill.rcx-star { color: #ffc940; }
+
+/* game page: watch button next to the source link */
+.rcx-panel-foot { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+.rcx-panel-foot .rcx-source { margin-top: 0; }
+.rcx-watch {
+  height: 30px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--rc-line, rgba(127, 135, 150, .3)); background: transparent; color: inherit;
+  font: 600 13px/1 "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.rcx-watch:hover { background: rgba(127, 135, 150, .14); }
+.rcx-watch.rcx-watching { color: #ffc940; border-color: rgba(255, 201, 64, .45); background: rgba(255, 201, 64, .08); }
+
+/* Charts: sort control under the page title, above Roblox's device / country filters */
+#rcx-sort {
+  display: inline-flex; align-items: center; gap: 2px; margin: 4px 0 12px; padding: 3px;
+  border-radius: 10px; background: rgba(127, 135, 150, .12); vertical-align: middle;
+  font: 600 13px/1 "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.rcx-sort-label { padding: 0 8px 0 6px; opacity: .6; }
+#rcx-sort button {
+  height: 28px; padding: 0 10px; border: 0; border-radius: 7px; cursor: pointer;
+  background: transparent; color: inherit; font: inherit; opacity: .75;
+}
+#rcx-sort button:hover { opacity: 1; background: rgba(127, 135, 150, .14); }
+#rcx-sort button.rcx-active { opacity: 1; background: rgba(78, 240, 209, .14); color: #4ef0d1; }
+
+/* hover sparkline */
+#rcx-spark {
+  position: fixed; z-index: 2147483000; width: 244px; box-sizing: border-box; padding: 12px;
+  border-radius: 12px; background: rgba(20, 22, 26, .97); color: #f2f3f5;
+  border: 1px solid rgba(255, 255, 255, .08); box-shadow: 0 14px 40px rgba(0, 0, 0, .5);
+  font: 500 12px/1.3 "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s;
+}
+#rcx-spark.rcx-show { opacity: 1; transform: none; }
+.rcx-spark-title { font-weight: 800; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rcx-spark-sub { margin: 2px 0 8px; opacity: .7; }
+#rcx-spark svg { display: block; }
+#rcx-spark svg .rcx-line { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+#rcx-spark svg .rcx-area { fill: currentColor; opacity: .14; stroke: none; }
+.rcx-spark-row { display: flex; justify-content: space-between; margin-top: 8px; opacity: .85; }
+.rcx-spark-row b { font-weight: 800; }
+
+/* ---- user badges (users.js) ---- */
+html:not(.rcx-users-on) .rcx-ubadges { display: none !important; }
+.rcx-ubadges { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; vertical-align: middle; flex: none; }
+.rcx-ubadge { flex: none; cursor: help; }
+/* Roblox's verified badge, red: its two icons stacked like Roblox stacks them */
+.rcx-rv { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.rcx-rv .icon-filled-verified-backplate { color: #e5484d !important; }
+.rcx-rv .rcx-rv-check { position: absolute; color: #fff !important; }
+/* a red badge replaces Roblox's blue one for the same person, in any of its forms */
+html.rcx-users-on :has(> .rcx-ubadges .rcx-rv) :is([class*="icon-filled-verified"], img[src*="verified" i], img[alt*="verified" i], img[class*="verified" i], svg[class*="verified" i], [class*="verified-badge" i]):not(.rcx-ubadges *) { display: none !important; }
+html.rcx-users-on :has(> .rcx-ubadges .rcx-rv) .relative.flex:has(> [class*="icon-filled-verified"]):not(.rcx-ubadges *) { display: none !important; }
+/* same size as the blue badge it replaces (measured by users.js), when known */
+.rcx-ubadges[style*="--rcx-size"] .rcx-rv,
+.rcx-ubadges[style*="--rcx-size"] .rcx-rv .icon { width: var(--rcx-size) !important; height: var(--rcx-size) !important; }
+.rcx-admin { display: inline-flex; width: 16px; height: 16px; color: #fff; }
+.rcx-admin svg { width: 100%; height: 100%; }
+.rcx-ubadges[style*="--rcx-size"] .rcx-admin { width: var(--rcx-size); height: var(--rcx-size); }
+#profile-header-title-container-name ~ .rcx-ubadges .rcx-admin { width: 26px; height: 26px; }
+
+/* ---- Robux menu rows (robux.js) ---- */
+.rcx-robux { padding: 4px 0; }
+.rcx-rbx-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 8px 16px; color: inherit !important; text-decoration: none !important;
+  font: 600 14px/1.2 "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+a.rcx-rbx-row:hover { background: rgba(127, 135, 150, .14); }
+.rcx-rbx-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcx-rbx-amount { display: inline-flex; align-items: center; gap: 4px; flex: none; font-weight: 700; }
+.rcx-rbx-icon { width: 16px !important; height: 16px !important; background-size: 16px !important; font-size: 16px; }
+.rcx-pending .rcx-rbx-amount { color: #f5a623; }
+.rcx-rbx-empty { font-weight: 500; font-size: 12px; opacity: .55; padding-top: 4px; padding-bottom: 4px; }
