@@ -49,6 +49,20 @@
     return list;
   };
   boxes.forEach((b) => b.addEventListener("change", () => { refresh(); remember(); }));
+  // presets: Creator = the money and stats side; Roblox only = nothing outside roblox.com
+  const PRESETS = {
+    all: Object.keys(ALL),
+    creator: ["stats", "alerts", "robux", "sales", "profile", "profileValue", "profileRevenue", "admins"],
+    roblox: ["robux", "sales", "profile", "admins"],
+    theme: [],
+  };
+  $("#presets").addEventListener("click", (e) => {
+    const list = PRESETS[e.target.closest("[data-preset]")?.dataset.preset];
+    if (!list) return;
+    for (const b of boxes) b.checked = list.includes(b.dataset.f);
+    refresh();
+    remember();
+  });
   refresh();
   $("#share").addEventListener("click", (e) => {
     const list = remember();
