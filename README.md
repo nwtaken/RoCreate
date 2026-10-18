@@ -21,8 +21,8 @@ pick exactly which features and services you want. See what's new in the [change
 ## Features
 
 **Game stats on every card.** Estimated revenue with a trend arrow, and total visits. Point at
-them for the exact numbers and a 7-day player graph, and sort the Games page by revenue, visits
-or what's rising. Data from [Creator Exchange](https://creatorexchange.io).
+them for the exact numbers and a 7-day player graph, and sort the Games page by revenue, visits,
+what's rising, players or revenue per player. Data from [Creator Exchange](https://creatorexchange.io).
 
 <p align="center"><img src="docs/img/games-cards.jpg" alt="Game cards with revenue and visits in the corner" width="90%"></p>
 
