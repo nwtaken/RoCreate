@@ -33,7 +33,7 @@ the universe or place ID in one click, and press Watch to follow a game from the
 <p align="center"><img src="docs/img/game.jpg" alt="A game page with RoCreate's stats strip" width="90%"></p>
 
 **Community pages, summed up.** Estimated revenue, players and visits across a community's
-public games, plus its top earner.
+public games, plus a list of its top earners.
 
 <p align="center"><img src="docs/img/group.jpg" alt="A community page with RoCreate's totals" width="90%"></p>
 
