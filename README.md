@@ -43,12 +43,20 @@ owns with prices and price filters, mutual friends and previous usernames.
 
 <p align="center"><img src="docs/img/items.jpg" alt="Official Roblox items with their prices" width="90%"></p>
 
+**Your Robux, in full.** The Robux menu shows your pending Robux and the funds of every group
+you manage. *(Example data.)*
+
+<p align="center"><img src="docs/img/robux-menu.jpg" alt="The Robux menu with pending Robux and group funds (example data)" width="70%"></p>
+
+**Know who you're dealing with.** Real Roblox staff get the Roblox logo next to their name.
+Optionally, accounts flagged on RobloxVerifieds, or that lost their verified badge, get a red
+badge with an X. *(Example names, except builderman.)*
+
+<p align="center"><img src="docs/img/badges.jpg" alt="Friends with an admin badge and red flagged badges (example names)" width="80%"></p>
+
 **And more:**
 
-- **Robux menu:** your pending Robux and the funds of every group you manage.
-- **Roblox admin badges:** the Roblox logo next to real Roblox staff, anywhere on the site.
-- **Flagged account badges** (optional): a red verified badge on accounts flagged on
-  RobloxVerifieds, or that lost their verified badge.
+- **Watchlist:** press Watch on a game page and follow it from the toolbar popup.
 - **Clean and fast:** a flat, dark style for the whole site, with ads and upsells hidden.
 
 ## Install
