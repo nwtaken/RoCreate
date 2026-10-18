@@ -370,7 +370,9 @@
       `<div class="rcx-spark-title">${esc(st.name || nameOf(a))}</div>` +
       `<div class="rcx-spark-facts"><div><i>Est. revenue</i><b>R$ ${fmt(st.revenue)}</b>${arrow(st.revenueTrend)}` +
       (st.revenueTrend == null ? "" : ` <span class="${st.revenueTrend >= 0 ? "rcx-up" : "rcx-down"}">${pct(st.revenueTrend)}</span>`) +
-      `</div><div><i>Visits</i><b>${fmt(st.visits, 1)}</b></div></div>` + graph;
+      `</div><div><i>Visits</i><b>${fmt(st.visits, 1)}</b></div>` +
+      (st.revenue != null && st.playing > 0 ? `<div><i>Per player</i><b>R$ ${fmt(st.revenue / st.playing)}</b></div><div><i>Playing</i><b>${fmt(st.playing)}</b></div>` : "") +
+      `</div>` + graph;
     // beside the card, not over it: Roblox's own hover card (Play button) opens below the thumbnail
     const r = (a.querySelector(THUMB) || a).getBoundingClientRect();
     const W = 244, H = el.offsetHeight || 160;

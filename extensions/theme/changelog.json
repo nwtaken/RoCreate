@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.9.7",
+    "date": "2026-10-18",
+    "changes": [
+      "Watchlist: a 7-day players sparkline next to each game",
+      "Copy your watchlist as CSV for spreadsheets",
+      "The game card panel also shows revenue per player and players now"
+    ]
+  },
+  {
     "version": "0.9.6",
     "date": "2026-10-18",
     "changes": [

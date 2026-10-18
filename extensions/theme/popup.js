@@ -83,7 +83,20 @@ function el(tag, cls, text) {
   return Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
 }
 
-let watched = [], stats = {};
+let watched = [], stats = {}, hist = {};
+// a 7-day players line for a watched game
+function spark(points) {
+  const w = 56, h = 18, ys = points.map((p) => p[1]);
+  const lo = Math.min(...ys), span = Math.max(...ys) - lo || 1;
+  const t0 = points[0][0], tspan = points[points.length - 1][0] - t0 || 1;
+  const d = points.map(([t, v], i) => `${i ? "L" : "M"}${(((t - t0) / tspan) * w).toFixed(1)},${(h - 2 - ((v - lo) / span) * (h - 4)).toFixed(1)}`).join("");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.setAttribute("class", "spark " + (ys[ys.length - 1] >= ys[0] ? "up" : "down"));
+  svg.innerHTML = `<path d="${d}"/>`;
+  svg.append(Object.assign(document.createElementNS("http://www.w3.org/2000/svg", "title"), { textContent: "Players, last 7 days" }));
+  return svg;
+}
 const search = document.getElementById("wl-search"), sorter = document.getElementById("wl-sort");
 chrome.storage.local.get({ "rc:wlSort": "added" }, (s) => (sorter.value = s["rc:wlSort"]));
 search.addEventListener("input", () => render());
@@ -121,6 +134,7 @@ function render() {
     const players = el("span", "num", s.playing != null ? fmt(s.playing) + " playing" : "not tracked");
     const rev = el("span", "num rev", s.revenue != null ? "R$ " + fmt(s.revenue) : "");
     if (s.revenueTrend) rev.append(el("span", s.revenueTrend >= 0 ? "up" : "down", s.revenueTrend >= 0 ? " ↑" : " ↓"));
+    const line = hist[g.id]?.points?.length >= 3 ? spark(hist[g.id].points) : el("span");
     const x = el("button", "", "×");
     x.title = "Remove from watchlist";
     x.addEventListener("click", () => chrome.storage.sync.set({ watch: watched.filter((w) => w.id !== g.id) }));
@@ -128,7 +142,7 @@ function render() {
     const meta = el("div", "meta");
     meta.append(rev, players);
     left.append(a, meta);
-    row.append(left, x);
+    row.append(left, line, x);
     return row;
   }));
 }
@@ -143,9 +157,35 @@ function load() {
       (got) => {
         stats = chrome.runtime.lastError ? {} : got || {};
         render();
+        loadHistory();
       },
     );
   });
 }
+// sparklines for the first dozen games, three requests at a time (cached for an hour)
+async function loadHistory() {
+  const todo = watched.slice(0, 12).filter((g) => !hist[g.id]);
+  for (let i = 0; i < todo.length; i += 3) {
+    await Promise.all(todo.slice(i, i + 3).map((g) => new Promise((r) => {
+      chrome.runtime.sendMessage({ type: "rcx-history", id: String(g.id) }, (h) => {
+        if (!chrome.runtime.lastError && h) hist[g.id] = h;
+        r();
+      });
+    })));
+    render();
+  }
+}
+
+// the watchlist as CSV, for spreadsheets
+document.getElementById("wl-csv").addEventListener("click", (e) => {
+  const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = [["Name", "Universe ID", "Place ID", "Playing", "Est. revenue (R$)", "Revenue trend (%)"]].concat(
+    watched.map((g) => { const s = stats[g.id] || {}; return [s.name || g.name, g.id, g.place, s.playing, s.revenue, s.revenueTrend]; }));
+  navigator.clipboard.writeText(rows.map((r) => r.map(q).join(",")).join("\n")).then(() => {
+    e.target.textContent = "Copied";
+    setTimeout(() => (e.target.textContent = "Copy CSV"), 1200);
+  });
+});
+
 chrome.storage.onChanged.addListener((c, area) => area === "sync" && c.watch && load());
 load();

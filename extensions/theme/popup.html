@@ -60,8 +60,13 @@
   .tools input { flex: 1; min-width: 0; background: #0f1114; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; color: #f2f3f5; padding: 5px 8px; font-size: 12px; font-family: inherit; }
   .tools select { background: #0f1114; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; color: #f2f3f5; padding: 4px 6px; font-size: 12px; font-family: inherit; }
   #watch { max-height: 280px; overflow-y: auto; padding-bottom: 6px; }
+  .mini { background: none; border: 1px solid rgba(255,255,255,0.12); color: #a7acb3; border-radius: 6px; padding: 2px 7px; font-weight: 600; font-size: 10px; line-height: 1.4; font-family: inherit; letter-spacing: .02em; cursor: pointer; text-transform: none; }
+  .mini:hover { color: #f2f3f5; border-color: rgba(255,255,255,0.3); }
+  .spark { width: 56px; height: 18px; }
+  .spark path { fill: none; stroke-width: 1.5; stroke-linejoin: round; }
+  .spark.up path { stroke: #2ecc71; } .spark.down path { stroke: #ff6b6b; }
   .game {
-    display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
     padding: 7px 16px; font-size: 13px;
   }
   .game:hover { background: rgba(255,255,255,0.04); }
@@ -128,7 +133,7 @@
   </div>
 
   <div id="watchlist">
-    <div class="section wl-head"><span>Watchlist <span id="wl-count"></span></span></div>
+    <div class="section wl-head"><span>Watchlist <span id="wl-count"></span></span><button type="button" id="wl-csv" class="mini" title="Copy the watchlist as CSV">Copy CSV</button></div>
     <div class="tools" id="wl-tools" hidden>
       <input type="search" id="wl-search" placeholder="Search watched games">
       <select id="wl-sort" title="Sort">
