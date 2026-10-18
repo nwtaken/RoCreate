@@ -153,6 +153,10 @@
         s.revenueTrend == null ? "" : `<span class="${s.revenueTrend >= 0 ? "rcx-up" : "rcx-down"}">${pct(s.revenueTrend)}</span> trend`,
         "Creator Exchange's revenue estimate" + trendTitle(s.revenueTrend)),
       tile("Playing", fmt(s.playing), trend(d.playersWeek), s.playing != null ? Number(s.playing).toLocaleString() + " players" : ""),
+      // how well the game earns for its size: revenue estimate per player online now
+      s.revenue != null && s.playing > 0
+        ? tile("Per player", "R$ " + fmt(s.revenue / s.playing), "revenue per player now", "Estimated revenue divided by the players online right now")
+        : "",
       tile("Visits", fmt(s.visits), trend(d.visitsWeek), s.visits != null ? Number(s.visits).toLocaleString() + " visits" : ""),
       tile("Rating", s.likeRatio != null ? Math.round(s.likeRatio) + "%" : "–", "likes"),
       tile("Favorites", fmt(s.favorites)),
@@ -166,6 +170,8 @@
     panel.innerHTML =
       `<div class="rcx-panel-grid">${tiles}</div>` +
       `<div class="rcx-panel-foot"><button type="button" class="rcx-watch"></button>` +
+      `<button type="button" class="rcx-watch rcx-copy" data-copy="${esc(id)}" title="Copy the universe ID">Universe ${esc(id)}</button>` +
+      (meta.dataset.placeId ? `<button type="button" class="rcx-watch rcx-copy" data-copy="${esc(meta.dataset.placeId)}" title="Copy the place ID">Place ${esc(meta.dataset.placeId)}</button>` : "") +
       `<a class="rcx-source" href="https://creatorexchange.io/roblox-game/${id}" target="_blank" rel="noopener">` +
       `Estimates by Creator Exchange ↗</a></div>`;
     const btn = panel.querySelector(".rcx-watch");
@@ -183,6 +189,13 @@
         chrome.storage.sync.set({ watch: list.slice(0, 60) });
       });
     });
+    for (const c of panel.querySelectorAll(".rcx-copy")) {
+      c.addEventListener("click", () => navigator.clipboard.writeText(c.dataset.copy).then(() => {
+        const old = c.textContent;
+        c.textContent = "Copied";
+        setTimeout(() => (c.textContent = old), 1200);
+      }));
+    }
     panel.rcxLabel = label;
     anchor.after(panel);
   }

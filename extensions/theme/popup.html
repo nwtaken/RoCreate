@@ -5,21 +5,36 @@
 <style>
   :root { color-scheme: dark; }
   body {
-    margin: 0; width: 300px;
+    margin: 0; width: 320px;
     background: #16181c; color: #f2f3f5;
     font-family: "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
   }
+  a { color: inherit; }
   header {
-    padding: 14px 16px; background: #111317;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; background: #111317;
     border-bottom: 1px solid rgba(255,255,255,0.08);
-    font-weight: 600; font-size: 15px;
   }
-  header span { color: #0a84ff; }
+  header img { width: 22px; height: 22px; border-radius: 5px; }
+  header .name { font-weight: 700; font-size: 15px; }
+  header .name span { color: #0a84ff; }
+  header .ver { font-size: 11px; color: #a7acb3; margin-top: 1px; }
+  header .site { margin-left: auto; font-size: 12px; color: #a7acb3; text-decoration: none; padding: 4px 8px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.1); }
+  header .site:hover { color: #f2f3f5; border-color: rgba(255,255,255,0.25); }
+  /* what's new, after an update */
+  #news { margin: 12px 12px 4px; padding: 10px 12px; border-radius: 10px; background: rgba(10,132,255,0.12); border: 1px solid rgba(10,132,255,0.35); font-size: 12px; }
+  #news b { display: block; font-size: 13px; margin-bottom: 4px; }
+  #news ul { margin: 0; padding-left: 16px; color: #d7dae0; }
+  #news li { margin: 2px 0; }
+  #news button { margin-top: 8px; background: #0a84ff; color: #fff; border: 0; border-radius: 7px; padding: 5px 10px; font-weight: 600; font-size: 12px; font-family: inherit; cursor: pointer; }
+  .section {
+    padding: 12px 16px 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: #a7acb3;
+  }
   .row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; font-size: 13px;
+    padding: 9px 16px; font-size: 13px;
   }
-  .row + .row { border-top: 1px solid rgba(255,255,255,0.06); }
   .sub { color: #a7acb3; font-size: 11px; margin-top: 2px; }
   /* toggle switch */
   .sw { position: relative; width: 38px; height: 22px; flex: none; }
@@ -35,11 +50,12 @@
   }
   input:checked + .track { background: #0a84ff; }
   input:checked + .track::before { transform: translateX(16px); }
-  .section {
-    padding: 10px 16px 6px; font-size: 11px; font-weight: 700; letter-spacing: .06em;
-    text-transform: uppercase; color: #a7acb3; border-top: 1px solid rgba(255,255,255,0.08);
-  }
-  #watch { max-height: 300px; overflow-y: auto; padding-bottom: 6px; }
+  /* watchlist */
+  .wl-head { display: flex; align-items: center; justify-content: space-between; padding-right: 12px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 6px; }
+  .tools { display: flex; gap: 6px; padding: 4px 16px 6px; }
+  .tools input { flex: 1; min-width: 0; background: #0f1114; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; color: #f2f3f5; padding: 5px 8px; font-size: 12px; font-family: inherit; }
+  .tools select { background: #0f1114; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; color: #f2f3f5; padding: 4px 6px; font-size: 12px; font-family: inherit; }
+  #watch { max-height: 280px; overflow-y: auto; padding-bottom: 6px; }
   .game {
     display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
     padding: 7px 16px; font-size: 13px;
@@ -57,44 +73,66 @@
   }
   .game button:hover { color: #ff6b6b; }
   .empty { padding: 6px 16px 12px; font-size: 12px; color: #a7acb3; }
+  footer { display: flex; gap: 14px; padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; }
+  footer a { color: #a7acb3; text-decoration: none; }
+  footer a:hover { color: #f2f3f5; }
 </style>
 </head>
 <body>
-  <header>Ro<span>Create</span></header>
+  <header>
+    <img src="icons/icon-48.png" alt="">
+    <div><div class="name">Ro<span>Create</span></div><div class="ver" id="ver"></div></div>
+    <a class="site" href="https://rocreate.org" target="_blank" rel="noopener">rocreate.org ↗</a>
+  </header>
+  <div id="news" hidden></div>
 
+  <div class="section">Look</div>
   <div class="row">
-    <div>Theme<div class="sub">Creator-Hub reskin</div></div>
+    <div>Theme<div class="sub">Creator Hub reskin</div></div>
     <label class="sw"><input type="checkbox" id="enabled"><span class="track"></span></label>
   </div>
-
   <div class="row">
     <div>Declutter<div class="sub">Hide ads &amp; upsells</div></div>
     <label class="sw"><input type="checkbox" id="declutter"><span class="track"></span></label>
   </div>
 
+  <div class="section" id="features-head">Features</div>
   <div class="row">
     <div>Game stats<div class="sub">Revenue &amp; visits from Creator Exchange</div></div>
     <label class="sw"><input type="checkbox" id="stats"><span class="track"></span></label>
   </div>
-
   <div class="row">
     <div>User badges<div class="sub">Flagged, ex-verified &amp; Roblox admins</div></div>
     <label class="sw"><input type="checkbox" id="users"><span class="track"></span></label>
   </div>
-
   <div class="row">
     <div>Profile insights<div class="sub">Items, value &amp; mutual friends</div></div>
     <label class="sw"><input type="checkbox" id="profile"><span class="track"></span></label>
   </div>
-
   <div class="row">
     <div>Robux menu<div class="sub">Pending &amp; group funds</div></div>
     <label class="sw"><input type="checkbox" id="robux"><span class="track"></span></label>
   </div>
 
-  <div class="section">Watchlist</div>
-  <div id="watch"><div class="empty">Open a game and press ☆ Watch under its stats.</div></div>
+  <div id="watchlist">
+    <div class="section wl-head"><span>Watchlist <span id="wl-count"></span></span></div>
+    <div class="tools" id="wl-tools" hidden>
+      <input type="search" id="wl-search" placeholder="Search watched games">
+      <select id="wl-sort" title="Sort">
+        <option value="added">Added</option>
+        <option value="revenue">Revenue</option>
+        <option value="playing">Players</option>
+        <option value="name">Name</option>
+      </select>
+    </div>
+    <div id="watch"><div class="empty">Open a game and press ☆ Watch under its stats.</div></div>
+  </div>
 
+  <footer>
+    <a href="https://rocreate.org/changelog.html" target="_blank" rel="noopener">Changelog</a>
+    <a href="https://rocreate.org/download.html" target="_blank" rel="noopener">Download</a>
+    <a href="https://github.com/nwtaken/RoCreate/issues" target="_blank" rel="noopener">Report a problem</a>
+  </footer>
   <script src="popup.js"></script>
 </body>
 </html>

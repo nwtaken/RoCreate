@@ -1,0 +1,78 @@
+[
+  {
+    "version": "0.9.0",
+    "date": "2026-10-18",
+    "changes": [
+      "A new popup: sections, your version, links, and this What's new card",
+      "Search and sort your watchlist by revenue, players or name",
+      "A NEW badge on the toolbar icon after an update",
+      "Game pages: a revenue per player tile, and one-click copy for the universe and place IDs"
+    ]
+  },
+  {
+    "version": "0.8.16",
+    "date": "2026-10-18",
+    "changes": [
+      "Flagged accounts get a red badge with an X instead of a check"
+    ]
+  },
+  {
+    "version": "0.8.15",
+    "date": "2026-10-18",
+    "changes": [
+      "The 7-day player graph opens from a card's stats and sits beside the card, so Roblox's Play button stays free"
+    ]
+  },
+  {
+    "version": "0.8.14",
+    "date": "2026-10-18",
+    "changes": [
+      "Custom builds: pick features on rocreate.org, and RoCreate only contacts the services they need"
+    ]
+  },
+  {
+    "version": "0.8.13",
+    "date": "2026-10-18",
+    "changes": [
+      "Roblox admins get the Roblox logo",
+      "Inventory value works even when Rolimons' API is blocked"
+    ]
+  },
+  {
+    "version": "0.8.12",
+    "date": "2026-10-18",
+    "changes": [
+      "The item scanner counts offsale prices and bundles, and waits out rate limits instead of giving up",
+      "Quiet after updates: no errors from tabs that were already open"
+    ]
+  },
+  {
+    "version": "0.8.0",
+    "date": "2026-10-17",
+    "changes": [
+      "Profile insights: account age, inventory value and history, official Roblox items, mutual friends"
+    ]
+  },
+  {
+    "version": "0.7.0",
+    "date": "2026-10-17",
+    "changes": [
+      "The Robux menu shows pending Robux and group funds",
+      "Badges for Roblox admins and flagged accounts"
+    ]
+  },
+  {
+    "version": "0.6.0",
+    "date": "2026-10-17",
+    "changes": [
+      "Sort the Games page, a 7-day player graph, and a watchlist"
+    ]
+  },
+  {
+    "version": "0.5.0",
+    "date": "2026-10-17",
+    "changes": [
+      "Game stats from Creator Exchange on every card and game page"
+    ]
+  }
+]

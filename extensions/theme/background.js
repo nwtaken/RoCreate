@@ -441,7 +441,12 @@ async function checkForUpdate() {
   } catch {}
 }
 // 0.8.12 rescans Roblox items with offsale prices and bundles: drop the old item caches once
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+  // a NEW badge on the toolbar icon until the popup (and its What's new card) is opened
+  if (reason === "update") {
+    chrome.action.setBadgeBackgroundColor({ color: "#0a84ff" });
+    chrome.action.setBadgeText({ text: "NEW" });
+  }
   const all = await chrome.storage.local.get(null);
   const old = Object.keys(all).filter((k) => k === "oic" || k === "oic:retryAfter" || k.startsWith("ois:"));
   if (old.length) await chrome.storage.local.remove(old);

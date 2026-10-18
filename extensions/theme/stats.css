@@ -52,7 +52,7 @@ html:not(.rcx-on) #rcx-sort, html:not(.rcx-on) #rcx-spark { display: none !impor
 .rcx-pill.rcx-star { color: #ffc940; }
 
 /* game page: watch button next to the source link */
-.rcx-panel-foot { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+.rcx-panel-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
 .rcx-panel-foot .rcx-source { margin-top: 0; }
 .rcx-watch {
   height: 30px; padding: 0 12px; border-radius: 8px; cursor: pointer;
@@ -60,6 +60,8 @@ html:not(.rcx-on) #rcx-sort, html:not(.rcx-on) #rcx-spark { display: none !impor
   font: 600 13px/1 "Builder Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 .rcx-watch:hover { background: rgba(127, 135, 150, .14); }
+.rcx-copy { font-variant-numeric: tabular-nums; font-weight: 600; opacity: .8; }
+.rcx-copy:hover { opacity: 1; }
 .rcx-watch.rcx-watching { color: #ffc940; border-color: rgba(255, 201, 64, .45); background: rgba(255, 201, 64, .08); }
 
 /* Charts: sort control under the page title, above Roblox's device / country filters */
