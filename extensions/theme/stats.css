@@ -164,3 +164,13 @@ a.rcx-rbx-row:hover { background: rgba(127, 135, 150, .14); }
 .rcx-rbx-fresh > span { opacity: .55; }
 .rcx-rbx-refresh { background: none; border: 0; padding: 0; cursor: pointer; color: var(--rc-accent, #0a84ff); font: inherit; font-weight: 700; }
 .rcx-rbx-empty { font-weight: 500; font-size: 12px; opacity: .55; padding-top: 4px; padding-bottom: 4px; }
+
+/* streamer mode: Robux amounts stay blurred until you point at them */
+html.rc-streamer #navbar-robux button,
+html.rc-streamer .rcx-menu > :first-child,
+html.rc-streamer .rcx-rbx-amount,
+html.rc-streamer .rcx-rbx-usd { filter: blur(6px); transition: filter .15s; }
+html.rc-streamer #navbar-robux button:hover,
+html.rc-streamer .rcx-menu > :first-child:hover,
+html.rc-streamer .rcx-rbx-row:hover .rcx-rbx-amount,
+html.rc-streamer .rcx-rbx-row:hover .rcx-rbx-usd { filter: none; }

@@ -1,4 +1,4 @@
-const DEFAULTS = { enabled: true, declutter: true, stats: true, alerts: false, users: true, robux: true, sales: false, profile: true };
+const DEFAULTS = { enabled: true, declutter: true, streamer: false, stats: true, alerts: false, users: true, robux: true, sales: false, profile: true };
 const boxes = Object.keys(DEFAULTS).map((id) => document.getElementById(id));
 const version = chrome.runtime.getManifest().version;
 document.getElementById("ver").textContent = "Version " + version;

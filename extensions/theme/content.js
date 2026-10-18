@@ -1,9 +1,9 @@
 /* RoCreate content script.
    Runs at document_start. Toggles classes on <html> that theme.css keys off,
    so enabling/disabling never needs a page reload. Settings live in
-   chrome.storage.sync: { enabled: bool, declutter: bool, accent: name }. */
+   chrome.storage.sync: { enabled: bool, declutter: bool, accent: name, streamer: bool }. */
 
-const DEFAULTS = { enabled: true, declutter: true, accent: "blue" };
+const DEFAULTS = { enabled: true, declutter: true, accent: "blue", streamer: false };
 // accent colours (normal, hover) for buttons and highlights; popup.js lists the same names
 const ACCENTS = {
   blue: ["#0a84ff", "#2f9bff"], teal: ["#0fb5a3", "#2cc9b8"], purple: ["#8b5cf6", "#a07bff"],
@@ -77,6 +77,7 @@ function apply(s) {
   if (root) {
     root.classList.toggle("rocreate-on", !!s.enabled);
     root.classList.toggle("rc-declutter", !!s.enabled && !!s.declutter);
+    root.classList.toggle("rc-streamer", !!s.streamer); // works with the theme on or off
     const [accent, hover] = ACCENTS[s.accent] || ACCENTS.blue;
     root.style.setProperty("--rc-accent", accent);
     root.style.setProperty("--rc-accent-h", hover);

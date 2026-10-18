@@ -190,6 +190,7 @@
       if (tries < 20 && button.getAttribute("aria-expanded") === "true") setTimeout(() => onOpen(button, tries + 1), 50);
       return;
     }
+    menu.classList.add("rcx-menu"); // lets streamer mode find the balance row
     if (menu.querySelector(".rcx-robux")) return;
     const have = await saved();
     if (!on) return;
