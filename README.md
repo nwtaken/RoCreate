@@ -40,7 +40,7 @@ public games, plus its top earner.
 **Everything in one popup.** Switch features on or off, pick an accent color, follow your
 watchlist (searchable and sortable, with a 7-day sparkline per game, and exportable as CSV) and
 get spike alerts when a watched game jumps. It shows what's new after every update, and
-Alt+Shift+R opens it.
+Alt+Shift+R opens it. Its options page backs up and restores your settings and watchlist.
 
 <p align="center"><img src="docs/img/popup.png" alt="The RoCreate popup" width="300"></p>
 
