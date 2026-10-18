@@ -1,15 +1,98 @@
-<p align="center"><img src="docs/banner.png" alt="RoCreate — Roblox, rebuilt as a fast, clean desktop app" width="100%"></p>
+<p align="center"><img src="docs/banner.png" alt="RoCreate: Roblox, like the Creator Hub. A free Chrome extension." width="100%"></p>
 
 <p align="center">
-  <a href="https://github.com/nwtaken/RoCreate/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/nwtaken/RoCreate?style=flat-square&color=335fff"></a>
-  <a href="https://github.com/nwtaken/RoCreate/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/nwtaken/RoCreate/total?style=flat-square&color=3b3b3b"></a>
-  <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-3b3b3b?style=flat-square">
-  <img alt="macOS" src="https://img.shields.io/badge/macOS-14%2B-3b3b3b?style=flat-square">
-  <img alt="Python, WebView2 and Qt WebEngine" src="https://img.shields.io/badge/Python-WebView2%20%7C%20Qt%20WebEngine-3b3b3b?style=flat-square">
+  <a href="https://rocreate.org"><img alt="Website: rocreate.org" src="https://img.shields.io/badge/website-rocreate.org-335fff?style=flat-square"></a>
+  <a href="https://rocreate.org/download.html"><img alt="Download the Chrome extension" src="https://img.shields.io/badge/download-Chrome%20extension-3b3b3b?style=flat-square"></a>
+  <img alt="Extension version" src="https://img.shields.io/badge/dynamic/json?style=flat-square&color=3b3b3b&label=version&query=%24.version&url=https%3A%2F%2Fraw.githubusercontent.com%2Fnwtaken%2FRoCreate%2Fmain%2Fextensions%2Ftheme%2Fmanifest.json">
+  <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-3b3b3b?style=flat-square">
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-3b3b3b?style=flat-square"></a>
 </p>
 
-**Website: [rocreate.org](https://rocreate.org)**, with the RoCreate extension for Chrome.
+RoCreate is a free Chrome extension. It gives roblox.com a clean, flat Creator Hub look and adds
+the numbers creators care about: game revenue, your Robux, inventory value and more. It runs
+entirely in your browser, works alongside [RoValra](https://github.com/NotValra/RoValra), and
+every part can be switched off.
+
+**[Download it at rocreate.org](https://rocreate.org/download.html)**: take the full bundle, or
+pick exactly which features and services you want.
+
+<p align="center"><img src="docs/img/games.jpg" alt="The Roblox Games page with RoCreate" width="100%"></p>
+
+## Features
+
+**Game stats on every card.** Estimated revenue with a trend arrow, and total visits. Point at
+them for the exact numbers and a 7-day player graph, and sort the Games page by revenue, visits
+or what's rising. Data from [Creator Exchange](https://creatorexchange.io).
+
+<p align="center"><img src="docs/img/games-cards.jpg" alt="Game cards with revenue and visits in the corner" width="90%"></p>
+
+**A stats strip on game pages.** Estimated revenue, players and visits with this week's change,
+rating, favorites, global rank and average session time. Press Watch to follow a game from the
+toolbar popup.
+
+<p align="center"><img src="docs/img/game.jpg" alt="A game page with RoCreate's stats strip" width="90%"></p>
+
+**Profile insights.** One tidy section with tabs: account age and last seen, inventory value and
+its history (from [Rolimons](https://www.rolimons.com)), every official Roblox item the account
+owns with prices and price filters, mutual friends and previous usernames.
+
+| | |
+|---|---|
+| <img src="docs/img/profile.jpg" alt="Profile insights overview"> | <img src="docs/img/value.jpg" alt="Inventory value chart"> |
+| Overview | Inventory value |
+
+<p align="center"><img src="docs/img/items.jpg" alt="Official Roblox items with their prices" width="90%"></p>
+
+**And more:**
+
+- **Robux menu:** your pending Robux and the funds of every group you manage.
+- **Roblox admin badges:** the Roblox logo next to real Roblox staff, anywhere on the site.
+- **Flagged account badges** (optional): a red verified badge on accounts flagged on
+  RobloxVerifieds, or that lost their verified badge.
+- **Clean and fast:** a flat, dark style for the whole site, with ads and upsells hidden.
+
+## Install
+
+The Chrome Web Store listing is on its way. Until then:
+
+1. Get a ZIP from the [download page](https://rocreate.org/download.html) and unzip it. Keep the
+   folder, because Chrome loads the extension from it.
+2. Open `chrome://extensions` and turn on **Developer mode**.
+3. Click **Load unpacked** and pick the **RoCreate** folder.
+
+To update, download again and unzip over the same folder. RoCreate notices the new version and
+reloads itself within a minute.
+
+**From source:** clone this repo and load `extensions/theme` the same way. It includes every
+feature.
+
+## Privacy
+
+RoCreate has no server, account or tracking. It calls Roblox's own APIs with the login you
+already have in your browser, plus only these services, for the features that need them:
+Creator Exchange, Rolimons and RobloxVerifieds. A copy built on the download page includes only
+the services of the features you picked. Full details:
+[rocreate.org/privacy](https://rocreate.org/privacy.html).
+
+## How it works
+
+- **The theme** redefines Roblox's own design tokens (the Foundation CSS variables), plus rules
+  for the older top bar, so the unstyled site never flashes.
+- **Content scripts** add the stats, badges, menus and profile section. A **background worker**
+  talks to the outside services and caches what they return, so pages stay fast.
+- **`config.json`** lists the features a copy includes. The download page builds the ZIP in your
+  browser from this repo's files, leaves out the scripts and site permissions of anything
+  unticked, and writes this file.
+
+```
+extensions/theme/      the Chrome extension
+docs/                  the rocreate.org website (GitHub Pages)
+app/, installer/       the desktop app (on hold)
+extensions/redirect/   the desktop app's link-redirect extension
+```
+
+<details>
+<summary><b>Desktop app (on hold)</b></summary>
 
 RoCreate is Roblox as a desktop app. It wraps roblox.com in a lightweight window, restyles it
 to look like the Creator Hub, blocks ads and trackers, launches games straight into the Roblox
@@ -20,7 +103,7 @@ Chrome extensions such as RoValra.
 
 <p align="center"><img src="docs/screenshots/home.jpg" alt="The RoCreate home page with a time-aware greeting" width="90%"></p>
 
-## Download
+### Download
 
 **[Download RoCreate for Windows](https://github.com/nwtaken/RoCreate/releases/latest/download/RoCreate-Setup.exe)**,
 then run the setup. It installs for your user only, so it doesn't need administrator rights.
@@ -45,7 +128,7 @@ Chrome only loads unpacked extensions in Developer mode, so the last page of the
 `chrome://extensions`, shows you each extension's folder, and ticks it off as soon as Chrome has
 loaded it. You can bring that page back any time with `RoCreate.exe --chrome-setup`.
 
-### macOS
+#### macOS
 
 There's no Mac download yet. To build it, run `python installer/build.py` on a Mac: it makes
 `dist/RoCreate.dmg`. Open it and drag **RoCreate** into **Applications**. RoValra is downloaded
@@ -59,7 +142,7 @@ permanent (Chrome keeps loading from it), open `chrome://extensions`, turn on **
 click **Load unpacked** and pick `redirect` and/or `theme`. Roblox links opened in Chrome then go
 straight to the app, the same as on Windows.
 
-## What you get
+### What you get
 
 <p align="center"><img src="docs/screenshots/before-after.jpg" alt="roblox.com compared with RoCreate" width="100%"></p>
 
@@ -82,7 +165,7 @@ straight to the app, the same as on Windows.
 - **Real window controls.** Frameless window with its own minimize / maximize / close, F11
   fullscreen, double-click the top edge to maximize, and thin dark scrollbars.
 
-## Screenshots
+### Screenshots
 
 | | |
 |---|---|
@@ -93,7 +176,7 @@ straight to the app, the same as on Windows.
 | <img src="docs/screenshots/wizard-finish.png" alt="Chrome extension setup"> | <img src="docs/screenshots/wizard-options.png" alt="Setup options"> |
 | Adding the Chrome extensions | Choosing what to install |
 
-## Privacy and safety
+### Privacy and safety
 
 - RoCreate has no account, server or telemetry. You sign in to Roblox exactly as you would in a
   browser, and that login stays in a local profile at `%LOCALAPPDATA%\RoCreate\profile`
@@ -110,7 +193,7 @@ straight to the app, the same as on Windows.
 
 RoCreate isn't affiliated with Roblox Corporation or with RoValra. See [NOTICE.md](NOTICE.md).
 
-## How it works
+### How it works
 
 - **The window** is [pywebview](https://pywebview.flowrl.com) on Windows' own WebView2. The
   theme is injected before the page runs, so there is no flash of the unstyled site.
@@ -132,12 +215,12 @@ RoCreate isn't affiliated with Roblox Corporation or with RoValra. See [NOTICE.m
   already-running window over a local socket, and the Chrome tab closes itself once the app has
   confirmed it got the link.
 
-## Linux
+### Linux
 
 Not supported yet. The two Chrome extensions are plain Manifest V3 and work in Chrome on any
 system.
 
-## Building from source
+### Building from source
 
 Needs Python 3.12+ on Windows or macOS.
 
@@ -157,6 +240,8 @@ extensions/redirect/   Chrome extension: roblox.com links → rocreate:// → th
 installer/             build script that packs the app and wizard into RoCreate-Setup.exe
 docs/                  banner and screenshots
 ```
+
+</details>
 
 ## Credits
 
