@@ -103,7 +103,7 @@ html:not(.rcx-users-on) .rcx-ubadges { display: none !important; }
 /* Roblox's verified badge, red: its two icons stacked like Roblox stacks them */
 .rcx-rv { position: relative; display: inline-flex; align-items: center; justify-content: center; }
 .rcx-rv .icon-filled-verified-backplate { color: #e5484d !important; }
-.rcx-rv .rcx-rv-check { position: absolute; color: #fff !important; }
+.rcx-rv .rcx-rv-x { position: absolute; inset: 0; margin: auto; width: 60%; height: 60%; fill: none; stroke: #fff; stroke-width: 3.4; stroke-linecap: round; }
 /* a red badge replaces Roblox's blue one for the same person, in any of its forms */
 html.rcx-users-on :has(> .rcx-ubadges .rcx-rv) :is([class*="icon-filled-verified"], img[src*="verified" i], img[alt*="verified" i], img[class*="verified" i], svg[class*="verified" i], [class*="verified-badge" i]):not(.rcx-ubadges *) { display: none !important; }
 html.rcx-users-on :has(> .rcx-ubadges .rcx-rv) .relative.flex:has(> [class*="icon-filled-verified"]):not(.rcx-ubadges *) { display: none !important; }

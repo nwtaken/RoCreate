@@ -117,7 +117,7 @@ h3.group { font-size: 15px; letter-spacing: .08em; text-transform: uppercase; co
 .services { display: flex; flex-wrap: wrap; gap: 8px; }
 .services .chip { font-size: 13px; padding: 6px 12px; text-decoration: line-through; opacity: .5; }
 .services .chip.on { text-decoration: none; opacity: 1; color: var(--teal); border-color: rgba(78, 240, 209, .35); background: rgba(78, 240, 209, .08); }
-.ext-icon { width: 40px; height: 40px; color: var(--muted); flex: none; }
+.ext-icon { width: 40px; height: 40px; border-radius: 10px; flex: none; }
 .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .seg label { cursor: pointer; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }

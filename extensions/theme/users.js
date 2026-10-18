@@ -8,10 +8,10 @@
   let on = true;
   const info = new Map(); // userId -> {flag, ex, admin} ({} = nothing), null while asked
 
-  // Roblox's own verified badge (backplate + check icons), drawn red by stats.css
+  // Roblox's own verified badge shape (its backplate icon) in red, with an X instead of the check
   const redVerified = (size) =>
     `<span class="icon icon-filled-verified-backplate size-[var(--icon-size-${size})]"></span>` +
-    `<span class="icon icon-filled-verified-check size-[var(--icon-size-${size})] rcx-rv-check"></span>`;
+    `<svg class="rcx-rv-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 8.2l7.6 7.6M15.8 8.2l-7.6 7.6"/></svg>`;
 
   // the Roblox logo (tilted square with a square hole), white like the Premium icon
   const ROBLOX_LOGO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="1.6" ' +
