@@ -68,6 +68,9 @@
   /* ---- state: each source fills its part, then the panel is redrawn ---- */
   const S = { user: null, presence: null, rol: null, rv: null, games: null, owned: null, mutuals: null, names: null, items: null };
   let tab = "overview";
+  // Insights opens on the tab you used last, once its data is in (until you pick one here)
+  let preferred = "overview", picked = false;
+  try { chrome.storage.local.get("rc:profileTab", (r) => { preferred = r?.["rc:profileTab"] || "overview"; draw(); }); } catch {}
   let rangeDays = 365;
   let panel = null;
 
@@ -229,6 +232,7 @@
       nameBtn.hidden = false;
     }
     const list = tabs();
+    if (!picked && list.some((t) => t[0] === preferred)) tab = preferred;
     if (!list.some((t) => t[0] === tab)) tab = "overview";
     const body = tab === "value" ? valueHtml() : tab === "verify" ? verifyHtml() : tab === "mutuals" ? mutualsHtml() : tab === "items" ? itemsHtml() : overviewHtml();
     panel.querySelector(".rcp-tabs").innerHTML = list.map(([k, t]) => `<button type="button" data-tab="${k}" class="${k === tab ? "rcp-on" : ""}">${t}</button>`).join("");
@@ -277,7 +281,13 @@
       `</div></div><div class="rcp-body"></div>`;
     panel.addEventListener("click", (e) => {
       const t = e.target.closest("[data-tab]");
-      if (t) { tab = t.dataset.tab; draw(); return; }
+      if (t) {
+        tab = t.dataset.tab;
+        picked = true;
+        if (rcAlive()) chrome.storage.local.set({ "rc:profileTab": tab });
+        draw();
+        return;
+      }
       const d = e.target.closest("[data-days]");
       if (d) { rangeDays = +d.dataset.days; draw(); return; }
       const mp = e.target.closest("[data-min]");

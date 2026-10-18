@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.12.6",
+    "date": "2026-10-19",
+    "changes": [
+      "Profile Insights opens on the tab you used last"
+    ]
+  },
+  {
     "version": "0.12.5",
     "date": "2026-10-18",
     "changes": [
