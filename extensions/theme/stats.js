@@ -165,8 +165,7 @@
         ? tile("Per player", "R$ " + fmt(s.revenue / s.playing), "right now", "Estimated revenue divided by the players online right now")
         : "",
       tile("Visits", fmt(s.visits), trend(d.visitsWeek), s.visits != null ? Number(s.visits).toLocaleString() + " visits" : ""),
-      tile("Rating", s.likeRatio != null ? Math.round(s.likeRatio) + "%" : "–", "likes"),
-      tile("Favorites", fmt(s.favorites)),
+      tile("Rating", s.likeRatio != null ? Math.round(s.likeRatio) + "%" : "–", s.favorites != null ? fmt(s.favorites) + " favorites" : "likes"),
       d.rank ? tile("Global rank", "#" + Number(d.rank).toLocaleString(), d.momentum ? esc(d.momentum) : "") : "",
       d.session ? tile("Avg. session", Math.round(d.session) + " min") : "",
     ].join("");
@@ -215,6 +214,46 @@
         sparkSvg(h.points, 1000, 80).replace("<svg ", '<svg preserveAspectRatio="none" ');
       box.hidden = false;
     });
+  }
+
+  /* ---- community pages: totals across the group's experiences ----
+     The group's public games (Roblox) with Creator Exchange's estimates for the tracked ones,
+     in a strip above the About / Events tabs. */
+  let groupPainted = "";
+  async function scanGroupPage() {
+    const gid = location.pathname.match(/^\/(?:communities|groups)\/(\d+)/)?.[1];
+    const tabs = document.querySelector('[role="tablist"]');
+    if (!gid || !tabs || groupPainted === gid || !document.querySelector(".profile-header-details-community-name")) return;
+    groupPainted = gid;
+    // every public game (up to 500), biggest first; Creator Exchange is asked about the top 30
+    const games = [];
+    let cursor = "";
+    for (let page = 0; page < 5; page++) {
+      const r = await fetch(`https://games.roblox.com/v2/groups/${gid}/gamesV2?accessFilter=2&limit=100&sortOrder=Asc${cursor ? "&cursor=" + encodeURIComponent(cursor) : ""}`, { credentials: "include" }).catch(() => null);
+      if (!r?.ok) break;
+      const j = await r.json();
+      games.push(...(j.data || []));
+      if (!(cursor = j.nextPageCursor)) break;
+    }
+    if (!games.length) return;
+    games.sort((a, b) => (b.placeVisits || 0) - (a.placeVisits || 0));
+    const st = (await ask({ type: "rcx-stats", games: games.slice(0, 30).map((g) => ({ id: String(g.id), name: g.name })), search: true })) || {};
+    const tracked = games.map((g) => st[String(g.id)]).filter((x) => x && !x.missing);
+    const sum = (k) => tracked.reduce((n, x) => n + (x[k] || 0), 0);
+    const top = [...tracked].sort((a, b) => (b.revenue || 0) - (a.revenue || 0))[0];
+    const tile = (label, value, sub = "") =>
+      `<div class="rcx-tile"><div class="rcx-label">${label}</div><div class="rcx-value">${value}</div>${sub ? `<div class="rcx-sub">${sub}</div>` : ""}</div>`;
+    document.getElementById("rcx-group")?.remove();
+    const box = document.createElement("div");
+    box.id = "rcx-group";
+    box.innerHTML = `<div class="rcx-panel-grid">` +
+      (tracked.length ? tile("Est. revenue", "R$ " + fmt(sum("revenue")), `${tracked.length} tracked game${tracked.length > 1 ? "s" : ""}`) : "") +
+      tile("Experiences", String(games.length) + (games.length >= 500 ? "+" : ""), "public") +
+      (tracked.length ? tile("Playing now", fmt(sum("playing")), "in tracked games") : "") +
+      tile("Visits", fmt(games.reduce((n, g) => n + (g.placeVisits || 0), 0)), "all public games") +
+      (top ? tile("Top earner", esc(top.name || ""), "R$ " + fmt(top.revenue)) : "") +
+      `</div><a class="rcx-source" href="https://creatorexchange.io" target="_blank" rel="noopener">Estimates by Creator Exchange ↗</a>`;
+    tabs.before(box);
   }
 
   /* ---- Charts: sort every row by a stat (control under the page title) ----
@@ -368,6 +407,7 @@
       timer = 0;
       scanCards();
       scanGamePage();
+      scanGroupPage();
       placeSortControl();
     }, 250);
   };

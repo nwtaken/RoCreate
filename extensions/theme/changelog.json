@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.9.6",
+    "date": "2026-10-18",
+    "changes": [
+      "Community pages: estimated revenue, players and visits across the group's games, plus its top earner",
+      "The game page stats fit on one row again (favorites moved under the rating)"
+    ]
+  },
+  {
     "version": "0.9.5",
     "date": "2026-10-18",
     "changes": [

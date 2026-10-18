@@ -26,6 +26,8 @@ html:not(.rcx-on) #rcx-panel { display: none !important; }
 .rcx-up { color: #2ecc71; font-weight: 700; }
 .rcx-down { color: #ff6b6b; font-weight: 700; }
 
+#rcx-group { margin: 14px 0 16px; }
+#rcx-group .rcx-value { overflow: hidden; text-overflow: ellipsis; }
 #rcx-panel { margin: 18px 0 6px; padding: 0 !important; float: none; clear: both; width: 100%; }
 .rcx-panel-grid {
   display: grid; gap: 8px;
