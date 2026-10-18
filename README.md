@@ -27,10 +27,21 @@ or what's rising. Data from [Creator Exchange](https://creatorexchange.io).
 <p align="center"><img src="docs/img/games-cards.jpg" alt="Game cards with revenue and visits in the corner" width="90%"></p>
 
 **A stats strip on game pages.** Estimated revenue, players and visits with this week's change,
-rating, favorites, global rank and average session time. Press Watch to follow a game from the
-toolbar popup.
+revenue per player, rating, global rank, average session time and a full 7-day player chart. Copy
+the universe or place ID in one click, and press Watch to follow a game from the toolbar popup.
 
 <p align="center"><img src="docs/img/game.jpg" alt="A game page with RoCreate's stats strip" width="90%"></p>
+
+**Community pages, summed up.** Estimated revenue, players and visits across a community's
+public games, plus its top earner.
+
+<p align="center"><img src="docs/img/group.jpg" alt="A community page with RoCreate's totals" width="90%"></p>
+
+**Everything in one popup.** Switch features on or off, pick an accent color, follow your
+watchlist (searchable and sortable) and get spike alerts when a watched game jumps. It shows
+what's new after every update, and Alt+Shift+R opens it.
+
+<p align="center"><img src="docs/img/popup.png" alt="The RoCreate popup" width="300"></p>
 
 **Profile insights.** One tidy section with tabs: account age and last seen, inventory value and
 its history (from [Rolimons](https://www.rolimons.com)), every official Roblox item the account
@@ -56,7 +67,6 @@ badge with an X. *(Example names, except builderman.)*
 
 **And more:**
 
-- **Watchlist:** press Watch on a game page and follow it from the toolbar popup.
 - **Clean and fast:** a flat, dark style for the whole site, with ads and upsells hidden.
 
 ## Install
