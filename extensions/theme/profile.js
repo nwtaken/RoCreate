@@ -223,6 +223,11 @@
 
   function draw() {
     if (!panel) return;
+    const nameBtn = panel.querySelector("#rcp-copy-name");
+    if (nameBtn && S.user?.name && nameBtn.hidden) {
+      nameBtn.dataset.copy = S.user.name;
+      nameBtn.hidden = false;
+    }
     const list = tabs();
     if (!list.some((t) => t[0] === tab)) tab = "overview";
     const body = tab === "value" ? valueHtml() : tab === "verify" ? verifyHtml() : tab === "mutuals" ? mutualsHtml() : tab === "items" ? itemsHtml() : overviewHtml();
@@ -265,6 +270,7 @@
     panel.className = "section";
     panel.innerHTML =
       `<div class="rcp-top"><h2 class="rcp-title">Insights</h2><div class="rcp-tabs"></div><div class="rcp-actions">` +
+      `<button type="button" id="rcp-copy-name" data-copy="" title="Copy username" hidden>Copy name</button>` +
       `<button type="button" data-copy="${uid}" title="Copy user ID">Copy ID</button>` +
       (cfg.profileValue === false ? "" : `<a href="https://www.rolimons.com/player/${uid}" target="_blank" rel="noopener" title="Open on Rolimons">Rolimons ↗</a>`) +
       (cfg.profileVerify === false ? "" : `<a href="https://robloxverifieds.com/user/${uid}" target="_blank" rel="noopener" title="Open on RobloxVerifieds">Verifieds ↗</a>`) +
