@@ -109,3 +109,11 @@
 .rcp-filters .rcp-muted { margin-right: 4px; }
 .rcp-progress { height: 4px; border-radius: 2px; background: rgba(127, 135, 150, .18); overflow: hidden; margin: 0 0 6px; }
 .rcp-progress i { display: block; height: 100%; background: #4ef0d1; transition: width .3s; }
+
+/* placeholder tiles while the profile loads */
+.rcp-tile.rcp-skel { position: relative; overflow: hidden; min-height: 58px; }
+.rcp-skel .rcp-label, .rcp-skel .rcp-value { border-radius: 6px; background: rgba(127, 135, 150, .18); }
+.rcp-skel .rcp-label { width: 50%; height: 11px; }
+.rcp-skel .rcp-value { width: 70%; height: 18px; margin-top: 9px; }
+.rcp-skel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .06), transparent); transform: translateX(-100%); animation: rcp-shimmer 1.2s infinite; }
+@keyframes rcp-shimmer { to { transform: translateX(100%); } }

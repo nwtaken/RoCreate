@@ -78,7 +78,7 @@
 
   function overviewHtml() {
     const u = S.user, P = S.presence, r = S.rol, v = S.rv;
-    if (!u) return '<div class="rcp-muted">Loading…</div>';
+    if (!u) return `<div class="rcp-tiles">${'<div class="rcp-tile rcp-skel"><div class="rcp-label"></div><div class="rcp-value"></div></div>'.repeat(4)}</div>`;
     const status = P?.userPresenceType === 2 ? ["rcp-ingame", "In game", P.lastLocation || ""]
       : P?.userPresenceType === 3 ? ["rcp-studio", "In Studio", P.lastLocation || ""]
       : P?.userPresenceType === 1 ? ["rcp-online", "Online", ""]
@@ -392,7 +392,16 @@
     return c;
   }
 
+  // the item scan is the heavy one: wait until the tab is actually being looked at
+  const whenVisible = () => document.visibilityState === "visible" ? Promise.resolve()
+    : new Promise((r) => document.addEventListener("visibilitychange", function on() {
+      if (document.visibilityState !== "visible") return;
+      document.removeEventListener("visibilitychange", on);
+      r();
+    }));
+
   async function loadItems() {
+    await whenVisible();
     try {
       await loadItemsInner();
     } catch (e) {
