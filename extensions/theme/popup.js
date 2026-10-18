@@ -7,6 +7,25 @@ chrome.storage.sync.get(DEFAULTS, (s) => {
   for (const b of boxes) b.checked = s[b.id];
 });
 
+// accent colour (content.js applies it to Roblox; the popup's switches follow it too)
+const ACCENTS = { blue: "#0a84ff", teal: "#0fb5a3", purple: "#8b5cf6", pink: "#e84393", orange: "#f2771a", green: "#22a95a" };
+const swatches = document.getElementById("accent");
+function showAccent(name) {
+  document.body.style.setProperty("--acc", ACCENTS[name] || ACCENTS.blue);
+  for (const b of swatches.children) b.classList.toggle("on", b.dataset.name === name);
+}
+for (const [name, color] of Object.entries(ACCENTS)) {
+  const b = Object.assign(document.createElement("button"), { type: "button", title: name[0].toUpperCase() + name.slice(1) });
+  b.dataset.name = name;
+  b.style.background = color;
+  b.addEventListener("click", () => {
+    chrome.storage.sync.set({ accent: name });
+    showAccent(name);
+  });
+  swatches.append(b);
+}
+chrome.storage.sync.get({ accent: "blue" }, (s) => showAccent(s.accent));
+
 function save() {
   chrome.storage.sync.set(Object.fromEntries(boxes.map((b) => [b.id, b.checked])));
 }

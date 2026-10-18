@@ -85,7 +85,7 @@ html.rocreate-on body {
   --color-action-standard-background: rgba(255,255,255,0.08) !important;
   --color-action-alert-background:    rgba(255,255,255,0.08) !important;
 
-  --primary: #0a84ff !important;
+  --primary: var(--rc-accent, #0a84ff) !important;
 }
 
 /* ==========================================================================
@@ -477,7 +477,7 @@ html.rocreate-on .form-control {
 }
 html.rocreate-on .form-control:focus {
   border-color: var(--rc-accent) !important;
-  box-shadow: 0 0 0 2px rgba(10,132,255,0.25) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rc-accent) 25%, transparent) !important;
   outline: none !important;
 }
 

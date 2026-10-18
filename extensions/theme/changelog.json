@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.9.4",
+    "date": "2026-10-18",
+    "changes": [
+      "Pick an accent colour in the popup: blue, teal, purple, pink, orange or green. Buttons and highlights follow it instantly"
+    ]
+  },
+  {
     "version": "0.9.3",
     "date": "2026-10-18",
     "changes": [
