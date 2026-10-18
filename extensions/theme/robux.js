@@ -147,6 +147,7 @@
       })
       .join("") +
       (data.empty ? `<div class="rcx-rbx-row rcx-rbx-empty">+${data.empty} group${data.empty > 1 ? "s" : ""} with 0 Robux</div>` : "") +
+      (rows.length > 1 ? totalRow(rows) : "") +
       (loading ? '<div class="rcx-rbx-row rcx-rbx-empty">Updating…</div>'
         : data.at ? `<div class="rcx-rbx-row rcx-rbx-fresh"><span>Updated ${ago(data.at)}</span><button type="button" class="rcx-rbx-refresh">Refresh</button></div>` : "") +
       '<div role="separator" class="foundation-web-menu-separator"></div>';
@@ -168,6 +169,15 @@
       });
     }
   }
+  // everything above added up, and roughly what it's worth through Developer Exchange
+  const DEVEX_USD = 0.0038; // per Robux, Roblox's DevEx rate since September 2025
+  function totalRow(rows) {
+    const total = rows.reduce((n, r) => n + (Number(r.robux) || 0), 0);
+    const usd = Math.round(total * DEVEX_USD).toLocaleString();
+    return `<div class="rcx-rbx-row rcx-rbx-total" title="Pending Robux plus every group's funds. DevEx estimate at $${DEVEX_USD} per Robux; Roblox's eligibility rules and minimums apply.">` +
+      `<span class="rcx-rbx-label">Total <span class="rcx-rbx-usd">≈ $${usd} DevEx</span></span><span class="rcx-rbx-amount">${ICON}${fmt(total)}</span></div>`;
+  }
+
   function ago(t) {
     const m = Math.round((Date.now() - t) / 60000);
     return m < 1 ? "just now" : m < 60 ? `${m} min ago` : `${Math.round(m / 60)} h ago`;
