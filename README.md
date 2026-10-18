@@ -38,7 +38,7 @@ public games, plus its top earner.
 <p align="center"><img src="docs/img/group.jpg" alt="A community page with RoCreate's totals" width="90%"></p>
 
 **Everything in one popup.** Switch features on or off, pick an accent color, turn on streamer
-mode to blur your Robux, follow your
+mode to blur your Robux and account info, follow your
 watchlist (searchable and sortable, with a 7-day sparkline per game, and exportable as CSV) and
 get spike alerts when a watched game jumps. It shows what's new after every update, and
 Alt+Shift+R opens it. Its options page backs up and restores your settings and watchlist.
