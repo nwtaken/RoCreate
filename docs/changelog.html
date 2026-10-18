@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Changelog · RoCreate</title>
+  <meta name="description" content="Every RoCreate release and what changed.">
+  <meta property="og:title" content="RoCreate changelog">
+  <meta property="og:description" content="Every RoCreate release and what changed.">
+  <meta property="og:image" content="https://rocreate.org/img/og.jpg">
+  <link rel="icon" href="img/icon-128.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="img/icon-128.png" alt="">ROCREATE</a>
+      <nav>
+        <a class="hide-sm" href="/#features">Features</a>
+        <a href="download.html">Download</a>
+        <a class="hide-sm" href="changelog.html">Changelog</a>
+        <a href="https://github.com/nwtaken/RoCreate">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap doc">
+    <h1>Changelog</h1>
+    <p>What changed in each version. RoCreate shows the latest one in its popup after it updates.</p>
+    <div id="log" class="log"><p class="note left">Loading…</p></div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <a href="/">RoCreate</a>
+      <a href="download.html">Download</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="https://github.com/nwtaken/RoCreate">GitHub</a>
+      <span class="legal">RoCreate isn't affiliated with Roblox Corporation. Roblox is a trademark of Roblox Corporation.</span>
+    </div>
+  </footer>
+  <script>
+    // the same changelog.json the extension ships, straight from GitHub
+    fetch("https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/changelog.json", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((log) => {
+        const box = document.getElementById("log");
+        box.replaceChildren(...log.map((e, i) => {
+          const sec = document.createElement("section");
+          sec.className = "release" + (i === 0 ? " latest" : "");
+          const h = document.createElement("h2");
+          h.textContent = e.version;
+          const d = document.createElement("span");
+          d.className = "date";
+          d.textContent = new Date(e.date + "T12:00:00").toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+          h.append(d);
+          const ul = document.createElement("ul");
+          for (const c of e.changes) ul.append(Object.assign(document.createElement("li"), { textContent: c }));
+          sec.append(h, ul);
+          return sec;
+        }));
+      })
+      .catch(() => {
+        document.getElementById("log").innerHTML = '<p class="note left">Couldn\'t load the changelog. It\'s also on <a href="https://github.com/nwtaken/RoCreate/blob/main/extensions/theme/changelog.json">GitHub</a>.</p>';
+      });
+  </script>
+</body>
+</html>

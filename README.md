@@ -14,7 +14,7 @@ entirely in your browser, works alongside [RoValra](https://github.com/NotValra/
 every part can be switched off.
 
 **[Download it at rocreate.org](https://rocreate.org/download.html)**: take the full bundle, or
-pick exactly which features and services you want.
+pick exactly which features and services you want. See what's new in the [changelog](https://rocreate.org/changelog.html).
 
 <p align="center"><img src="docs/img/games.jpg" alt="The Roblox Games page with RoCreate" width="100%"></p>
 

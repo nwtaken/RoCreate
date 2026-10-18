@@ -7,7 +7,7 @@
   <meta name="description" content="A free Chrome extension that gives roblox.com a clean Creator Hub look and adds game revenue, Robux and profile insights.">
   <meta property="og:title" content="RoCreate: Roblox, like the Creator Hub">
   <meta property="og:description" content="A free Chrome extension that gives roblox.com a clean Creator Hub look and adds game revenue, Robux and profile insights.">
-  <meta property="og:image" content="https://rocreate.org/img/games.jpg">
+  <meta property="og:image" content="https://rocreate.org/img/og.jpg">
   <meta property="og:url" content="https://rocreate.org/">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="img/icon-128.png">
@@ -21,6 +21,7 @@
         <a class="hide-sm" href="#features">Features</a>
         <a href="download.html">Download</a>
         <a class="hide-sm" href="#faq">FAQ</a>
+        <a class="hide-sm" href="changelog.html">Changelog</a>
         <a href="https://github.com/nwtaken/RoCreate">GitHub</a>
       </nav>
     </div>
@@ -120,6 +121,26 @@
       </div>
     </section>
 
+    <section id="glance">
+      <div class="wrap">
+        <p class="eyebrow">At a glance</p>
+        <h2>Every feature, where it shows and where its data comes from</h2>
+        <div class="table-wrap">
+          <table class="features">
+            <tr><th>Feature</th><th>Where</th><th>Data from</th><th>Optional</th></tr>
+            <tr><td>Creator Hub theme</td><td>All of roblox.com</td><td>Nothing outside Roblox</td><td>Switch it off in the popup</td></tr>
+            <tr><td>Game stats</td><td>Game cards and game pages</td><td>Creator Exchange</td><td>Yes</td></tr>
+            <tr><td>Revenue per player, ID copy</td><td>Game pages</td><td>Creator Exchange, Roblox</td><td>With game stats</td></tr>
+            <tr><td>Watchlist</td><td>The toolbar popup</td><td>Creator Exchange</td><td>With game stats</td></tr>
+            <tr><td>Robux menu</td><td>The top bar</td><td>Roblox</td><td>Yes</td></tr>
+            <tr><td>Profile insights</td><td>Profiles</td><td>Roblox, Rolimons, Creator Exchange</td><td>Yes, each part separately</td></tr>
+            <tr><td>Roblox admin badges</td><td>Names across the site</td><td>Roblox</td><td>Yes</td></tr>
+            <tr><td>Flagged account badges</td><td>Names across the site</td><td>RobloxVerifieds</td><td>Yes, off by default in custom builds</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <section id="install" class="install">
       <div class="wrap">
         <p class="eyebrow">Download</p>
@@ -146,6 +167,26 @@
           <p>Game revenue estimates come from Creator Exchange, and inventory values from Rolimons. Everything else comes from Roblox itself. Revenue figures are estimates, not Roblox's official numbers.</p>
         </details>
         <details>
+          <summary>Is it on the Chrome Web Store?</summary>
+          <p>Not yet. Until it is, you load it from the <a href="download.html">download page</a> in three steps. The Chrome Web Store version will update itself.</p>
+        </details>
+        <details>
+          <summary>How do I update?</summary>
+          <p>Download again and unzip over the same folder. RoCreate notices the new version, reloads itself within a minute, and its popup shows what changed. Every release is on the <a href="changelog.html">changelog</a>.</p>
+        </details>
+        <details>
+          <summary>Does it slow Roblox down?</summary>
+          <p>It only looks up what's on your screen, keeps the results on your device so pages load fast the next time, and waits out rate limits instead of hammering Roblox.</p>
+        </details>
+        <details>
+          <summary>Why do some games have no stats?</summary>
+          <p>Creator Exchange only tracks games with enough players. Smaller games simply show no stats.</p>
+        </details>
+        <details>
+          <summary>Can I turn parts off?</summary>
+          <p>Yes. Every feature has a switch in the popup. You can also leave features out entirely on the download page, and then RoCreate never contacts their services.</p>
+        </details>
+        <details>
           <summary>Is RoCreate made by Roblox?</summary>
           <p>No. RoCreate is an independent, free project and isn't affiliated with Roblox Corporation.</p>
         </details>
@@ -157,6 +198,7 @@
     <div class="wrap">
       <span>RoCreate</span>
       <a href="privacy.html">Privacy</a>
+      <a href="changelog.html">Changelog</a>
       <a href="https://github.com/nwtaken/RoCreate">GitHub</a>
       <a href="https://github.com/nwtaken/RoCreate/issues">Report a problem</a>
       <span class="legal">RoCreate isn't affiliated with Roblox Corporation. Roblox is a trademark of Roblox Corporation.</span>

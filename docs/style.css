@@ -127,6 +127,22 @@ h3.group { font-size: 15px; letter-spacing: .08em; text-transform: uppercase; co
 .build { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
 #done { scroll-margin-top: 70px; }
 
+
+/* changelog */
+.release { border-top: 1px solid var(--line); padding: 18px 0 6px; }
+.release h2 { display: flex; align-items: baseline; gap: 12px; font-size: 22px; margin: 0 0 6px; }
+.release .date { font-size: 13px; font-weight: 600; color: var(--muted); }
+.release.latest h2::after { content: "Latest"; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); border: 1px solid rgba(78, 240, 209, .35); border-radius: 999px; padding: 2px 8px; }
+.release ul { margin: 0 0 8px; }
+/* feature table */
+.table-wrap { overflow-x: auto; margin-top: 24px; }
+table.features { width: 100%; border-collapse: collapse; font-size: 15px; }
+table.features th, table.features td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+table.features th { color: var(--muted); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+table.features td:first-child { font-weight: 700; }
+table.features td { color: var(--muted); }
+table.features td:first-child { color: var(--text); }
+
 @media (max-width: 860px) {
   .choose { grid-template-columns: 1fr; }
   .sub-options { margin-left: 0; }
