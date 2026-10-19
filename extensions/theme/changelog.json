@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.15.0",
+    "date": "2026-10-19",
+    "changes": [
+      "Profiles now use native RoCreate sections throughout, with no copied Roblox or RoValra interface",
+      "RoValra name colors, badges, pronouns, status, views, avatar frames and borders are drawn in the native layout",
+      "Native profile action buttons and menu use Roblox action handlers; private notes save through RoValra",
+      "Avatar stage with outfits, wearing categories, Public and Hidden experiences, and community sorting"
+    ]
+  },
+  {
     "version": "0.14.0",
     "date": "2026-10-19",
     "changes": [

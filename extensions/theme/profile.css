@@ -1,43 +1,11 @@
-/* RoCreate profile (profile.js): Roblox's profile layout is hidden and RoCreate's sits next
-   to it in #content. Only Roblox's real action buttons stay, in the header's top right. */
-
-/* ---- Roblox's own layout: hidden, except its action buttons ---- */
-/* Roblox caps the page at 970px; the rebuilt profile uses the window, up to 1440px */
-html.rcp2 #content { position: relative; max-width: 1440px !important; width: auto !important; padding-left: 32px !important; padding-right: 32px !important; box-sizing: border-box; }
-
-html.rcp2 .profile-platform-container,
-html.rcp2 .profile-platform-container > div,
-html.rcp2 .profile-header-overlay,
-html.rcp2 #user-profile-header-bg,
-html.rcp2 .user-profile-header,
-html.rcp2 .user-profile-header-info {
-  position: static !important; display: block !important; padding: 0 !important; margin: 0 !important;
-  background: none !important; border: 0 !important; box-shadow: none !important; min-height: 0 !important; height: auto !important;
-}
-html.rcp2 .profile-platform-container > div > :not(.profile-header-overlay):not(.currently-wearing-avatar-with-background):not(.profile-content),
-html.rcp2:not(.rcp-rv) .profile-platform-container .profile-content,
-html.rcp2 .user-profile-header > :not(.user-profile-header-info),
-html.rcp2 .user-profile-header-info > :not(.buttons-show-on-desktop),
-html.rcp2 .buttons-show-on-mobile { display: none !important; }
-/* each lined up with its slot by profile.js (dock); off screen until then */
-html.rcp2 .currently-wearing-avatar-with-background {
-  display: block !important; position: absolute !important; margin: 0 !important; z-index: 3;
-  top: var(--rcp-banner-top, -9999px); left: var(--rcp-banner-left, -9999px); width: var(--rcp-banner-w, 970px) !important; border-radius: 16px;
-}
-html.rcp2.rcp-rv .profile-platform-container .profile-content {
-  display: block !important; position: absolute !important; margin: 0 !important; padding: 0 !important; z-index: 2;
-  top: var(--rcp-sections-top, -9999px); left: var(--rcp-sections-left, -9999px); width: var(--rcp-sections-w, 970px) !important;
-}
-/* RoCreate's friends card covers Roblox's friends row */
-html.rcp2.rcp-rv .profile-content > :is([class*="friends-carousel"], .react-friends-carousel-container) { display: none !important; }
-html.rcp2.rcp-rv #rcp-root .rcp-own { display: none !important; }
-
-html.rcp2 .buttons-show-on-desktop { display: flex !important; position: absolute !important; top: var(--rcp-act-top, 40px); left: var(--rcp-act-left, auto); right: auto; z-index: 5; align-items: flex-end; }
-html.rcp2 .buttons-show-on-desktop [class*="rovalra-profile-note"] { text-align: right; max-width: 320px; }
-
+/* Native profile. Keep the original mounted for RoValra and Roblox action handlers. */
+html.rcp2 #content { position:relative; max-width:1440px !important; width:auto !important; padding:0 32px !important; box-sizing:border-box; }
+html.rcp2 .profile-platform-container { position:fixed !important; left:-20000px !important; top:0 !important; width:970px !important; opacity:0 !important; pointer-events:none !important; }
+html.rcp2.rcp-proxying ul.new-dropdown-menu { opacity:0 !important; pointer-events:none !important; }
 /* ---- shared ---- */
 #rcp-root {
-  --rcp-card: rgba(127, 135, 150, .07);
+  color: #f2f3f5;
+  --rcp-card: #171a20;
   --rcp-line: rgba(127, 135, 150, .16);
   --rcp-soft: rgba(127, 135, 150, .12);
   --rcp-accent: var(--rc-accent, #0a84ff);
@@ -68,7 +36,6 @@ html.rcp2 .buttons-show-on-desktop [class*="rovalra-profile-note"] { text-align:
 #rcp-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(21, 23, 27, .2) 0%, rgba(21, 23, 27, .85) 70%, #15171b 100%); }
 .rcp-hero-top { display: flex; align-items: center; gap: 22px; min-height: 116px; }
 .rcp-ident { flex: 1; }
-.rcp-actions-slot { flex: none; align-self: flex-start; margin-top: 8px; }
 .rcp-avatar { position: relative; flex: none; width: 116px; height: 116px; }
 .rcp-avatar img, .rcp-avatar > span { width: 100%; height: 100%; border-radius: 50%; display: block; object-fit: cover; background: rgba(255, 255, 255, .06); border: 3px solid rgba(255, 255, 255, .1); box-sizing: border-box; }
 .rcp-avatar i { position: absolute; right: 6px; bottom: 6px; width: 20px; height: 20px; border-radius: 50%; border: 4px solid #15171b; box-sizing: border-box; display: none; }
@@ -308,10 +275,6 @@ html.rcp-modal-open { overflow: hidden; }
 }
 @media (max-width: 900px) {
   html.rcp2 #content { padding-left: 16px !important; padding-right: 16px !important; }
-  html.rcp2 .buttons-show-on-desktop { position: static !important; margin: 0 0 12px !important; }
-  /* RoValra's private note hangs below its buttons */
-  html.rcp2 .buttons-show-on-desktop:has([class*="rovalra-profile-note"]) { margin-bottom: 72px !important; }
-  .rcp-actions-slot { display: none; }
   .rcp-media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rcp-game-grid, .rcp-group-grid { grid-template-columns: minmax(0, 1fr); }
   .rcp-live-card { grid-template-columns: minmax(0, 1fr); }
@@ -323,19 +286,41 @@ html.rcp-modal-open { overflow: hidden; }
   .rcp-media-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* ---- slots for Roblox's own pieces (profile.js docks them) ---- */
-.rcp-banner-slot, .rcp-sections-slot { box-sizing: border-box; min-width: 0; }
-.rcp-sections-note { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: -8px; font-size: 12px; font-weight: 700; opacity: .75; }
-.rcp-sections-note button { background: none; border: 0; padding: 0; cursor: pointer; font-size: 12px !important; font-weight: 700; color: var(--rcp-accent) !important; }
 
-/* ---- RoValra's pieces, copied into the header ---- */
-.rcp-rv-badges, .rcp-rv-handle, .rcp-rv-buttons { display: inline-flex; align-items: center; gap: 6px; }
-.rcp-rv-badges:empty, .rcp-rv-handle:empty, .rcp-rv-buttons:empty, .rcp-rv-status:empty { display: none; }
-.rcp-rv-handle .rovalra-profile-pronouns { font-size: 14px; opacity: .85; }
-.rcp-rv-handle .rovalra-profile-pronouns::before { content: "\2022"; margin: 0 8px 0 2px; opacity: .6; }
-.rcp-rv-buttons > div { display: flex; gap: 8px; }
-.rcp-name h1[class*="rovalra-display-name"] { display: inline-block; max-width: 100%; }
-/* the status bubble as a speech box under the status line, instead of floating */
-.rcp-rv-status .rovalra-status-bubble-wrapper { position: static !important; transform: none !important; animation: none !important; display: block; width: auto; max-width: 560px; pointer-events: auto; }
-.rcp-rv-status .rovalra-status-bubble { max-width: 560px; width: auto; display: inline-block; border-top-left-radius: 4px; }
-.rcp-rv-status .rovalra-status-bubble::before, .rcp-rv-status .rovalra-status-bubble::after { display: none !important; }
+/* Native profile components */
+.rcp-actions { position:relative; display:flex; flex-wrap:wrap; gap:8px; max-width:300px; align-self:flex-start; margin-left:auto; }
+.rcp-actions > button, .rcp-head-link { border:1px solid var(--rcp-line); background:rgba(255,255,255,.06); border-radius:10px; padding:9px 14px; cursor:pointer; font-size:13px; font-weight:700; }
+.rcp-actions > button:first-child { background:var(--rcp-accent); color:white; border-color:transparent; }
+.rcp-actions button:disabled { opacity:.5; cursor:default; }
+.rcp-action-menu { position:absolute; right:0; top:calc(100% + 8px); z-index:10; width:200px; padding:6px; border:1px solid var(--rcp-line); background:#202329; border-radius:12px; box-shadow:0 12px 30px #0008; }
+.rcp-action-menu button { display:block; width:100%; text-align:left; border:0; background:none; padding:10px; border-radius:8px; cursor:pointer; }
+.rcp-action-menu button:hover { background:#ffffff12; }
+#rcp-hero { overflow:visible; }
+.rcp-hero-bg, #rcp-hero::after { border-radius:22px; inset:0; transform:none; filter:none; }
+.rcp-hero-bg { opacity:.12; }
+.rcp-ident { min-width:0; }
+.rcp-custom-badge { display:inline-flex; width:24px; height:24px; align-items:center; justify-content:center; }
+.rcp-custom-badge img { width:100%; height:100%; object-fit:contain; }
+.rcp-pronouns { border:1px solid var(--rcp-line); border-radius:6px; padding:2px 7px; font-size:12px; }
+.rcp-speech { margin-top:12px; padding:10px 14px; border-left:3px solid var(--rcp-accent); background:#ffffff06; border-radius:0 10px 10px 0; max-width:560px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; }
+.rcp-name h1[style] { background-clip:text; -webkit-background-clip:text; color:transparent; background-size:200% auto; }
+.rcp-effect-roll, .rcp-effect-shine { animation:rcp-name-flow 5s linear infinite; }
+@keyframes rcp-name-flow { to { background-position:200% center; } }
+.rcp-stage { padding:12px; }
+.rcp-stage.rcp-framed { padding:28px; }
+.rcp-stage-scene { position:relative; aspect-ratio:970 / 300; border-radius:14px; background-color:#21252d; background-position:center; background-size:cover; display:grid; place-items:center; }
+.rcp-stage-avatar { height:100%; width:100%; object-fit:contain; position:absolute; }
+.rcp-stage-frame { position:absolute; inset:-8%; width:116%; height:116%; object-fit:fill; pointer-events:none; }
+.rcp-note-input { width:100%; box-sizing:border-box; min-height:100px; resize:vertical; border:1px solid var(--rcp-line); border-radius:10px; background:#ffffff06; color:inherit; padding:12px; font:inherit; font-size:13px; }
+.rcp-outfits { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.rcp-outfits img { width:100%; aspect-ratio:1; object-fit:contain; }
+.rcp-outfits b { display:block; text-align:center; font-size:13px; }
+#rcp-root button:focus-visible, #rcp-root a:focus-visible { outline:2px solid var(--rcp-accent); outline-offset:3px; }
+@media(max-width:900px) { .rcp-hero-top { flex-wrap:wrap; } .rcp-actions { max-width:none; margin-left:0; } }
+@media(prefers-reduced-motion:reduce) { .rcp-effect-roll, .rcp-effect-shine, .rcp-skel { animation:none; } }
+
+html.rcp2 body { background:#101216; }
+.rcp-stage { overflow:hidden; }
+
+.rcp-avatar img.rcp-avatar-border { position:absolute; inset:-8%; width:116%; height:116%; border:0; border-radius:0; background:none; pointer-events:none; object-fit:contain; }
+html.rcp2.rcp-proxying [data-radix-popper-content-wrapper]:has([role="menu"]) { opacity:0 !important; pointer-events:none !important; }

@@ -52,8 +52,10 @@ each came from. Around it: a header with badges, live status and counts, their e
 players and estimated revenue, communities, badges, favorites, their avatar and what they wear,
 inventory value (official items plus collectibles, with [Rolimons](https://www.rolimons.com)'
 history), every official Roblox item they own with prices, and friends with mutuals first. It
-works with RoValra: its name gradients, badges, pronouns, status bubbles, frames and improved
-sections all show. Roblox's own layout is one click away.
+uses RoCreate's own sections throughout. RoValra name colors, badges, pronouns, status,
+views, frames, avatar borders and private notes appear in the native design. Public and hidden
+experiences, wearing categories, outfits and community sorting use RoCreate controls.
+Roblox's own layout is one click away.
 
 <p align="center"><img src="docs/img/profile2.jpg" alt="Roblox's official profile in RoCreate's new layout" width="90%"></p>
 
