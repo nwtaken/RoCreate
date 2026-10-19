@@ -19,6 +19,8 @@
     "reduceMotion": true,
     "profileFilters": true,
     "gameNotes": true,
-    "profileItems": true
+    "profileItems": true,
+    "friendsPage": true,
+    "groupsPage": true
   }
 }

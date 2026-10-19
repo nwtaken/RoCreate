@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.18.0",
+    "date": "2026-10-19",
+    "changes": [
+      "Optional Friends page redesign with roomier cards, loaded-name search, sorting and reset",
+      "Optional Communities sidebar redesign with local search and sorting",
+      "Directory controls preserve Roblox actions and make no extra service requests"
+    ]
+  },
+  {
     "version": "0.17.3",
     "date": "2026-10-19",
     "changes": [

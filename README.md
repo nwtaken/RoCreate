@@ -37,6 +37,8 @@ public games, plus a list of its top earners.
 
 <p align="center"><img src="docs/img/group.jpg" alt="A community page with RoCreate's totals" width="90%"></p>
 
+**Friends and communities.** Optional Friends cards have a roomier grid with local name search and sorting. The Communities sidebar gets matching controls. Filters apply to loaded results, with no extra API calls, and Roblox actions stay on their original cards. Each redesign has its own popup switch.
+
 **Everything in one popup.** Compact Appearance, Game tools, Profiles and Robux groups remember
 which ones you last opened. Switch features on or off, pick an accent color, turn on streamer
 mode to blur your Robux and account info, follow your

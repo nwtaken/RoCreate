@@ -1,0 +1,32 @@
+html.rocreate-on .rc-directory-toolbar { padding: 24px; margin: 16px 0 24px; border: 1px solid var(--rc-border); border-radius: 18px; background: linear-gradient(125deg, var(--rc-elevated), var(--rc-surface)); color: var(--rc-text); }
+html.rocreate-on .rc-directory-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+html.rocreate-on .rc-directory-eyebrow { font-size: 10px; letter-spacing: .15em; font-weight: 800; color: var(--rc-accent); }
+html.rocreate-on .rc-directory-toolbar h2 { font-size: 28px; margin: 6px 0 0; line-height: 1.2; }
+html.rocreate-on .rc-directory-count { font-size: 12px; color: var(--rc-text-2); white-space: nowrap; }
+html.rocreate-on .rc-directory-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+html.rocreate-on .rc-directory-controls input { flex: 1 1 220px; min-width: 0; }
+html.rocreate-on .rc-directory-controls input, html.rocreate-on .rc-directory-controls select, html.rocreate-on .rc-directory-controls button { padding: 10px 12px; border: 1px solid var(--rc-border); border-radius: 9px; background: var(--rc-app); color: var(--rc-text); font: inherit; }
+html.rocreate-on .rc-directory-controls label { font-size: 12px; color: var(--rc-text-2); }
+html.rocreate-on .rc-directory-controls :focus-visible { outline: 2px solid var(--rc-accent); outline-offset: 3px; }
+html.rocreate-on .rc-directory-controls button { cursor: pointer; }
+html.rocreate-on .rc-directory-toolbar p { margin: 12px 0 0; font-size: 12px; color: var(--rc-text-2); }
+html.rocreate-on .rc-directory-empty { padding: 24px; color: var(--rc-text-2); text-align: center; }
+html.rocreate-on .rc-directory-hidden, html.rocreate-on .rc-directory-toolbar [hidden], html.rocreate-on .rc-directory-empty[hidden] { display: none !important; }
+html.rocreate-on.rc-directory-friends ul.avatar-cards { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px !important; }
+html.rocreate-on.rc-directory-friends ul.avatar-cards > li.avatar-card { width: auto !important; min-width: 0; padding: 18px 12px !important; border: 1px solid var(--rc-border); border-radius: 16px; background: var(--rc-surface); }
+html.rocreate-on.rc-directory-friends ul.avatar-cards > li.avatar-card:hover { border-color: var(--rc-accent); }
+html.rocreate-on.rc-directory-friends .avatar-card-caption { text-align: center; }
+html.rocreate-on.rc-directory-groups .groups-list-sidebar { padding: 16px; }
+html.rocreate-on.rc-directory-groups .groups-list-sidebar .rc-directory-toolbar { padding: 14px; margin: 0 0 16px; border-radius: 12px; }
+html.rocreate-on.rc-directory-groups .rc-directory-toolbar h2 { font-size: 21px; }
+html.rocreate-on.rc-directory-groups .rc-directory-heading { flex-wrap: wrap; gap: 6px; }
+html.rocreate-on.rc-directory-groups .rc-directory-controls input { width: 100%; flex-basis: 100%; }
+html.rocreate-on.rc-directory-groups .groups-list-sidebar:has(.rc-directory-toolbar) .groups-list-heading { display: none !important; }
+html.rocreate-on.rc-directory-groups .groups-list-sidebar a.groups-list-item { margin-bottom: 6px; padding: 12px !important; border: 1px solid transparent; }
+html.rocreate-on.rc-directory-groups a.groups-list-item.active { border-color: var(--rc-accent); }
+html.rocreate-on.rc-directory-groups .rc-directory-items { display: flex; flex-direction: column; }
+@media (max-width: 800px) {
+  html.rocreate-on .rc-directory-toolbar { padding: 16px; }
+  html.rocreate-on .rc-directory-heading { flex-wrap: wrap; }
+  html.rocreate-on.rc-directory-friends ul.avatar-cards { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
