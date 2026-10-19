@@ -841,7 +841,8 @@ html.rocreate-on.rcw:not(.rcp2) {
   & #configure-group-web-app .configure-group {
     background: transparent !important;
   }
-  & #configure-group-web-app :is(.menu-vertical, .menu-vertical-container) {
+  & #configure-group-web-app ul.menu-vertical {
+    box-sizing: border-box !important;
     background: var(--rw-panel) !important;
     border: 1px solid var(--rw-line) !important;
     border-radius: var(--rw-r) !important;
@@ -949,7 +950,9 @@ html.rocreate-on.rcw:not(.rcp2) {
   }
 
   /* 3.2 Inventory and favorites: category menu and item grid */
-  & #content :is(.menu-vertical-container, #inventory-container .menu-vertical, .rbx-left-col .menu-vertical) {
+  /* (the panel goes on the list itself: the floated container must keep Roblox's width) */
+  & #content :is(.menu-vertical-container, .rbx-left-col) ul.menu-vertical {
+    box-sizing: border-box !important;
     background: var(--rw-panel) !important;
     border: 1px solid var(--rw-line) !important;
     border-radius: var(--rw-r) !important;

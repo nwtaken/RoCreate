@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.25.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Your experiences, redesigned as a Creator Hub style table: totals up top, live experiences first, quiet ones folded away",
+      "It now includes every community Roblox lets you manage and your primary community, not just communities you own",
+      "Streamer mode blurs your balance on Buy Robux and the balance and summary amounts on My Transactions",
+      "Workspace pages: community admin pages keep the content beside the menu again"
+    ]
+  },
+  {
     "version": "0.24.0",
     "date": "2026-10-20",
     "changes": [

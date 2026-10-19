@@ -79,6 +79,7 @@
     for (const g of gamesCache) {
       if (!g.place) continue;
       out.push({ kind: "game", title: g.name, sub: (g.owner === "You" ? "Your experience" : g.owner), url: `/games/${g.place}`, words: "my experience game mine" });
+      if (g.manage === false) continue; // Roblox doesn't let you manage this one
       out.push({ kind: "create", title: "Creator Hub: " + g.name, sub: "Manage, analytics and monetization", url: `https://create.roblox.com/dashboard/creations/experiences/${g.id}/overview`, words: "manage analytics configure monetization" });
     }
     return out;
