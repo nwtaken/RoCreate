@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.24.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Quick jump lists your experiences and their Creator Hub pages, from the list the Home panel already keeps (no extra requests)",
+      "Privacy page: what Quick jump, Money tools and Your experiences send to Roblox, and what stays on your device"
+    ]
+  },
+  {
     "version": "0.23.0",
     "date": "2026-10-20",
     "changes": [

@@ -72,7 +72,17 @@
     return list.map((p) => ({ ...p, sub: p.sub || (p.kind === "create" ? "Creator Hub" : "Page") }));
   }
 
-  let groupsPromise = null, groupsCache = [], recentCache = [];
+  let groupsPromise = null, groupsCache = [], recentCache = [], gamesCache = [];
+  // your experiences, as last read by the Home panel (mygames.js); nothing is fetched for this
+  function gameItems() {
+    const out = [];
+    for (const g of gamesCache) {
+      if (!g.place) continue;
+      out.push({ kind: "game", title: g.name, sub: (g.owner === "You" ? "Your experience" : g.owner), url: `/games/${g.place}`, words: "my experience game mine" });
+      out.push({ kind: "create", title: "Creator Hub: " + g.name, sub: "Manage, analytics and monetization", url: `https://create.roblox.com/dashboard/creations/experiences/${g.id}/overview`, words: "manage analytics configure monetization" });
+    }
+    return out;
+  }
   function myGroups() {
     const u = uid();
     if (!u) return Promise.resolve([]);
@@ -220,13 +230,14 @@
 
   function renderLocal() {
     const q = input.value.trim().toLowerCase();
-    const local = [...pages(), ...groupItems()];
+    const local = [...pages(), ...gameItems(), ...groupItems()];
     const remote = sections.filter((s) => s.remote && s.q === q);
     if (!q) {
       const rec = recentCache.map((r) => ({ ...r, kind: r.kind === "game" || r.kind === "person" || r.kind === "item" || r.kind === "group" ? r.kind : "recent" }));
       sections = [
         { label: "Recent", items: rec },
         { label: "Pages", items: local.filter((i) => i.kind === "page").slice(0, 8) },
+        { label: "Your experiences", items: local.filter((i) => i.kind === "game").slice(0, 5) },
         { label: "Your communities", items: local.filter((i) => i.kind === "group").slice(0, 5) },
       ];
     } else {
@@ -279,6 +290,10 @@
     // your communities and recent picks arrive once; the list redraws when they do
     myGroups().then((g) => { groupsCache = g; if (root.isConnected && !input.value.trim()) renderLocal(); else if (root.isConnected) renderLocal(); });
     recent().then((r) => { recentCache = r; if (root.isConnected && !input.value.trim()) renderLocal(); });
+    chrome.storage.local.get({ rcMyGamesList: null }, (r) => {
+      const list = !chrome.runtime.lastError && r.rcMyGamesList?.uid === uid() ? r.rcMyGamesList.games || [] : [];
+      if (list.length !== gamesCache.length) { gamesCache = list; if (root.isConnected) renderLocal(); }
+    });
   }
   function close() {
     controller?.abort();

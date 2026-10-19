@@ -30,6 +30,12 @@
     <p>This can include Roblox account IDs, public usernames and profile content, the game or profile currently being viewed, and virtual Robux balances or transaction totals for tools you enable. RoCreate does not record a general browsing history, mouse movements or keystroke logs. Private game notes stay in local extension storage.</p>
     <p>RoCreate only runs on roblox.com. It reads the pages you open there so it can restyle them and add its own sections.</p>
     <p>To show your pending Robux, your groups' funds, inventories, mutual friends and the social links Roblox keeps on a person's communities and experiences, RoCreate calls Roblox's own APIs from the page. Those calls use the Roblox login you already have in your browser, exactly like the Roblox website does. RoCreate never reads, stores or sends your password or login cookie, and what Roblox returns stays in your browser.</p>
+    <p>The optional tools below also talk only to Roblox:</p>
+    <ul>
+      <li><b>Quick jump</b> sends what you type (after a short pause, at least two characters) to Roblox's own search for experiences, people, communities and Marketplace items, the same searches Roblox's search bar makes. Your last six picks stay on this device.</li>
+      <li><b>Money tools</b> read the DevEx estimate from the transactions summary already on the page. CSV exports read your transactions, or a community's sales, audit log or member list when you are allowed to see them, from Roblox at about one request a second, and the file is built on your device.</li>
+      <li><b>Your experiences</b> reads the public experiences you and the communities you own have made, with their live player counts, from Roblox once a minute while a Home tab is open. The two-hour player trend is kept on this device.</li>
+    </ul>
 
     <h2>Services RoCreate contacts</h2>
     <p>Some numbers come from other websites. They receive only what's listed below, plus your IP address, as with any web request. If you build your own copy on the download page, it only contacts the services of the features you picked, and its permissions for the others are removed.</p>
@@ -50,6 +56,7 @@
       <li>The optional watchlist dashboard uses the same saved games, cached Creator Exchange figures and service permissions as the popup. CSV exports are created on your device.</li>
       <li><b>Settings and your watchlist</b> are kept in Chrome's extension storage. If you use Chrome Sync, Chrome syncs them between your own devices.</li>
       <li><b>Cached results</b> (game stats, item prices, values, your Robux menu) are kept on your device so pages load faster. Each entry is refreshed or removed after a while.</li>
+      <li><b>Quick jump picks and the player trend</b> for your experiences stay on your device; the trend keeps two hours of points.</li>
       <li><b>Diagnostic notes</b> about the last item scan and Robux menu load stay on your device and are never sent anywhere.</li>
     </ul>
     <p>Removing the extension deletes all of it.</p>
