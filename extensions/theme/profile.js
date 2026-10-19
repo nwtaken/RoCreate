@@ -595,6 +595,7 @@
       el.hidden = !html;
 
     }
+    updateProfileNav();
     if (names.includes("items") && !names.includes("hero")) updateInventoryStat();
 
   }
@@ -733,6 +734,20 @@
     document.addEventListener("keydown", keyboard);
   }
 
+  const NAV_LABELS = { hero: "Overview", stage: "Avatar", socials: "Socials", games: "Experiences", groups: "Communities", badges: "Badges", favorites: "Favorites", items: "Roblox items", friends: "Friends", about: "Account" };
+  let navHtml = "";
+  function updateProfileNav() {
+    const nav = root?.querySelector(".rcp-section-nav");
+    if (!nav) return;
+    nav.hidden = prefs.profileNav === false || !on("profileNav");
+    if (nav.hidden) return;
+    const html = Object.entries(NAV_LABELS).filter(([name]) => {
+      const section = root.querySelector(`[data-sec="${name}"]`);
+      return section && !section.hidden;
+    }).map(([name, label]) => `<button type="button" data-jump="${name}">${label}</button>`).join("");
+    if (html !== navHtml) { nav.innerHTML = html; navHtml = html; }
+  }
+
   const paintAll = () => paint(...Object.keys(SECTIONS));
 
   function copy(e) {
@@ -747,6 +762,14 @@
   }
 
   function onClick(e) {
+    const jump = e.target.closest("[data-jump]");
+    if (jump) {
+      const section = root.querySelector(`[data-sec="${jump.dataset.jump}"]`);
+      section?.setAttribute("tabindex", "-1");
+      section?.focus({ preventScroll: true });
+      section?.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      return;
+    }
     if (copy(e)) return;
     const t = e.target;
     if (t.closest("[data-classic]")) return classic(true);
@@ -787,6 +810,7 @@
     root.id = "rcp-root";
     root.innerHTML =
       `<section id="rcp-hero" data-sec="hero"></section>` +
+      `<nav class="rcp-section-nav" aria-label="Profile sections" hidden></nav>` +
       `<div class="rcp-layout"><div class="rcp-main">` +
       `<section class="rcp-card" data-sec="stage" hidden></section>` +
       `<section class="rcp-card" data-sec="socials" hidden></section>` +
@@ -1194,6 +1218,12 @@
   }
   loaders.push(loadItems);
 
+  chrome.storage.onChanged?.addListener((changes, area) => {
+    if (area !== "sync" || !changes.profileNav) return;
+    prefs.profileNav = changes.profileNav.newValue !== false;
+    updateProfileNav();
+  });
+
   /* ---- start ---- */
   function start() {
     if (!build()) return false;
@@ -1202,7 +1232,7 @@
     return true;
   }
 
-  chrome.storage.sync.get({ profile: true, users: true, socials: true }, async (s) => {
+  chrome.storage.sync.get({ profile: true, users: true, socials: true, profileNav: true }, async (s) => {
     if (!s.profile) return;
     prefs = s;
     cfg = (await ask({ type: "rcx-config" })) || {};

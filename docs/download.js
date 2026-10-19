@@ -4,13 +4,13 @@
    anywhere. */
 (() => {
   const RAW = "https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/";
-  const ALL = { stats: true, alerts: true, robux: true, sales: true, profile: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
+  const ALL = { stats: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
   const $ = (s) => document.querySelector(s);
   const boxes = [...document.querySelectorAll("input[data-f]")];
 
   const chosen = () => {
     const f = Object.fromEntries(boxes.map((b) => [b.dataset.f, b.checked]));
-    if (!f.profile) f.profileValue = f.profileRevenue = f.profileVerify = f.socialsYoutube = f.socialsTwitch = f.socialsX = false;
+    if (!f.profile) f.profileNav = f.profileValue = f.profileRevenue = f.profileVerify = f.socialsYoutube = f.socialsTwitch = f.socialsX = false;
     f.socials = !!(f.socialsYoutube || f.socialsTwitch || f.socialsX);
     if (!f.stats) f.alerts = false;
     if (!f.robux) f.sales = false;
@@ -56,8 +56,8 @@
   // presets: Creator = the money and stats side; Roblox only = nothing outside roblox.com
   const PRESETS = {
     all: Object.keys(ALL),
-    creator: ["stats", "alerts", "robux", "sales", "profile", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
-    roblox: ["robux", "sales", "profile", "admins"],
+    creator: ["stats", "alerts", "robux", "sales", "profile", "profileNav", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
+    roblox: ["robux", "sales", "profile", "profileNav", "admins"],
     theme: [],
   };
   $("#presets").addEventListener("click", (e) => {

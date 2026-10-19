@@ -13,6 +13,7 @@
     "socials": true,
     "socialsYoutube": true,
     "socialsTwitch": true,
-    "socialsX": true
+    "socialsX": true,
+    "profileNav": true
   }
 }

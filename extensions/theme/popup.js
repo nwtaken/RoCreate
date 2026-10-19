@@ -1,4 +1,4 @@
-const DEFAULTS = { enabled: true, declutter: true, streamer: false, stats: true, alerts: false, users: true, robux: true, sales: false, profile: true, socials: true };
+const DEFAULTS = { enabled: true, declutter: true, streamer: false, stats: true, alerts: false, users: true, robux: true, sales: false, profile: true, profileNav: true, socials: true };
 const boxes = Object.keys(DEFAULTS).map((id) => document.getElementById(id));
 const version = chrome.runtime.getManifest().version;
 document.getElementById("ver").textContent = "Version " + version;
@@ -51,6 +51,7 @@ fetch(chrome.runtime.getURL("config.json"))
     if (off("robux")) hide("robux");
     if (off("sales") || off("robux")) hide("sales");
     if (off("profile")) hide("profile");
+    if (off("profile") || off("profileNav")) hide("profileNav");
     if (off("profile") || off("socials")) hide("socials");
     if (off("admins") && off("flags")) hide("users");
     else if (off("admins") || off("flags")) {
