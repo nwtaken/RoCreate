@@ -1309,3 +1309,7 @@ html.rocreate-on.rcw:not(.rcp2) {
     & #settings-container ul.menu-vertical { position: static; flex-basis: auto; width: 100%; }
   }
 }
+/* phone widths: Roblox swaps the settings menu for its own dropdown */
+@media (max-width: 767px) {
+  html.rocreate-on.rcw:not(.rcp2) #settings-container:has(.mobile-navigation-dropdown) ul.menu-vertical { display: none !important; }
+}

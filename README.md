@@ -85,7 +85,7 @@ badge with an X. *(Example names, except builderman.)*
 
 - **Clean and fast:** a flat, dark style for the whole site, with ads and upsells hidden.
 - **Quick jump:** press Ctrl+K (⌘K on a Mac) anywhere on Roblox to jump to any page or settings tab, your communities and, for ones you own, their revenue, audit log, members and roles pages, or search experiences, people, communities and Marketplace items. Optional.
-- **Money tools:** a DevEx estimate on My Transactions (read from the summary Roblox already shows), CSV exports of your sales, purchases, community payouts and Robux purchases for a chosen period, and, for community admins, CSV exports of community sales and the audit log. Exports page through Roblox at about one request a second and wait politely when Roblox asks. Optional.
+- **Money tools:** a DevEx estimate on My Transactions (read from the summary Roblox already shows), CSV exports of your sales, purchases, community payouts and Robux purchases for a chosen period, and, for community admins, CSV exports of community sales, the audit log and the member list. Exports page through Roblox at about one request a second and wait politely when Roblox asks. Optional.
 - **Your experiences:** a Home panel with the public experiences you and the communities you own have made: live players with a two-hour trend line, visits, rating, favorites and a Creator Hub link, refreshed once a minute while the tab is open. Optional.
 - **Workspace pages:** trades, transactions, settings, the Marketplace, communities and their admin pages, inventory, the avatar editor, messages and every menu and dialog get Creator Hub panels: an obsidian canvas, flat cards, hairline borders and 12 to 16px corners. Profiles keep their own layout. Optional.
 

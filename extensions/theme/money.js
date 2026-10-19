@@ -175,6 +175,13 @@
 
   /* ---- Community admin ---- */
   const AUDIT_HEADER = ["Date (UTC)", "User", "User ID", "Role", "Action", "Details"];
+  const MEMBER_HEADER = ["User ID", "Username", "Display name", "Verified", "Role", "Rank"];
+  const memberRows = (list) => list.map((m) => [m.user?.userId ?? "", m.user?.username ?? "", m.user?.displayName ?? "", m.user?.hasVerifiedBadge ? "yes" : "no", m.role?.name ?? "", m.role?.rank ?? ""]);
+  const KINDS = {
+    audit: { what: "audit log", file: "audit-log", url: (g) => `https://groups.roblox.com/v1/groups/${g}/audit-log?sortOrder=Desc`, header: AUDIT_HEADER, rows: (l) => auditRows(l), dated: true },
+    sales: { what: "community sales", file: "sales", url: (g) => `https://economy.roblox.com/v2/groups/${g}/transactions?transactionType=Sale`, header: TX_HEADER, rows: (l) => txRows(l), dated: true },
+    members: { what: "members", file: "members", url: (g) => `https://groups.roblox.com/v1/groups/${g}/users?sortOrder=Asc`, header: MEMBER_HEADER, rows: (l) => memberRows(l), dated: false },
+  };
   function auditRows(list) {
     return list.map((r) => [
       r.created ? new Date(r.created).toISOString() : "",
@@ -190,21 +197,18 @@
     bar.id = "rc-money-group";
     bar.className = "rc-ext";
     bar.dataset.kind = kind;
-    const what = kind === "audit" ? "audit log" : "community sales";
-    bar.innerHTML = `<div class="rc-money-eyebrow">Export ${what}</div>
+    const k = KINDS[kind];
+    bar.innerHTML = `<div class="rc-money-eyebrow">Export ${k.what}</div>
       <div class="rc-money-row">
-        <label>Period <select data-k="period">${Object.entries(PERIODS).map(([v, t]) => `<option value="${v}"${v === "90" ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+        ${k.dated ? `<label>Period <select data-k="period">${Object.entries(PERIODS).map(([v, t]) => `<option value="${v}"${v === "90" ? " selected" : ""}>${t}</option>`).join("")}</select></label>` : `<span class="rc-money-hint">Up to 10,000 members, oldest first.</span>`}
         <button type="button" class="rc-money-btn" data-k="export">Download CSV</button>
         <span class="rc-money-note" aria-live="polite">Needs the matching permission in this community.</span>
       </div>`;
     bar.querySelector('[data-k="export"]').addEventListener("click", (e) => {
-      const days = +bar.querySelector('[data-k="period"]').value;
+      const days = k.dated ? +bar.querySelector('[data-k="period"]').value : 0;
       startJob(e.currentTarget, "Download CSV", async (signal, progress) => {
-        const url = kind === "audit"
-          ? `https://groups.roblox.com/v1/groups/${gid}/audit-log?sortOrder=Desc`
-          : `https://economy.roblox.com/v2/groups/${gid}/transactions?transactionType=Sale`;
-        const list = await pageAll(url, { since: days ? Date.now() - days * 864e5 : 0, signal, onProgress: progress });
-        if (list.length) download(`rocreate-community-${gid}-${kind === "audit" ? "audit-log" : "sales"}-${day()}.csv`, kind === "audit" ? AUDIT_HEADER : TX_HEADER, kind === "audit" ? auditRows(list) : txRows(list));
+        const list = await pageAll(k.url(gid), { since: days ? Date.now() - days * 864e5 : 0, signal, onProgress: progress });
+        if (list.length) download(`rocreate-community-${gid}-${k.file}-${day()}.csv`, k.header, k.rows(list));
         return list.length;
       });
     });
@@ -214,7 +218,7 @@
     const old = document.getElementById("rc-money-group");
     const gid = new URLSearchParams(location.search).get("id");
     const tab = (location.hash.match(/#!\/([^/?]+)/) || [])[1] || "";
-    const kind = /^auditlog$/i.test(tab) ? "audit" : /^revenue$/i.test(tab) ? "sales" : "";
+    const kind = /^auditlog$/i.test(tab) ? "audit" : /^revenue$/i.test(tab) ? "sales" : /^members$/i.test(tab) ? "members" : "";
     const host = document.querySelector("#configure-group-web-app .tab-content-group");
     if (!kind || !gid || !host || !on() || !/^\/(communities|groups)\/configure/.test(location.pathname)) { old?.remove(); return; }
     if (old && old.dataset.kind === kind && host.contains(old)) return;

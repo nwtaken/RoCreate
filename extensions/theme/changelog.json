@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.23.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Community admins can export the member list (user, role and rank) from the Members tab",
+      "Workspace pages: at phone widths Settings shows only Roblox's own menu dropdown",
+      "Popup: Your experiences sits under Game tools and Money tools under Robux"
+    ]
+  },
+  {
     "version": "0.22.0",
     "date": "2026-10-20",
     "changes": [

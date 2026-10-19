@@ -38,7 +38,7 @@
 .rc-money-btn:hover { filter: brightness(1.08); }
 .rc-money-btn.rc-busy { background: rgba(208, 217, 251, .10); color: #FFFFFF; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
 .rc-money-btn:focus-visible, .rc-money-row select:focus-visible { outline: 2px solid var(--rc-accent, #0a84ff); outline-offset: 2px; }
-.rc-money-note { color: #94A3B8; font-size: 13px; align-self: center; }
+.rc-money-note, .rc-money-hint { color: #94A3B8; font-size: 13px; align-self: center; }
 @media (max-width: 800px) {
   #rc-money { grid-template-columns: 1fr; }
   #rc-money .rc-money-col + .rc-money-col { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255, 255, 255, .06); padding-top: 16px; }
