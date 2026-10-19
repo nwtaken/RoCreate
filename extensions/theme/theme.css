@@ -532,7 +532,7 @@ html.rocreate-on ul.hlist.avatar-cards::after {
 }
 html.rocreate-on ul.avatar-cards > li.avatar-card {
   float: none !important;
-  width: 106px !important;
+  width: 180px !important;
   height: auto !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -542,7 +542,7 @@ html.rocreate-on ul.avatar-cards > li.avatar-card {
    a detached grey block once the card is a tile, flatten it into the card and
    keep the two buttons side by side. */
 html.rocreate-on ul.avatar-cards > li.avatar-card:has(.avatar-card-btns) {
-  width: 168px !important;
+  width: 200px !important;
 }
 html.rocreate-on ul.avatar-cards li:has(.avatar-card-btns) .avatar-card-container,
 html.rocreate-on ul.avatar-cards li:has(.avatar-card-btns) .avatar-card-content {
@@ -631,10 +631,15 @@ html.rocreate-on ul.avatar-cards .avatar-name-container {
   justify-content: center !important;
   align-items: center !important;
   gap: 3px !important;
+  width: 100% !important;
   max-width: 100% !important;
+  min-width: 0 !important;
+  float: none !important;
 }
 html.rocreate-on ul.avatar-cards .avatar-name {
   flex: 0 1 auto !important;
+  width: auto !important;
+  max-width: 100% !important;
   min-width: 0 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -647,6 +652,12 @@ html.rocreate-on ul.avatar-cards .avatar-name-container > :not(.avatar-name) {
   flex: none !important;
 }
 html.rocreate-on ul.avatar-cards .avatar-card-label {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 4px 0 0 !important;
+  line-height: 18px !important;
+  text-align: center !important;
   font-size: 12px !important;
   color: var(--rc-text-2) !important;
   overflow: hidden !important;

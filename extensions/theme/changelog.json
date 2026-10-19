@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.18.1",
+    "date": "2026-10-19",
+    "changes": [
+      "Friend cards reserve enough width for display names, badges and usernames instead of squeezing names into narrow tiles"
+    ]
+  },
+  {
     "version": "0.18.0",
     "date": "2026-10-19",
     "changes": [
