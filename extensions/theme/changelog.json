@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.13.1",
+    "date": "2026-10-19",
+    "changes": [
+      "Profiles: a link like roblox.com/help in a bio no longer shows up as an X account"
+    ]
+  },
+  {
     "version": "0.13.0",
     "date": "2026-10-19",
     "changes": [

@@ -169,7 +169,7 @@
     const live = S.tw?.live;
     const socials = S.socials ? Object.entries(S.socials).filter(([, v]) => v) : [];
     const links = [
-      ...socials.map(([k, v]) => `<a class="rcp-chip rcp-${k}" href="${esc(v.url)}" target="_blank" rel="noopener" title="${esc(SERVICE[k] + ", from " + v.source)}">${ICONS[k]}${esc(v.label)}</a>`),
+      ...socials.map(([k, v]) => `<a class="rcp-chip rcp-${k}" href="${esc(v.url)}" target="_blank" rel="noopener" title="${esc(SERVICE[k] + ", linked " + v.source)}">${ICONS[k]}${esc(v.label)}</a>`),
       `<a class="rcp-chip" href="/users/${uid}/inventory">Inventory</a>`,
       `<a class="rcp-chip" href="/users/${uid}/favorites">Favorites</a>`,
       me() && !mine() ? `<a class="rcp-chip" href="/users/${uid}/trade">Trade</a>` : "",
@@ -758,7 +758,8 @@
     discovering = true;
     const found = {};
     // 1. their own words: real links in the bio
-    for (const m of (S.user.description || "").matchAll(/(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/[^\s<>"']+|twitch\.tv\/\w+|(?:x|twitter)\.com\/\w+|discord\.gg\/[\w-]+)/gi)) classify(m[0], "from their bio", found);
+    // (a boundary first, or "roblox.com/help" would read as x.com/help)
+    for (const m of (S.user.description || "").matchAll(/(?<![\w.-])(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/[^\s<>"']+|twitch\.tv\/\w+|(?:x|twitter)\.com\/\w+|discord\.gg\/[\w-]+)/gi)) classify(m[0], "from their bio", found);
     // 2. their own experiences, then 3. the communities they own (Roblox keeps official links on both)
     if (me()) {
       for (const g of S.games.slice(0, 3)) {
