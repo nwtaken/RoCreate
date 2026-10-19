@@ -63,18 +63,37 @@
   const mine = () => me() === uid;
 
   // Roblox thumbnails, many kinds in one request; remembered for this page
-  const thumbCache = new Map();
+  const thumbCache = new Map(), thumbPending = new Map();
   async function thumbs(list, size = "150x150") {
-    const want = list.filter(([type, id]) => !thumbCache.has(type + ":" + id + ":" + size));
+    const unique = [...new Map(list.map(item => [item[0]+":"+item[1],item])).values()];
+    const want = [], waiting = [], resolve = new Map();
+    for (const item of unique) {
+      const k = item[0]+":"+item[1]+":"+size;
+      if (thumbCache.has(k)) continue;
+      if (!thumbPending.has(k)) {
+        thumbPending.set(k, new Promise(done=>resolve.set(k,done)));
+        want.push(item);
+      }
+      waiting.push(thumbPending.get(k));
+    }
     for (let i = 0; i < want.length; i += 100) {
       const batch = want.slice(i, i + 100);
-      const r = await api("https://thumbnails.roblox.com/v1/batch", batch.map(([type, id], n) => ({ requestId: String(n), type, targetId: Number(id), size, format: "Png", isCircular: false }))).catch(() => null);
-      for (const t of r?.data || []) {
-        const [type, id] = batch[Number(t.requestId)] || [];
-        if (type && t.imageUrl && /^https:\/\/[\w.-]+\.rbxcdn\.com\//.test(t.imageUrl)) thumbCache.set(type + ":" + id + ":" + size, t.imageUrl);
+      try {
+        const r = await api("https://thumbnails.roblox.com/v1/batch", batch.map(([type,id],n)=>({requestId:String(n),type,targetId:Number(id),size,format:"Png",isCircular:false}))).catch(()=>null);
+        for (const t of r?.data || []) {
+          const [type,id] = batch[Number(t.requestId)] || [];
+          if (type && t.imageUrl && /^https:\/\/[\w.-]+\.rbxcdn\.com\//.test(t.imageUrl)) thumbCache.set(type+":"+id+":"+size,t.imageUrl);
+        }
+      } finally {
+        for (const [type,id] of batch) {
+          const k=type+":"+id+":"+size;
+          resolve.get(k)?.();
+          thumbPending.delete(k);
+        }
       }
     }
-    return (type, id) => thumbCache.get(type + ":" + id + ":" + size) || "";
+    await Promise.all(waiting);
+    return (type,id)=>thumbCache.get(type+":"+id+":"+size) || "";
   }
 
   /* ---- state ---- */
@@ -86,6 +105,7 @@
   };
   let cfg = {}, prefs = {};
   const on = (name) => cfg[name] !== false;
+  const itemScanOn = () => on("profileItems") && prefs.profileItems !== false;
   let root = null;
 
   /* ---- markup pieces ---- */
@@ -145,11 +165,11 @@
 
   // Inventory value: official Roblox items (their known prices) plus collectibles (Rolimons)
   function inventoryStat(stat) {
-    const items = S.items && !S.items.private && !S.items.error ? S.items.total || 0 : 0;
+    const items = itemScanOn() && S.items && !S.items.private && !S.items.error ? S.items.total || 0 : 0;
     const coll = on("profileValue") && S.rol && !(S.rol.privacy && !S.rol.value) ? S.rol.value || 0 : 0;
     if (!items && !coll) return "";
-    const why = [`Official Roblox items R$ ${full(items)}${S.items && !S.items.done ? " (still counting)" : ""}`, on("profileValue") ? `Collectibles R$ ${full(coll)} (Rolimons)` : ""].filter(Boolean).join(" + ");
-    return `<div class="rcp-stat rcp-inv" title="${esc(why)}"><b>R$ ${fmt(items + coll)}</b><span>Inventory value</span></div>`;
+    const why = [itemScanOn() ? `Official Roblox items R$ ${full(items)}${S.items && !S.items.done ? " (still counting)" : ""}` : "Official Roblox item scan is off", on("profileValue") ? `Collectibles R$ ${full(coll)} (Rolimons)` : ""].filter(Boolean).join(" + ");
+    return `<div class="rcp-stat rcp-inv" title="${esc(why)}"><b>R$ ${fmt(items + coll)}</b><span>${itemScanOn() ? "Inventory value" : "Collectibles value"}</span></div>`;
   }
   // while the item scan runs, only that number changes (repainting the header would reset it)
   function updateInventoryStat() {
@@ -402,6 +422,7 @@
   }
 
   function itemsCardHtml() {
+    if (!itemScanOn()) return "";
     const it = S.items;
     if (!it) return card("items", "Roblox items", skel(2));
     if (it.private) return card("items", "Roblox items", '<div class="rcp-muted">This inventory is private.</div>');
@@ -1120,11 +1141,12 @@
   // wait the window out, with a countdown, and carry on.
   async function patient(url, body, onWait) {
     for (let tries = 0; ; tries++) {
+      if (!itemScanOn()) throw new Error("Item scan disabled");
       try {
         return await api(url, body);
       } catch (e) {
         if (e.message !== "429" || tries >= 5 || !rcAlive()) throw e;
-        for (let s = 20; s > 0; s--) { onWait(s); await sleep(1000); }
+        for (let s = 20; s > 0; s--) { if (!itemScanOn()) throw new Error("Item scan disabled"); onWait(s); await sleep(1000); }
         onWait(0);
       }
     }
@@ -1170,13 +1192,17 @@
       r();
     }));
 
+  let itemScanRunning = false;
   async function loadItems() {
-    await whenVisible();
+    if (!itemScanOn() || itemScanRunning) return;
+    itemScanRunning = true;
     try {
+      await whenVisible();
+      if (!itemScanOn()) return;
       await loadItemsInner();
     } catch (e) {
-      saveDiag("crashed", { error: String(e && (e.stack || e.message || e)).slice(0, 400) });
-    }
+      if (itemScanOn()) saveDiag("crashed", { error: String(e && (e.stack || e.message || e)).slice(0,400) });
+    } finally { itemScanRunning = false; }
     paint("items", "hero");
   }
 
@@ -1266,6 +1292,7 @@
 
   chrome.storage.onChanged?.addListener((changes, area) => {
     if (area !== "sync") return;
+    if (changes.profileItems) { prefs.profileItems = changes.profileItems.newValue !== false; paint("items", "hero"); if (itemScanOn()) loadItems(); }
     if (changes.profileNav) { prefs.profileNav = changes.profileNav.newValue !== false; updateProfileNav(); }
     if (changes.profileFilters) { prefs.profileFilters = changes.profileFilters.newValue !== false; paint("games", "groups", "avatar"); }
   });
@@ -1278,7 +1305,7 @@
     return true;
   }
 
-  chrome.storage.sync.get({ profile: true, users: true, socials: true, profileNav: true, profileFilters: true }, async (s) => {
+  chrome.storage.sync.get({ profile: true, users: true, socials: true, profileNav: true, profileFilters: true, profileItems: true }, async (s) => {
     if (!s.profile) return;
     prefs = s;
     cfg = (await ask({ type: "rcx-config" })) || {};

@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.17.1",
+    "date": "2026-10-19",
+    "changes": [
+      "Compact popup groups remember their open state and keep dependent switches and accents synchronized",
+      "Optional official-item scan switch for lighter profiles; overlapping thumbnail loads share one request",
+      "Fresh scanner regression preserves item totals, waits on rate limits and makes zero detail calls on cached revisits"
+    ]
+  },
+  {
     "version": "0.17.0",
     "date": "2026-10-19",
     "changes": [

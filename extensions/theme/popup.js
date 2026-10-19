@@ -1,4 +1,4 @@
-const DEFAULTS = { enabled: true, declutter: true, streamer: false, reduceMotion: false, stats: true, watchlistTools: true, gameNotes: true, alerts: false, users: true, robux: true, sales: false, profile: true, profileNav: true, profileFilters: true, socials: true };
+const DEFAULTS = { enabled: true, declutter: true, streamer: false, reduceMotion: false, stats: true, watchlistTools: true, gameNotes: true, alerts: false, users: true, robux: true, sales: false, profile: true, profileNav: true, profileFilters: true, profileItems: true, socials: true };
 const boxes = Object.keys(DEFAULTS).map((id) => document.getElementById(id));
 const version = chrome.runtime.getManifest().version;
 document.getElementById("ver").textContent = "Version " + version;
@@ -6,6 +6,7 @@ document.getElementById("ver").textContent = "Version " + version;
 chrome.storage.sync.get(DEFAULTS, (s) => {
   for (const b of boxes) b.checked = s[b.id];
   showWatchlistLink();
+  updateGroupCounts();
 });
 
 // accent colour (content.js applies it to Roblox; the popup's switches follow it too)
@@ -28,12 +29,24 @@ for (const [name, color] of Object.entries(ACCENTS)) {
 }
 chrome.storage.sync.get({ accent: "blue" }, (s) => showAccent(s.accent));
 
+function syncDependentSwitches() {
+  const checked = id => document.getElementById(id)?.checked === true;
+  const parents = { watchlistTools: checked("stats"), gameNotes: checked("stats") && checked("watchlistTools"), alerts: checked("stats"), profileNav: checked("profile"), profileFilters: checked("profile"), profileItems: checked("profile"), socials: checked("profile"), sales: checked("robux") };
+  for (const [id, enabled] of Object.entries(parents)) {
+    const input = document.getElementById(id);
+    if (!input) continue;
+    input.disabled = !enabled;
+    input.closest(".row").classList.toggle("dependent-off", !enabled);
+  }
+}
 function showWatchlistLink() {
+  syncDependentSwitches();
   const link = document.getElementById("wl-open");
   if (link) link.hidden = !document.getElementById("watchlistTools").checked || !document.getElementById("stats").checked;
 }
 
 function save() {
+  updateGroupCounts();
   showWatchlistLink();
   chrome.storage.sync.set(Object.fromEntries(boxes.map((b) => [b.id, b.checked])));
 }
@@ -63,13 +76,15 @@ fetch(chrome.runtime.getURL("config.json"))
     if (off("profile")) hide("profile");
     if (off("profile") || off("profileNav")) hide("profileNav");
     if (off("profile") || off("profileFilters")) hide("profileFilters");
+    if (off("profile") || off("profileItems")) hide("profileItems");
     if (off("profile") || off("socials")) hide("socials");
     if (off("admins") && off("flags")) hide("users");
     else if (off("admins") || off("flags")) {
       const sub = document.getElementById("users").closest(".row").querySelector(".sub");
       sub.textContent = off("flags") ? "Roblox admins" : "Flagged & ex-verified accounts";
     }
-    if (!["stats", "alerts", "users", "profile", "socials", "robux", "sales"].some((id) => document.getElementById(id))) document.getElementById("features-head").remove();
+    if (!["stats", "alerts", "users", "profile", "socials", "robux", "sales"].some((id) => document.getElementById(id))) document.getElementById("features-head")?.remove();
+    updateGroupCounts();
   })
   .catch(() => {});
 
@@ -156,6 +171,7 @@ function render() {
     const line = hist[g.id]?.points?.length >= 3 ? spark(hist[g.id].points) : el("span");
     const x = el("button", "", "×");
     x.title = "Remove from watchlist";
+    x.setAttribute("aria-label", "Remove " + name(g) + " from watchlist");
     x.addEventListener("click", () => chrome.storage.sync.set({ watch: watched.filter((w) => w.id !== g.id) }));
     const left = el("div", "info");
     const meta = el("div", "meta");
@@ -197,13 +213,13 @@ async function loadHistory() {
 
 // the watchlist as CSV, for spreadsheets
 document.getElementById("wl-csv").addEventListener("click", (e) => {
-  const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const q = (v) => `"${String(v ?? "").replace(/^[=+@-]/, "'$&").replace(/"/g, '""')}"`;
   const rows = [["Name", "Universe ID", "Place ID", "Playing", "Est. revenue (R$)", "Revenue trend (%)"]].concat(
     watched.map((g) => { const s = stats[g.id] || {}; return [s.name || g.name, g.id, g.place, s.playing, s.revenue, s.revenueTrend]; }));
   navigator.clipboard.writeText(rows.map((r) => r.map(q).join(",")).join("\n")).then(() => {
     e.target.textContent = "Copied";
     setTimeout(() => (e.target.textContent = "Copy CSV"), 1200);
-  });
+  }, () => { e.target.textContent = "Copy unavailable"; setTimeout(() => (e.target.textContent = "Copy CSV"), 1600); });
 });
 
 chrome.storage.onChanged.addListener((c, area) => area === "sync" && c.watch && load());
@@ -212,4 +228,31 @@ load();
 document.getElementById("options").addEventListener("click", (e) => {
   e.preventDefault();
   chrome.runtime.openOptionsPage();
+});
+
+// Keep the popup short, and remember which groups this browser last opened.
+function updateGroupCounts() {
+  for (const group of document.querySelectorAll("[data-group]")) {
+    const inputs=[...group.querySelectorAll('input[type="checkbox"]')];
+    group.hidden=!inputs.length;
+    group.querySelector(".group-count").textContent=inputs.filter(input=>input.checked).length+" on";
+  }
+}
+chrome.storage.local.get({"rc:popupGroups":{}}, state=>{
+  const saved=state["rc:popupGroups"];
+  for (const group of document.querySelectorAll("[data-group]")) {
+    group.open=saved[group.dataset.group]===true;
+    group.addEventListener("toggle",()=>{
+      const next=Object.fromEntries([...document.querySelectorAll("[data-group]")].map(el=>[el.dataset.group,el.open]));
+      chrome.storage.local.set({"rc:popupGroups":next});
+    });
+  }
+});
+
+chrome.storage.onChanged.addListener((changes, area)=>{
+  if (area!=="sync") return;
+  for (const input of boxes) if (changes[input.id] && input.isConnected) input.checked=changes[input.id].newValue ?? DEFAULTS[input.id];
+  if (changes.accent) showAccent(changes.accent.newValue);
+  showWatchlistLink();
+  updateGroupCounts();
 });

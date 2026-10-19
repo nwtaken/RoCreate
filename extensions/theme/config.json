@@ -18,6 +18,7 @@
     "watchlistTools": true,
     "reduceMotion": true,
     "profileFilters": true,
-    "gameNotes": true
+    "gameNotes": true,
+    "profileItems": true
   }
 }

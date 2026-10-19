@@ -4,13 +4,13 @@
    anywhere. */
 (() => {
   const RAW = "https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/";
-  const ALL = { reduceMotion: true, stats: true, watchlistTools: true, gameNotes: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileFilters: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
+  const ALL = { reduceMotion: true, stats: true, watchlistTools: true, gameNotes: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileFilters: true, profileItems: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
   const $ = (s) => document.querySelector(s);
   const boxes = [...document.querySelectorAll("input[data-f]")];
 
   const chosen = () => {
     const f = Object.fromEntries(boxes.map((b) => [b.dataset.f, b.checked]));
-    if (!f.profile) f.profileNav = f.profileFilters = f.profileValue = f.profileRevenue = f.profileVerify = f.socialsYoutube = f.socialsTwitch = f.socialsX = false;
+    if (!f.profile) f.profileNav = f.profileFilters = f.profileItems = f.profileValue = f.profileRevenue = f.profileVerify = f.socialsYoutube = f.socialsTwitch = f.socialsX = false;
     f.socials = !!(f.socialsYoutube || f.socialsTwitch || f.socialsX);
     if (!f.stats) f.alerts = f.watchlistTools = f.gameNotes = false;
     if (!f.watchlistTools) f.gameNotes = false;
@@ -57,8 +57,8 @@
   // presets: Creator = the money and stats side; Roblox only = nothing outside roblox.com
   const PRESETS = {
     all: Object.keys(ALL),
-    creator: ["reduceMotion", "stats", "watchlistTools", "gameNotes", "alerts", "robux", "sales", "profile", "profileNav", "profileFilters", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
-    roblox: ["reduceMotion", "robux", "sales", "profile", "profileNav", "profileFilters", "admins"],
+    creator: ["reduceMotion", "stats", "watchlistTools", "gameNotes", "alerts", "robux", "sales", "profile", "profileNav", "profileFilters", "profileItems", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
+    roblox: ["reduceMotion", "robux", "sales", "profile", "profileNav", "profileFilters", "profileItems", "admins"],
     theme: [],
   };
   $("#presets").addEventListener("click", (e) => {

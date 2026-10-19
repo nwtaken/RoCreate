@@ -6,7 +6,7 @@ $("ver").textContent = "Version " + chrome.runtime.getManifest().version;
 // the settings a backup may carry, and what each must look like
 const KEYS = {
   enabled: "boolean", declutter: "boolean", streamer: "boolean", reduceMotion: "boolean", stats: "boolean", watchlistTools: "boolean", gameNotes: "boolean", alerts: "boolean", users: "boolean",
-  robux: "boolean", sales: "boolean", profile: "boolean", profileNav: "boolean", profileFilters: "boolean", socials: "boolean", accent: "string", sort: "string", watch: "object",
+  robux: "boolean", sales: "boolean", profile: "boolean", profileNav: "boolean", profileFilters: "boolean", profileItems: "boolean", socials: "boolean", accent: "string", sort: "string", watch: "object",
 };
 
 function say(id, text, err = false) {

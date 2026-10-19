@@ -35,6 +35,8 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 9px 16px; font-size: 13px;
   }
+  .dependent-off { opacity:.5; }
+  .dependent-off .track { cursor:default; }
   .sub { color: #a7acb3; font-size: 11px; margin-top: 2px; }
   /* toggle switch */
   .sw { position: relative; width: 38px; height: 22px; flex: none; }
@@ -55,6 +57,14 @@
   .swatches button:focus-visible { box-shadow: 0 0 0 2px rgba(255,255,255,0.4); }
   input:checked + .track::before { transform: translateX(16px); }
   .sw input:focus-visible + .track { outline: 2px solid #fff; outline-offset: 2px; }
+  .feature-group { border-bottom:1px solid rgba(255,255,255,.07); }
+  .feature-group summary { display:flex; align-items:center; padding:12px 16px; font-size:12px; font-weight:700; cursor:pointer; list-style:none; }
+  .feature-group summary::-webkit-details-marker { display:none; }
+  .feature-group summary::after { content:"›"; color:#87909e; font-size:20px; line-height:14px; margin-left:10px; }
+  .feature-group[open] summary::after { transform:rotate(90deg); }
+  .feature-group summary:focus-visible { outline:2px solid var(--acc,#0a84ff); outline-offset:-3px; }
+  .group-count { margin-left:auto; color:#a7acb3; font-weight:400; font-size:11px; }
+  .feature-group[hidden] { display:none; }
   /* watchlist */
   .wl-head { display: flex; align-items: center; justify-content: space-between; padding-right: 12px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 6px; }
   .tools { display: flex; gap: 6px; padding: 4px 16px 6px; }
@@ -96,7 +106,7 @@
   </header>
   <div id="news" hidden></div>
 
-  <div class="section">Look</div>
+  <details class="feature-group" data-group="look"><summary>Appearance<span class="group-count"></span></summary>
   <div class="row">
     <div>Theme<div class="sub">Creator Hub reskin</div></div>
     <label class="sw"><input type="checkbox" id="enabled"><span class="track"></span></label>
@@ -105,7 +115,6 @@
     <div>Declutter<div class="sub">Hide ads &amp; upsells</div></div>
     <label class="sw"><input type="checkbox" id="declutter"><span class="track"></span></label>
   </div>
-
   <div class="row">
     <div>Streamer mode<div class="sub">Blur your Robux and account info</div></div>
     <label class="sw"><input type="checkbox" id="streamer"><span class="track"></span></label>
@@ -118,8 +127,9 @@
     <div>Accent<div class="sub">Buttons and highlights</div></div>
     <div class="swatches" id="accent"></div>
   </div>
+  </details>
 
-  <div class="section" id="features-head">Features</div>
+  <details class="feature-group" data-group="games"><summary>Game tools<span class="group-count"></span></summary>
   <div class="row">
     <div>Game stats<div class="sub">Revenue &amp; visits from Creator Exchange</div></div>
     <label class="sw"><input type="checkbox" id="stats"><span class="track"></span></label>
@@ -136,10 +146,9 @@
     <div>Spike alerts<div class="sub">Notify me when a watched game jumps</div></div>
     <label class="sw"><input type="checkbox" id="alerts"><span class="track"></span></label>
   </div>
-  <div class="row">
-    <div>User badges<div class="sub">Flagged, ex-verified &amp; Roblox admins</div></div>
-    <label class="sw"><input type="checkbox" id="users"><span class="track"></span></label>
-  </div>
+  </details>
+
+  <details class="feature-group" data-group="profiles"><summary>Profiles and badges<span class="group-count"></span></summary>
   <div class="row">
     <div>Profile<div class="sub">RoCreate's profile layout</div></div>
     <label class="sw"><input type="checkbox" id="profile"><span class="track"></span></label>
@@ -153,9 +162,20 @@
     <label class="sw"><input type="checkbox" id="profileFilters"><span class="track"></span></label>
   </div>
   <div class="row">
+    <div>Roblox item scan<div class="sub">Count official items and their known prices</div></div>
+    <label class="sw"><input type="checkbox" id="profileItems"><span class="track"></span></label>
+  </div>
+  <div class="row">
     <div>Social feeds<div class="sub">YouTube, Twitch &amp; X on profiles</div></div>
     <label class="sw"><input type="checkbox" id="socials"><span class="track"></span></label>
   </div>
+  <div class="row">
+    <div>User badges<div class="sub">Flagged, ex-verified &amp; Roblox admins</div></div>
+    <label class="sw"><input type="checkbox" id="users"><span class="track"></span></label>
+  </div>
+  </details>
+
+  <details class="feature-group" data-group="robux"><summary>Robux<span class="group-count"></span></summary>
   <div class="row">
     <div>Robux menu<div class="sub">Pending &amp; group funds</div></div>
     <label class="sw"><input type="checkbox" id="robux"><span class="track"></span></label>
@@ -164,6 +184,7 @@
     <div>Sales alerts<div class="sub">Notify me when my Robux or group funds go up</div></div>
     <label class="sw"><input type="checkbox" id="sales"><span class="track"></span></label>
   </div>
+  </details>
 
   <div id="watchlist">
     <div class="section wl-head"><span>Watchlist <span id="wl-count"></span></span><a href="watchlist.html" id="wl-open" class="mini" target="_blank">Open</a><button type="button" id="wl-csv" class="mini" title="Copy the watchlist as CSV">Copy CSV</button></div>
