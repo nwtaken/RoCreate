@@ -1,21 +1,28 @@
-/* Profile insights: one "Insights" section at the top of the profile's own sections, with
-   tabs, so it adds what the profile doesn't show without repeating what it does (friend
-   counts, the experiences and communities lists are already there).
-     Overview          joined / account age, status or last seen, inventory value,
-                       est. game revenue, owned communities, why verified, previous names
-     Inventory value   Rolimons value, RAP, rank, peak, value / RAP history chart
-     Why verified?     RobloxVerifieds' estimate, flags, badge history, linked accounts
-     Roblox items      official Roblox items owned (not limiteds), with their price,
-                       including offsale ones (last known price), and the total
-     Mutual friends    friends you share
-   Sources: Roblox APIs, Rolimons, RobloxVerifieds, Creator Exchange (via background.js).
-   Setting: chrome.storage.sync { profile: bool }. */
+/* RoCreate profile: Roblox's profile page, rebuilt.
+   Roblox's own layout is hidden with CSS and never touched (it is a React app, and editing
+   its nodes breaks it); RoCreate's layout sits next to it in #content. The only Roblox
+   pieces left on screen are its real action buttons (Add Friend, Edit profile, the ... menu),
+   placed in the top right corner of the new header by CSS, so they keep working exactly as
+   Roblox made them, captchas and dialogs included.
+
+     Header     avatar, names, badges, status, live-on-Twitch banner, counts, bio, links
+     Main       Latest from them (YouTube, Twitch, X), experiences, communities,
+                badges, favorites
+     Sidebar    avatar and what they wear, inventory value, Roblox items, why verified,
+                friends, account facts
+
+   Social feeds: Roblox profiles no longer carry social links, so they come from the bio,
+   the person's own experiences and the communities they own (Roblox keeps official
+   social links on those). Every feed says where its link came from.
+   Sources: Roblox APIs, Rolimons, RobloxVerifieds, Creator Exchange, YouTube, Twitch, X
+   (the outside ones through background.js, or as their own embeds).
+   Settings: chrome.storage.sync { profile: bool }; config.json decides what is included. */
 (() => {
   const uid = location.pathname.match(/^\/users\/(\d+)\/profile/)?.[1];
   if (!uid) return;
 
   /* ---- helpers ---- */
-  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const fmt = (n, d = 1) => {
     if (n == null || !isFinite(n)) return "-";
     const a = Math.abs(n);
@@ -24,6 +31,7 @@
   };
   const full = (n) => (n == null ? "-" : Number(n).toLocaleString());
   const day = (t) => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  const month = (t) => new Date(t).toLocaleDateString(undefined, { month: "short", year: "numeric" });
   function ago(t) {
     const s = (Date.now() - t) / 1000;
     for (const [n, u] of [[31536000, "year"], [2592000, "month"], [86400, "day"], [3600, "hour"], [60, "minute"]]) {
@@ -36,6 +44,11 @@
     const y = Math.floor(m / 12), r = m % 12;
     return y ? `${y}y ${r}m` : `${m}m`;
   }
+  const clock = (sec) => {
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = Math.floor(sec % 60);
+    return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0");
+  };
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   let csrf = "";
   async function api(url, body, signal) {
@@ -64,49 +77,339 @@
       }
     });
   const me = () => document.querySelector('meta[name="user-data"]')?.dataset.userid || null;
+  const mine = () => me() === uid;
 
-  /* ---- state: each source fills its part, then the panel is redrawn ---- */
-  const S = { user: null, presence: null, rol: null, rv: null, games: null, owned: null, mutuals: null, names: null, items: null };
-  let tab = "overview";
-  // Insights opens on the tab you used last, once its data is in (until you pick one here)
-  let preferred = "overview", picked = false;
-  try { chrome.storage.local.get("rc:profileTab", (r) => { preferred = r?.["rc:profileTab"] || "overview"; draw(); }); } catch {}
-  let rangeDays = 365;
-  let panel = null;
+  // Roblox thumbnails, many kinds in one request; remembered for this page
+  const thumbCache = new Map();
+  async function thumbs(list, size = "150x150") {
+    const want = list.filter(([type, id]) => !thumbCache.has(type + ":" + id + ":" + size));
+    for (let i = 0; i < want.length; i += 100) {
+      const batch = want.slice(i, i + 100);
+      const r = await api("https://thumbnails.roblox.com/v1/batch", batch.map(([type, id], n) => ({ requestId: String(n), type, targetId: Number(id), size, format: "Png", isCircular: false }))).catch(() => null);
+      for (const t of r?.data || []) {
+        const [type, id] = batch[Number(t.requestId)] || [];
+        if (type && t.imageUrl && /^https:\/\/[\w.-]+\.rbxcdn\.com\//.test(t.imageUrl)) thumbCache.set(type + ":" + id + ":" + size, t.imageUrl);
+      }
+    }
+    return (type, id) => thumbCache.get(type + ":" + id + ":" + size) || "";
+  }
 
+  /* ---- state ---- */
+  const S = {
+    user: null, presence: null, counts: {}, head: "", body: "", names: null, marks: null,
+    groups: null, games: null, gameStats: {}, favorites: null, wearing: null, robloxBadges: null, badges: null,
+    friends: null, mutuals: null, rol: null, rv: null, items: null,
+    socials: null, yt: null, tw: null,
+  };
+  let cfg = {}, prefs = {};
+  const on = (name) => cfg[name] !== false;
+  let root = null;
+
+  /* ---- markup pieces ---- */
   const tile = (label, value, sub = "", title = "") =>
     `<div class="rcp-tile"${title ? ` title="${esc(title)}"` : ""}><div class="rcp-label">${label}</div>` +
     `<div class="rcp-value">${value}</div>${sub ? `<div class="rcp-sub">${sub}</div>` : ""}</div>`;
   const tone = (score) => (score >= 65 ? "rcp-good" : score >= 45 ? "rcp-mid" : "rcp-bad");
+  const skel = (n, cls = "rcp-skel-row") => `<div class="${cls}">${'<span class="rcp-skel"></span>'.repeat(n)}</div>`;
+  const card = (sec, title, body, extra = "") =>
+    `<div class="rcp-card-head"><h2>${title}</h2>${extra}</div><div class="rcp-card-body">${body}</div>`;
+  // Roblox's verified badge shape (from its own icon set), in any colour, with a mark on top
+  const BADGE = (fill, mark) => `<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="${fill}" d="M7.72 4.48a2 2 0 0 1 2.44-1.41l17.36 4.65a2 2 0 0 1 1.41 2.44l-4.65 17.36a2 2 0 0 1-2.44 1.41L4.48 24.28a2 2 0 0 1-1.41-2.44Z"/>${mark}</svg>`;
+  const ROBLOX_LOGO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill-rule="evenodd" d="M6.2 1.96 22.04 6.2 17.8 22.04 1.96 17.8Z M9.81 8.2 15.8 9.81 14.19 15.8 8.2 14.19Z"/></svg>';
+  const ICONS = {
+    youtube: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8ZM9.8 15.1V8.9l5.8 3.1Z"/></svg>',
+    twitch: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M4.3 2 3 5.4v13.7h4.7V22h2.6l2.7-2.9h3.8L22 14V2Zm15.9 11.2-2.9 2.9h-4.7l-2.6 2.6v-2.6H6.1V3.8h14.1ZM17.1 6.9h-1.8v5.2h1.8Zm-4.9 0h-1.8v5.2h1.8Z"/></svg>',
+    x: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M17.8 2.5h3.1l-6.8 7.8 8 10.6h-6.3l-4.9-6.4-5.6 6.4H2.2l7.3-8.3L1.8 2.5h6.4l4.4 5.9Zm-1.1 16.5h1.7L7.4 4.3H5.6Z"/></svg>',
+    discord: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M19.6 5.3A18 18 0 0 0 15.2 4l-.6 1.2a16.7 16.7 0 0 0-5.2 0L8.8 4a18 18 0 0 0-4.4 1.3A18.6 18.6 0 0 0 1.2 17.8a18 18 0 0 0 5.4 2.7l1.2-1.9a11.6 11.6 0 0 1-1.8-.9l.4-.3a12.9 12.9 0 0 0 11.2 0l.4.3c-.6.3-1.2.6-1.8.9l1.2 1.9a18 18 0 0 0 5.4-2.7 18.5 18.5 0 0 0-3.2-12.5ZM8.7 15.3c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Z"/></svg>',
+  };
+  const SERVICE = { youtube: "YouTube", twitch: "Twitch", x: "X", discord: "Discord" };
 
-  function overviewHtml() {
-    const u = S.user, P = S.presence, r = S.rol, v = S.rv;
-    if (!u) return `<div class="rcp-tiles">${'<div class="rcp-tile rcp-skel"><div class="rcp-label"></div><div class="rcp-value"></div></div>'.repeat(4)}</div>`;
-    const status = P?.userPresenceType === 2 ? ["rcp-ingame", "In game", P.lastLocation || ""]
-      : P?.userPresenceType === 3 ? ["rcp-studio", "In Studio", P.lastLocation || ""]
-      : P?.userPresenceType === 1 ? ["rcp-online", "Online", ""]
-      : ["", "Offline", r?.lastOnline ? "seen " + ago(r.lastOnline) : ""];
-    const tiles = [
-      tile("Joined", day(Date.parse(u.created)), age(Date.parse(u.created)) + " old"),
-      tile("Status", `<span class="rcp-dot ${status[0]}"></span>${status[1]}`, esc(status[2])),
-      r ? tile("Inventory value", r.privacy && !r.value ? "Private" : "R$ " + fmt(r.value), r.rap != null ? "RAP R$ " + fmt(r.rap) : "", "Rolimons") : "",
-      S.games?.revenue ? tile("Est. game revenue", "R$ " + fmt(S.games.revenue), `${S.games.count} experience${S.games.count > 1 ? "s" : ""}`, "Creator Exchange") : "",
-      S.owned ? tile("Owns", `${S.owned.count} communit${S.owned.count > 1 ? "ies" : "y"}`, esc(S.owned.biggest), "Communities this account owns") : "",
-      S.items?.count ? tile("Roblox items", `${full(S.items.count)}`, `R$ ${fmt(S.items.total)} known`, "Official Roblox items, not limiteds") : "",
-      v?.reason || v?.flags?.length ? tile(
-        v.flags?.length ? '<span class="rcp-bad">Flagged</span>' : "Why verified?",
-        v.reason ? `<span class="${tone(v.reason.score)} rcp-wrap">${esc(v.reason.label)}</span>` : `<span class="rcp-bad">${v.flags.length} flag${v.flags.length > 1 ? "s" : ""}</span>`,
-        v.flags?.length ? esc(v.flags[0].reason) : `${v.reason.score}/100 · ${esc(v.reason.confidence || "")} confidence`) : "",
-      u.isBanned ? tile("Account", '<span class="rcp-bad">Banned</span>') : "",
-    ].join("");
-    const names = S.names?.length
-      ? `<div class="rcp-names"><span class="rcp-muted">Previously</span>${S.names.map((n) => `<button type="button" data-copy="${esc(n)}" title="Copy">${esc(n)}</button>`).join("")}</div>`
-      : "";
-    return `<div class="rcp-tiles">${tiles}</div>${names}`;
+  /* ---- header ---- */
+  function nameBadges() {
+    const u = S.user, m = S.marks || {};
+    let html = "";
+    if (m.flag || m.ex) {
+      const why = m.flag ? "Flagged on RobloxVerifieds: " + m.flag.reasons.map((r) => r.reason).join(", ") : "Previously verified: this account lost its verified badge";
+      html += `<span class="rcp-badge" title="${esc(why)}">${BADGE("#e5484d", '<path d="M11.6 11.6l8.8 8.8M20.4 11.6l-8.8 8.8" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>')}</span>`;
+    } else if (u?.hasVerifiedBadge) {
+      html += `<span class="rcp-badge" title="Verified by Roblox">${BADGE("#335fff", '<path fill="#fff" d="M19.94 11.94a1.5 1.5 0 0 1 2.12 2.12l-7 7a1.5 1.5 0 0 1-2.12 0l-3-3a1.5 1.5 0 0 1 2.12-2.12L14 17.88Z"/>')}</span>`;
+    }
+    if (m.admin) html += `<span class="rcp-badge rcp-admin" title="Roblox admin (has Roblox's Administrator badge)">${ROBLOX_LOGO}</span>`;
+    return html;
   }
 
+  function statusLine() {
+    const P = S.presence, r = S.rol;
+    if (S.user?.isBanned) return `<span class="rcp-status rcp-banned">Banned</span>`;
+    if (P?.userPresenceType === 2) {
+      const place = P.rootPlaceId || P.placeId;
+      return `<span class="rcp-status rcp-ingame"><i></i>In game${P.lastLocation ? ": " + (place ? `<a href="/games/${Number(place)}">${esc(P.lastLocation)}</a>` : esc(P.lastLocation)) : ""}</span>`;
+    }
+    if (P?.userPresenceType === 3) return `<span class="rcp-status rcp-studio"><i></i>In Studio${P.lastLocation ? ": " + esc(P.lastLocation) : ""}</span>`;
+    if (P?.userPresenceType === 1) return `<span class="rcp-status rcp-online"><i></i>Online</span>`;
+    return `<span class="rcp-status"><i></i>Offline${r?.lastOnline ? " · seen " + ago(r.lastOnline) : ""}</span>`;
+  }
+
+  function heroHtml() {
+    const u = S.user;
+    const created = u ? Date.parse(u.created) : null;
+    const c = S.counts;
+    const stat = (value, label, href) =>
+      href ? `<a class="rcp-stat" href="${href}"><b>${value}</b><span>${label}</span></a>` : `<div class="rcp-stat"><b>${value}</b><span>${label}</span></div>`;
+    const revenue = on("profileRevenue") && S.games?.length ? S.games.reduce((n, g) => n + (S.gameStats[g.id]?.revenue || 0), 0) : 0;
+    const stats = [
+      stat(c.friends != null ? fmt(c.friends) : "-", "Friends", `/users/${uid}/friends#!/friends`),
+      stat(c.followers != null ? fmt(c.followers) : "-", "Followers", `/users/${uid}/friends#!/followers`),
+      stat(c.following != null ? fmt(c.following) : "-", "Following", `/users/${uid}/friends#!/following`),
+      created ? stat(month(created), "Joined · " + age(created)) : "",
+      S.games?.length ? stat(String(S.games.length), S.games.length === 1 ? "Experience" : "Experiences") : "",
+      revenue >= 100 ? stat("R$ " + fmt(revenue), "Est. game revenue") : "",
+      on("profileValue") && S.rol && !(S.rol.privacy && !S.rol.value) && S.rol.value ? stat("R$ " + fmt(S.rol.value), "Inventory value") : "",
+    ].join("");
+    const live = S.tw?.live;
+    const socials = S.socials ? Object.entries(S.socials).filter(([, v]) => v) : [];
+    const links = [
+      ...socials.map(([k, v]) => `<a class="rcp-chip rcp-${k}" href="${esc(v.url)}" target="_blank" rel="noopener" title="${esc(SERVICE[k] + ", from " + v.source)}">${ICONS[k]}${esc(v.label)}</a>`),
+      `<a class="rcp-chip" href="/users/${uid}/inventory">Inventory</a>`,
+      `<a class="rcp-chip" href="/users/${uid}/favorites">Favorites</a>`,
+      me() && !mine() ? `<a class="rcp-chip" href="/users/${uid}/trade">Trade</a>` : "",
+      on("profileValue") ? `<a class="rcp-chip" href="https://www.rolimons.com/player/${uid}" target="_blank" rel="noopener">Rolimons ↗</a>` : "",
+      on("profileVerify") ? `<a class="rcp-chip" href="https://robloxverifieds.com/user/${uid}" target="_blank" rel="noopener">Verifieds ↗</a>` : "",
+      `<button type="button" class="rcp-chip rcp-quiet" data-classic title="Show Roblox's own profile layout">Roblox's layout</button>`,
+    ].join("");
+    const bio = (u?.description || "").trim();
+    return `<div class="rcp-hero-bg"${S.head ? ` style="background-image:url('${esc(S.head)}')"` : ""}></div>` +
+      `<div class="rcp-hero-top">` +
+        `<div class="rcp-avatar">${S.head ? `<img src="${esc(S.head)}" alt="">` : "<span></span>"}<i class="rcp-dot-${S.presence?.userPresenceType || 0}"></i></div>` +
+        `<div class="rcp-ident">` +
+          `<div class="rcp-name"><h1>${esc(u?.displayName || u?.name || "")}</h1>${nameBadges()}</div>` +
+          `<div class="rcp-handle">${u ? "@" + esc(u.name) : ""}<button type="button" class="rcp-id" data-copy="${uid}" title="Copy user ID">ID ${uid}</button>${u ? `<button type="button" class="rcp-id" data-copy="${esc(u.name)}" title="Copy username">Copy name</button>` : ""}</div>` +
+          `<div>${u ? statusLine() : skel(1)}</div>` +
+        `</div>` +
+      `</div>` +
+      (live ? `<button type="button" class="rcp-live" data-twitch-live><span class="rcp-live-dot">LIVE</span><span class="rcp-live-text"><b>${esc(S.tw.name)} is live on Twitch</b>${esc(live.title)}${live.game ? " · " + esc(live.game) : ""}</span><span class="rcp-live-count">${fmt(live.viewers)} watching</span><span class="rcp-live-go">Watch</span></button>` : "") +
+      `<div class="rcp-stats">${stats}</div>` +
+      (bio ? `<div class="rcp-bio${bio.length > 260 || bio.split("\n").length > 4 ? " rcp-clamp" : ""}"><p>${esc(bio)}</p><button type="button" data-more>Show more</button></div>` : "") +
+      `<div class="rcp-links">${links}</div>`;
+  }
+
+  /* ---- Latest from them: YouTube, Twitch, X ---- */
+  let socialTab = "";
+  function socialsHtml() {
+    const sx = S.socials;
+    if (!sx) return "";
+    const tabs = [
+      sx.youtube && S.yt !== false ? ["youtube", "YouTube"] : null,
+      sx.twitch && S.tw !== false && !S.tw?.missing ? ["twitch", "Twitch"] : null,
+      sx.x && on("socialsX") ? ["x", "X"] : null,
+    ].filter(Boolean);
+    if (!tabs.length) return "";
+    if (!tabs.some(([k]) => k === socialTab)) socialTab = S.tw?.live && tabs.some(([k]) => k === "twitch") ? "twitch" : tabs[0][0];
+    const v = sx[socialTab];
+    const head = `<div class="rcp-tabs">${tabs.map(([k, t]) => `<button type="button" data-social="${k}" class="${k === socialTab ? "rcp-on" : ""}">${ICONS[k]}${t}</button>`).join("")}</div>`;
+    let body = "";
+    if (socialTab === "youtube") {
+      const y = S.yt;
+      if (!y) body = skel(3, "rcp-skel-grid");
+      else if (!y.videos?.length) body = `<div class="rcp-player"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=UU${esc(y.id.slice(2))}" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" title="${esc(y.channel || "YouTube uploads")}"></iframe></div>`;
+      else body = `<div class="rcp-media-grid">${y.videos.slice(0, 6).map((x) =>
+        `<button type="button" class="rcp-media" data-yt="${esc(x.id)}" title="${esc(x.title)}">` +
+        `<span class="rcp-thumb"><img src="https://i.ytimg.com/vi/${esc(x.id)}/mqdefault.jpg" alt="" loading="lazy">${x.length ? `<i>${esc(x.length)}</i>` : x.short ? "<i>Short</i>" : ""}</span>` +
+        `<span class="rcp-media-title">${esc(x.title)}</span>` +
+        `<span class="rcp-media-meta">${x.viewsText ? esc(x.viewsText) : fmt(x.views) + " views"}${x.agoText ? " · " + esc(x.agoText) : x.at ? " · " + ago(x.at) : ""}</span></button>`).join("")}</div>`;
+    } else if (socialTab === "twitch") {
+      const t = S.tw;
+      if (!t) body = skel(3, "rcp-skel-grid");
+      else {
+        const vod = (x) => `<button type="button" class="rcp-media" data-twitch-video="${esc(x.id)}" title="${esc(x.title)}"><span class="rcp-thumb">${x.img ? `<img src="${esc(x.img)}" alt="">` : ""}<i>${clock(x.length)}</i></span>` +
+          `<span class="rcp-media-title">${esc(x.title)}</span><span class="rcp-media-meta">${fmt(x.views)} views${x.at ? " · " + ago(x.at) : ""}</span></button>`;
+        const clip = (x) => `<button type="button" class="rcp-media" data-twitch-clip="${esc(x.slug)}" title="${esc(x.title)}"><span class="rcp-thumb">${x.img ? `<img src="${esc(x.img)}" alt="">` : ""}<i>Clip</i></span>` +
+          `<span class="rcp-media-title">${esc(x.title)}</span><span class="rcp-media-meta">${fmt(x.views)} views${x.at ? " · " + ago(x.at) : ""}</span></button>`;
+        body = (t.live ? `<button type="button" class="rcp-live-card" data-twitch-live><span class="rcp-thumb">${t.live.img ? `<img src="${esc(t.live.img)}" alt="">` : ""}<i class="rcp-live-dot">LIVE</i></span>` +
+            `<span class="rcp-live-info"><b>${esc(t.live.title)}</b><span>${t.live.game ? esc(t.live.game) + " · " : ""}${fmt(t.live.viewers)} watching${t.live.since ? " · started " + ago(t.live.since) : ""}</span></span></button>` : "") +
+          (t.videos.length ? `<div class="rcp-subhead">Past broadcasts</div><div class="rcp-media-grid">${t.videos.map(vod).join("")}</div>` : "") +
+          (t.clips.length ? `<div class="rcp-subhead">Popular clips this month</div><div class="rcp-media-grid">${t.clips.map(clip).join("")}</div>` : "") +
+          (!t.live && !t.videos.length && !t.clips.length ? '<div class="rcp-muted">Nothing on this channel lately.</div>' : "");
+      }
+    } else if (socialTab === "x") {
+      // X's own embedded timeline: it loads in your browser, and X limits how often it answers
+      body = `<div class="rcp-x-bar"><span>${ICONS.x}Posts by <b>@${esc(v.handle)}</b></span><a class="rcp-chip" href="${esc(v.url)}" target="_blank" rel="noopener">Open on X ↗</a></div>` +
+        `<div class="rcp-x"><iframe src="https://syndication.twitter.com/srv/timeline-profile/screen-name/${esc(v.handle)}?dnt=true&theme=dark&showHeader=false&showReplies=false&transparent=true&lang=en" title="Posts by @${esc(v.handle)}" loading="lazy"></iframe></div>` +
+        `<div class="rcp-note">If this stays empty or says "Rate limit exceeded", X is limiting embeds for now: open the profile on X instead.</div>`;
+    }
+    const open = v ? `<a class="rcp-open" href="${esc(v.url)}" target="_blank" rel="noopener">Open on ${SERVICE[socialTab]} ↗</a>` : "";
+    return card("socials", `Latest from ${esc(S.user?.displayName || S.user?.name || "them")}`, head + body +
+      (v ? `<div class="rcp-note">Linked ${esc(v.source)}${v.source.startsWith("from their bio") ? "" : ", so it may be the studio's channel rather than their own"}. ${open}</div>` : ""));
+  }
+
+  /* ---- main column sections ---- */
+  const expanded = new Set();
+  const more = (sec, total, shown) => total > shown ? `<button type="button" class="rcp-more" data-expand="${sec}">${expanded.has(sec) ? "Show less" : `Show all ${total}`}</button>` : "";
+
+  function gamesHtml() {
+    const list = S.games;
+    if (!list) return card("games", "Experiences", skel(4, "rcp-skel-grid"));
+    if (!list.length) return "";
+    const show = expanded.has("games") ? list : list.slice(0, 6);
+    const icon = (g) => thumbCache.get("GameIcon:" + g.id + ":150x150");
+    return card("games", `Experiences <span class="rcp-count">${list.length}</span>`,
+      `<div class="rcp-game-grid">${show.map((g) => {
+        const st = S.gameStats[g.id] || {};
+        return `<a class="rcp-game" href="/games/${g.rootPlace?.id || ""}">` +
+          `<span class="rcp-game-icon">${icon(g) ? `<img src="${esc(icon(g))}" alt="" loading="lazy">` : ""}</span>` +
+          `<span class="rcp-game-info"><b>${esc(g.name)}</b>` +
+          `<span>${st.playing != null ? `<em class="rcp-live-n">${fmt(st.playing)}</em> playing · ` : ""}${fmt(st.visits ?? g.placeVisits)} visits</span>` +
+          (on("profileRevenue") && st.revenue ? `<span class="rcp-rev">R$ ${fmt(st.revenue)} est. revenue</span>` : "") +
+          `</span></a>`;
+      }).join("")}</div>${more("games", list.length, 6)}`);
+  }
+
+  function groupsHtml() {
+    const list = S.groups;
+    if (!list) return card("groups", "Communities", skel(4, "rcp-skel-grid"));
+    if (!list.length) return "";
+    const show = expanded.has("groups") ? list : list.slice(0, 8);
+    return card("groups", `Communities <span class="rcp-count">${list.length}</span>`,
+      `<div class="rcp-group-grid">${show.map((x) => {
+        const img = thumbCache.get("GroupIcon:" + x.group.id + ":150x150");
+        return `<a class="rcp-group" href="/communities/${x.group.id}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="rcp-group-ph"></span>'}` +
+          `<span class="rcp-group-info"><b>${esc(x.group.name)}</b><span>${x.role?.rank === 255 ? '<em class="rcp-owner">Owner</em>' : esc(x.role?.name || "")} · ${fmt(x.group.memberCount)} members</span></span></a>`;
+      }).join("")}</div>${more("groups", list.length, 8)}`);
+  }
+
+  function badgesHtml() {
+    const rb = S.robloxBadges || [], pb = S.badges || [];
+    if (!rb.length && !pb.length) return "";
+    return card("badges", "Badges",
+      (rb.length ? `<div class="rcp-subhead">Roblox badges</div><div class="rcp-badge-row">${rb.map((b) => `<span class="rcp-rbadge" title="${esc(b.name + ": " + b.description)}"><img src="${esc(b.imageUrl)}" alt=""><span>${esc(b.name)}</span></span>`).join("")}</div>` : "") +
+      (pb.length ? `<div class="rcp-subhead">Recently earned</div><div class="rcp-badge-row">${pb.map((b) => {
+        const img = thumbCache.get("BadgeIcon:" + b.id + ":150x150");
+        return `<a class="rcp-rbadge" href="/badges/${b.id}" title="${esc(b.name)}${b.awarder?.name ? esc(" (" + b.awarder.name + ")") : ""}">${img ? `<img src="${esc(img)}" alt="">` : "<i></i>"}<span>${esc(b.name)}</span></a>`;
+      }).join("")}</div>` : ""),
+      `<a class="rcp-head-link" href="/users/${uid}/inventory/#!/badges">All badges</a>`);
+  }
+
+  function favoritesHtml() {
+    const list = S.favorites;
+    if (!list?.length) return "";
+    return card("favorites", "Favorite experiences",
+      `<div class="rcp-fav-row">${list.map((g) => {
+        const img = thumbCache.get("GameIcon:" + g.id + ":150x150");
+        return `<a class="rcp-fav" href="/games/${g.rootPlace?.id || ""}" title="${esc(g.name)}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : "<span></span>"}<span>${esc(g.name)}</span></a>`;
+      }).join("")}</div>`, `<a class="rcp-head-link" href="/users/${uid}/favorites">All favorites</a>`);
+  }
+
+  /* ---- sidebar ---- */
+  function avatarHtml() {
+    const items = (S.wearing || []).slice(0, 12);
+    return card("avatar", "Avatar",
+      `<div class="rcp-body-img">${S.body ? `<img src="${esc(S.body)}" alt="Avatar">` : '<span class="rcp-skel"></span>'}</div>` +
+      (items.length ? `<div class="rcp-subhead">Wearing</div><div class="rcp-wear">${items.map((id) => {
+        const img = thumbCache.get("Asset:" + id + ":150x150");
+        return `<a href="/catalog/${id}" title="Open in the Marketplace">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : "<span></span>"}</a>`;
+      }).join("")}</div>` : ""),
+      mine() ? `<a class="rcp-head-link" href="/my/avatar">Edit avatar</a>` : "");
+  }
+
+  function sparkSvg(points) {
+    const W = 260, H = 54;
+    const pts = points.filter((p) => p[1] != null);
+    if (pts.length < 2) return "";
+    const t0 = pts[0][0], t1 = pts[pts.length - 1][0] || t0 + 1;
+    const lo = Math.min(...pts.map((p) => p[1])), hi = Math.max(...pts.map((p) => p[1])), span = hi - lo || 1;
+    const d = pts.map((p, i) => `${i ? "L" : "M"}${(((p[0] - t0) / (t1 - t0 || 1)) * W).toFixed(1)},${(H - 3 - ((p[1] - lo) / span) * (H - 6)).toFixed(1)}`).join("");
+    return `<svg viewBox="0 0 ${W} ${H}" class="rcp-spark" preserveAspectRatio="none"><path d="${d}L${W},${H}L0,${H}Z" class="rcp-spark-area"/><path d="${d}" class="rcp-spark-line"/></svg>`;
+  }
+
+  function valueCardHtml() {
+    if (!on("profileValue")) return "";
+    const r = S.rol;
+    if (!r) return card("value", "Inventory value", skel(2));
+    const year = (r.chart || []).filter((p) => p[0] >= Date.now() - 365 * 86400000);
+    return card("value", "Inventory value",
+      `<div class="rcp-tiles rcp-tiles-2">${tile("Value", r.privacy && !r.value ? "Private" : "R$ " + fmt(r.value))}${tile("RAP", r.privacy && !r.rap ? "Private" : "R$ " + fmt(r.rap))}</div>` +
+      (r.rank ? `<div class="rcp-muted rcp-line">Rank #${full(r.rank)} on Rolimons</div>` : "") +
+      (year.length >= 2 ? sparkSvg(year) : ""),
+      (r.chart || []).length >= 2 ? `<button type="button" class="rcp-head-link" data-modal="value">Full history</button>` : "");
+  }
+
+  function itemsCardHtml() {
+    const it = S.items;
+    if (!it) return card("items", "Roblox items", skel(2));
+    if (it.private) return card("items", "Roblox items", '<div class="rcp-muted">This inventory is private.</div>');
+    if (it.error) return card("items", "Roblox items", `<div class="rcp-muted">Couldn't load the inventory (${esc(it.error)}).</div>`);
+    const top = it.list.filter((x) => x.price).sort((a, b) => b.price - a.price).slice(0, 3);
+    return card("items", "Roblox items",
+      `<div class="rcp-tiles rcp-tiles-2">${tile("Items", full(it.count), "official Roblox")}${tile("Known value", "R$ " + fmt(it.total))}</div>` +
+      (!it.done && it.owned ? `<div class="rcp-progress"><i style="width:${Math.round((100 * (it.scanned || 0)) / it.owned)}%"></i></div><div class="rcp-muted rcp-line">Checking ${full(it.scanned || 0)} / ${full(it.owned)}${it.wait ? `, waiting ${it.wait} s for Roblox` : ""}</div>` : "") +
+      (top.length ? `<div class="rcp-mini-list">${top.map((x) => `<a href="/${x.bundle ? "bundles" : "catalog"}/${x.id}"><span>${esc(x.name)}</span><b>R$ ${fmt(x.price)}</b></a>`).join("")}</div>` : ""),
+      it.list.length ? `<button type="button" class="rcp-head-link" data-modal="items">See all</button>` : "");
+  }
+
+  function verifyCardHtml() {
+    if (!on("profileVerify")) return "";
+    const v = S.rv;
+    if (!v || !(v.reason || v.flags?.length || v.history?.length)) return "";
+    return card("verify", v.flags?.length ? '<span class="rcp-bad">Flagged</span>' : "Why verified?",
+      (v.reason ? `<div class="rcp-reason-top"><span class="rcp-pill ${tone(v.reason.score)}">${esc(v.reason.label)}</span><span class="rcp-muted">${v.reason.score}/100</span></div>` : "") +
+      (v.flags?.length ? `<div class="rcp-flag-mini">${v.flags.slice(0, 2).map((f) => `<b>${esc(f.reason)}</b>`).join("")}</div>` : ""),
+      `<button type="button" class="rcp-head-link" data-modal="verify">Details</button>`);
+  }
+
+  function friendsHtml() {
+    const f = S.friends, m = S.mutuals;
+    if (!f && !m) return card("friends", "Friends", skel(2));
+    const person = (p, mutual) => `<a href="/users/${p.id}/profile" title="@${esc(p.name)}${mutual ? " (you're both friends)" : ""}">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : "<span></span>"}<span>${esc(p.display || p.name)}</span>${mutual ? "<i>Mutual</i>" : ""}</a>`;
+    const mutualIds = new Set((m?.list || []).map((p) => p.id));
+    const rest = (f?.list || []).filter((p) => !mutualIds.has(p.id));
+    const people = [...(m?.list || []).map((p) => person(p, true)), ...rest.map((p) => person(p, false))].slice(0, 9);
+    if (!people.length) return card("friends", "Friends", '<div class="rcp-muted">No friends to show.</div>');
+    return card("friends", `Friends <span class="rcp-count">${fmt(S.counts.friends ?? f?.total)}</span>`,
+      (m?.total ? `<div class="rcp-muted rcp-line">${m.total} mutual friend${m.total > 1 ? "s" : ""}</div>` : "") + `<div class="rcp-people">${people.join("")}</div>`,
+      `<a class="rcp-head-link" href="/users/${uid}/friends#!/friends">See all</a>`);
+  }
+
+  function aboutHtml() {
+    const u = S.user;
+    if (!u) return "";
+    const rows = [
+      ["User ID", `<button type="button" class="rcp-link" data-copy="${uid}">${uid}</button>`],
+      ["Joined", day(Date.parse(u.created))],
+      S.names?.length ? ["Previously", S.names.slice(0, 8).map((n) => `<button type="button" class="rcp-name-chip" data-copy="${esc(n)}" title="Copy">${esc(n)}</button>`).join("")] : null,
+      u.isBanned ? ["Account", '<span class="rcp-bad">Banned</span>'] : null,
+    ].filter(Boolean);
+    return card("about", "Account", `<div class="rcp-facts">${rows.map(([k, v]) => `<div><span>${k}</span><div>${v}</div></div>`).join("")}</div>`);
+  }
+
+  /* ---- modal: players, the value chart, the full item list ---- */
+  let modal = null;
+  function openModal(title, html, wide) {
+    closeModal();
+    modal = document.createElement("div");
+    modal.id = "rcp-modal";
+    modal.innerHTML = `<div class="rcp-modal-box${wide ? " rcp-wide" : ""}" role="dialog" aria-modal="true" aria-label="${esc(title)}">` +
+      `<div class="rcp-modal-head"><b>${esc(title)}</b><button type="button" data-close aria-label="Close">×</button></div><div class="rcp-modal-body">${html}</div></div>`;
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal || e.target.closest("[data-close]")) closeModal();
+      else onModalClick(e);
+    });
+    document.body.append(modal);
+    document.documentElement.classList.add("rcp-modal-open");
+  }
+  function closeModal() {
+    modal?.remove(); // removing it also stops any player inside
+    modal = null;
+    document.documentElement.classList.remove("rcp-modal-open");
+  }
+  addEventListener("keydown", (e) => e.key === "Escape" && modal && closeModal());
+  const player = (src, title) => `<div class="rcp-player"><iframe src="${src}" title="${esc(title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
+  const PARENT = encodeURIComponent(location.hostname);
+
+  let rangeDays = 365, minPrice = 0;
+  const MIN_PRICES = [[0, "All"], [100, "100+"], [1000, "1K+"], [10000, "10K+"]];
+
   function chartSvg(points) {
-    const W = 640, H = 170, L = 44, B = 22, T = 8, R = 8;
+    const W = 640, H = 200, L = 48, B = 22, T = 8, R = 8;
     const t0 = points[0][0], t1 = points[points.length - 1][0] || t0 + 1;
     const vals = points.flatMap((p) => [p[1], p[2]]).filter((v) => v != null);
     const hi = Math.max(10, ...vals) * 1.08;
@@ -126,125 +429,24 @@
       grid + `<path d="${line(2)}" class="rcp-rap"/><path d="${line(1)}" class="rcp-val"/>` +
       `<line class="rcp-cursor" y1="${T}" y2="${H - B}" x1="0" x2="0"/></svg><div class="rcp-tip" hidden></div>`;
   }
-
   const chartPoints = () => {
     const all = S.rol?.chart || [];
     const pts = all.filter((p) => !rangeDays || p[0] >= Date.now() - rangeDays * 86400000);
     return pts.length >= 2 ? pts : all;
   };
-
-  function valueHtml() {
+  function valueModalHtml() {
     const r = S.rol;
-    const show = chartPoints();
     const peak = (r.chart || []).reduce((m, p) => (p[1] > (m?.[1] ?? -1) ? p : m), null);
-    const tiles =
-      tile("Value", r.privacy && !r.value ? "Private" : `R$ ${full(r.value)}`, r.privacy ? "inventory is private" : "") +
-      tile("RAP", r.privacy && !r.rap ? "Private" : `R$ ${full(r.rap)}`) +
-      tile("Rank", r.rank ? "#" + full(r.rank) : "-") +
-      (peak ? tile("Peak value", `R$ ${fmt(peak[1])}`, day(peak[0])) : "");
-    const chart = show.length >= 2
-      ? `<div class="rcp-chart-wrap"><div class="rcp-ranges">${[["1m", 30], ["3m", 91], ["1y", 365], ["All", 0]].map(([t, d]) => `<button type="button" data-days="${d}" class="${d === rangeDays ? "rcp-on" : ""}">${t}</button>`).join("")}` +
-        `<span class="rcp-legend"><i class="rcp-val-key"></i>Value <i class="rcp-rap-key"></i>RAP</span></div>${chartSvg(show)}</div>`
-      : "";
-    return `<div class="rcp-tiles">${tiles}</div>${chart}`;
+    return `<div class="rcp-tiles">${tile("Value", r.privacy && !r.value ? "Private" : `R$ ${full(r.value)}`)}${tile("RAP", r.privacy && !r.rap ? "Private" : `R$ ${full(r.rap)}`)}` +
+      `${tile("Rank", r.rank ? "#" + full(r.rank) : "-")}${peak ? tile("Peak value", `R$ ${fmt(peak[1])}`, day(peak[0])) : ""}</div>` +
+      `<div class="rcp-chart-wrap"><div class="rcp-ranges">${[["1m", 30], ["3m", 91], ["1y", 365], ["All", 0]].map(([t, d]) => `<button type="button" data-days="${d}" class="${d === rangeDays ? "rcp-on" : ""}">${t}</button>`).join("")}` +
+      `<span class="rcp-legend"><i class="rcp-val-key"></i>Value <i class="rcp-rap-key"></i>RAP</span></div>${chartSvg(chartPoints())}</div><div class="rcp-note">Source: Rolimons.</div>`;
   }
-
-  function verifyHtml() {
-    const v = S.rv;
-    let html = "";
-    if (v.reason) {
-      const s = Math.max(0, Math.min(100, v.reason.score ?? 0));
-      html += `<div class="rcp-reason"><div class="rcp-reason-top"><span class="rcp-pill ${tone(s)}">${esc(v.reason.label)}</span>` +
-        `<span class="rcp-score ${tone(s)}"><span class="rcp-bar"><i style="width:${s}%"></i></span>${s}/100</span>` +
-        (v.reason.confidence ? `<span class="rcp-muted">${esc(v.reason.confidence)} confidence</span>` : "") + `</div>` +
-        `<div class="rcp-summary">${esc(v.reason.summary)}</div>` +
-        (v.reason.evidence.length ? `<ul class="rcp-evidence">${v.reason.evidence.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>` : "") +
-        `<div class="rcp-muted rcp-note">An estimate: Roblox doesn't publish why accounts are verified. Source: RobloxVerifieds.</div></div>`;
-    }
-    if (v.flags.length) html += `<div class="rcp-flags">${v.flags.map((f) => `<div class="rcp-flag"><b>${esc(f.reason)}</b>${f.note ? `<span>${esc(f.note)}</span>` : ""}<span class="rcp-muted">${f.at ? day(f.at) : ""}</span></div>`).join("")}</div>`;
-    const extra = [
-      ...v.history.map((h) => `<span class="${h.verified ? "rcp-got" : "rcp-lost"}">${h.verified ? "Verified" : "Lost badge"} · ${day(h.at)}</span>`),
-      ...v.linked.map((l) => `<a href="/users/${esc(l.id)}/profile">Linked: ${esc(l.name || l.id)}</a>`),
-    ];
-    if (extra.length) html += `<div class="rcp-history">${extra.join("")}</div>`;
-    return html;
-  }
-
-  const MIN_PRICES = [[0, "All"], [100, "100+"], [1000, "1K+"], [10000, "10K+"]];
-  let minPrice = 0;
-
-  function itemsHtml() {
-    const it = S.items;
-    if (it.private) return '<div class="rcp-muted">This inventory is private.</div>';
-    if (it.error) return `<div class="rcp-muted">Couldn't load the inventory (Roblox answered ${esc(it.error)}). Refresh the page to try again.</div>`;
-    // the price filter only changes what is counted and listed; every price is already known
-    const list = it.list.filter((x) => !minPrice || (x.price ?? 0) >= minPrice);
-    const sum = (arr) => arr.reduce((n, x) => n + (x.price || 0), 0);
-    const on = list.filter((x) => x.onSale), off = list.filter((x) => !x.onSale);
-    const unknown = off.filter((x) => x.price == null).length;
-    const bundles = list.filter((x) => x.bundle).length;
-    const top = list.filter((x) => x.price).sort((a, b) => b.price - a.price).slice(0, minPrice ? 25 : 10);
-    const filters = `<div class="rcp-ranges rcp-filters"><span class="rcp-muted">Price</span>${MIN_PRICES.map(([p, t]) =>
-      `<button type="button" data-min="${p}" class="${p === minPrice ? "rcp-on" : ""}">${t}</button>`).join("")}</div>`;
-    const tiles =
-      tile("Items", full(list.length), (minPrice ? `of ${full(it.count)}` : "official") + (bundles ? ` · ${bundles} bundle${bundles > 1 ? "s" : ""}` : "")) +
-      tile("Total", "R$ " + full(sum(list)), "of items with a known price") +
-      tile("On sale", full(on.length), "R$ " + fmt(sum(on))) +
-      tile("Off sale", full(off.length), "R$ " + fmt(sum(off)) + (unknown ? ` · ${unknown} unknown` : ""), "At the last price Roblox lists") +
-      (minPrice ? "" : tile("Free", full(list.filter((x) => x.price === 0).length)));
-    const rows = top.map((x) =>
-      `<a class="rcp-row" href="/${x.bundle ? "bundles" : "catalog"}/${x.id}">${x.img ? `<img src="${esc(x.img)}" alt="">` : "<span class='rcp-ph'></span>"}` +
-      `<span class="rcp-row-name">${esc(x.name)}</span><span class="rcp-row-meta">${x.bundle ? '<span class="rcp-tag">Bundle</span> ' : ""}${x.onSale ? "" : '<span class="rcp-off">Offsale</span> '}R$ ${full(x.price)}</span></a>`).join("");
-    const progress = !it.done && it.owned
-      ? `<div class="rcp-progress"><i style="width:${Math.round((100 * (it.scanned || 0)) / it.owned)}%"></i></div>` +
-        `<div class="rcp-muted rcp-note">${it.stale ? "Showing your last scan. " : ""}Checking ${full(it.scanned || 0)} / ${full(it.owned)} items…` +
-        (it.wait ? ` Roblox's catalog is busy (it allows 10 requests a minute), going on in ${it.wait} s.` : "") + `</div>`
-      : "";
-    return filters + progress + `<div class="rcp-tiles">${tiles}</div>` +
-      (rows ? `<div class="rcp-subhead">${minPrice ? "Items" : "Most expensive"}</div><div class="rcp-list">${rows}</div>` : (it.done ? '<div class="rcp-muted rcp-more">No items at this price.</div>' : "")) +
-      (it.incomplete ? '<div class="rcp-muted rcp-note">Partial results: Roblox kept refusing, so some items are unchecked. They are checked on your next visit.</div>' : "") +
-      `<div class="rcp-muted rcp-note">Limiteds and collectibles are left out (see Inventory value). Bundles such as Korblox count once, as the bundle. Offsale items count at the last price Roblox lists; for most older ones it lists none, so they show as unknown.</div>`;
-  }
-
-  function mutualsHtml() {
-    const m = S.mutuals;
-    if (!m.list.length) return '<div class="rcp-muted">You have no friends in common.</div>';
-    return `<div class="rcp-people">${m.list.map((p) => `<a href="/users/${p.id}/profile" title="@${esc(p.name)}">` +
-      `${p.img ? `<img src="${esc(p.img)}" alt="">` : "<span class='rcp-round'></span>"}<span>${esc(p.display || p.name)}</span></a>`).join("")}</div>` +
-      (m.total > m.list.length ? `<div class="rcp-muted rcp-more">+${m.total - m.list.length} more</div>` : "");
-  }
-
-  function tabs() {
-    return [
-      ["overview", "Overview", true],
-      ["value", "Inventory value", !!S.rol],
-      ["verify", S.rv?.flags?.length ? `Why verified? <b class="rcp-bad">●</b>` : "Why verified?", !!(S.rv && (S.rv.reason || S.rv.flags.length || S.rv.history.length))],
-      ["items", S.items ? `Roblox items <span class="rcp-count">${full(S.items.count)}</span>` : "Roblox items", !!S.items],
-      ["mutuals", S.mutuals ? `Mutual friends <span class="rcp-count">${S.mutuals.total}</span>` : "Mutual friends", !!S.mutuals],
-    ].filter((t) => t[2]);
-  }
-
-  function draw() {
-    if (!panel) return;
-    const nameBtn = panel.querySelector("#rcp-copy-name");
-    if (nameBtn && S.user?.name && nameBtn.hidden) {
-      nameBtn.dataset.copy = S.user.name;
-      nameBtn.hidden = false;
-    }
-    const list = tabs();
-    if (!picked && list.some((t) => t[0] === preferred)) tab = preferred;
-    if (!list.some((t) => t[0] === tab)) tab = "overview";
-    const body = tab === "value" ? valueHtml() : tab === "verify" ? verifyHtml() : tab === "mutuals" ? mutualsHtml() : tab === "items" ? itemsHtml() : overviewHtml();
-    panel.querySelector(".rcp-tabs").innerHTML = list.map(([k, t]) => `<button type="button" data-tab="${k}" class="${k === tab ? "rcp-on" : ""}">${t}</button>`).join("");
-    panel.querySelector(".rcp-body").innerHTML = body;
-    if (tab === "value") wireChart();
-  }
-
   function wireChart() {
-    const svg = panel.querySelector(".rcp-chart");
+    const svg = modal?.querySelector(".rcp-chart");
     if (!svg) return;
     const show = chartPoints();
-    const tip = panel.querySelector(".rcp-tip"), cur = svg.querySelector(".rcp-cursor");
+    const tip = modal.querySelector(".rcp-tip"), cur = svg.querySelector(".rcp-cursor");
     svg.addEventListener("mousemove", (e) => {
       const box = svg.getBoundingClientRect();
       const W = +svg.dataset.w, L = +svg.dataset.l, R = +svg.dataset.r, t0 = +svg.dataset.t0, t1 = +svg.dataset.t1;
@@ -258,56 +460,151 @@
     });
     svg.addEventListener("mouseleave", () => { tip.hidden = true; cur.classList.remove("rcp-show"); });
   }
-
-  /* ---- placement: first of the profile's own sections ---- */
-  function place() {
-    const content = document.querySelector(".profile-content");
-    if (content) { content.prepend(panel); return true; }
-    const header = document.querySelector(".profile-header-overlay");
-    if (header) { header.after(panel); return true; }
-    return false;
+  function itemsModalHtml() {
+    const it = S.items;
+    const list = it.list.filter((x) => !minPrice || (x.price ?? 0) >= minPrice);
+    const sum = (arr) => arr.reduce((n, x) => n + (x.price || 0), 0);
+    const onSale = list.filter((x) => x.onSale), off = list.filter((x) => !x.onSale);
+    const unknown = off.filter((x) => x.price == null).length;
+    const rows = list.filter((x) => x.price).sort((a, b) => b.price - a.price).slice(0, 60).map((x) => {
+      const img = thumbCache.get((x.bundle ? "BundleThumbnail" : "Asset") + ":" + x.id + ":150x150");
+      return `<a class="rcp-row" href="/${x.bundle ? "bundles" : "catalog"}/${x.id}">${img ? `<img src="${esc(img)}" alt="">` : "<span class='rcp-ph'></span>"}` +
+        `<span class="rcp-row-name">${esc(x.name)}</span><span class="rcp-row-meta">${x.bundle ? '<span class="rcp-tag">Bundle</span> ' : ""}${x.onSale ? "" : '<span class="rcp-off">Offsale</span> '}R$ ${full(x.price)}</span></a>`;
+    }).join("");
+    return `<div class="rcp-ranges"><span class="rcp-muted">Price</span>${MIN_PRICES.map(([p, t]) => `<button type="button" data-min="${p}" class="${p === minPrice ? "rcp-on" : ""}">${t}</button>`).join("")}</div>` +
+      `<div class="rcp-tiles">${tile("Items", full(list.length), minPrice ? `of ${full(it.count)}` : "official")}${tile("Total", "R$ " + full(sum(list)), "known prices")}` +
+      `${tile("On sale", full(onSale.length), "R$ " + fmt(sum(onSale)))}${tile("Off sale", full(off.length), "R$ " + fmt(sum(off)) + (unknown ? ` · ${unknown} unknown` : ""))}</div>` +
+      (rows ? `<div class="rcp-list">${rows}</div>` : '<div class="rcp-muted">No items at this price.</div>') +
+      `<div class="rcp-note">Official Roblox items only: limiteds are in Inventory value. Bundles such as Korblox count once. Offsale items count at the last price Roblox lists; for most older ones it lists none.</div>`;
+  }
+  function verifyModalHtml() {
+    const v = S.rv;
+    let html = "";
+    if (v.reason) {
+      const s = Math.max(0, Math.min(100, v.reason.score ?? 0));
+      html += `<div class="rcp-reason-top"><span class="rcp-pill ${tone(s)}">${esc(v.reason.label)}</span>` +
+        `<span class="rcp-score ${tone(s)}"><span class="rcp-bar"><i style="width:${s}%"></i></span>${s}/100</span>` +
+        (v.reason.confidence ? `<span class="rcp-muted">${esc(v.reason.confidence)} confidence</span>` : "") + `</div>` +
+        `<p class="rcp-summary">${esc(v.reason.summary)}</p>` +
+        (v.reason.evidence?.length ? `<ul class="rcp-evidence">${v.reason.evidence.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>` : "");
+    }
+    if (v.flags?.length) html += `<div class="rcp-flags">${v.flags.map((f) => `<div class="rcp-flag"><b>${esc(f.reason)}</b>${f.note ? `<span>${esc(f.note)}</span>` : ""}<span class="rcp-muted">${f.at ? day(f.at) : ""}</span></div>`).join("")}</div>`;
+    const extra = [
+      ...(v.history || []).map((h) => `<span class="${h.verified ? "rcp-got" : "rcp-lost"}">${h.verified ? "Verified" : "Lost badge"} · ${day(h.at)}</span>`),
+      ...(v.linked || []).map((l) => `<a href="/users/${encodeURIComponent(l.id)}/profile">Linked: ${esc(l.name || l.id)}</a>`),
+    ];
+    if (extra.length) html += `<div class="rcp-history">${extra.join("")}</div>`;
+    return html + `<div class="rcp-note">An estimate: Roblox doesn't publish why accounts are verified. Source: RobloxVerifieds.</div>`;
+  }
+  function onModalClick(e) {
+    const d = e.target.closest("[data-days]");
+    if (d) { rangeDays = +d.dataset.days; modal.querySelector(".rcp-modal-body").innerHTML = valueModalHtml(); wireChart(); return; }
+    const mp = e.target.closest("[data-min]");
+    if (mp) { minPrice = +mp.dataset.min; modal.querySelector(".rcp-modal-body").innerHTML = itemsModalHtml(); itemThumbs(); }
+    copy(e);
+  }
+  async function itemThumbs() {
+    const top = (S.items?.list || []).filter((x) => x.price && (!minPrice || x.price >= minPrice)).sort((a, b) => b.price - a.price).slice(0, 60);
+    await thumbs(top.map((x) => [x.bundle ? "BundleThumbnail" : "Asset", x.id]));
+    if (modal?.querySelector(".rcp-list")) modal.querySelector(".rcp-modal-body").innerHTML = itemsModalHtml();
   }
 
-  function build() {
-    panel = document.createElement("section");
-    panel.id = "rcp-panel";
-    panel.className = "section";
-    panel.innerHTML =
-      `<div class="rcp-top"><h2 class="rcp-title">Insights</h2><div class="rcp-tabs"></div><div class="rcp-actions">` +
-      `<button type="button" id="rcp-copy-name" data-copy="" title="Copy username" hidden>Copy name</button>` +
-      `<button type="button" data-copy="${uid}" title="Copy user ID">Copy ID</button>` +
-      (cfg.profileValue === false ? "" : `<a href="https://www.rolimons.com/player/${uid}" target="_blank" rel="noopener" title="Open on Rolimons">Rolimons ↗</a>`) +
-      (cfg.profileVerify === false ? "" : `<a href="https://robloxverifieds.com/user/${uid}" target="_blank" rel="noopener" title="Open on RobloxVerifieds">Verifieds ↗</a>`) +
-      `</div></div><div class="rcp-body"></div>`;
-    panel.addEventListener("click", (e) => {
-      const t = e.target.closest("[data-tab]");
-      if (t) {
-        tab = t.dataset.tab;
-        picked = true;
-        if (rcAlive()) chrome.storage.local.set({ "rc:profileTab": tab });
-        draw();
-        return;
-      }
-      const d = e.target.closest("[data-days]");
-      if (d) { rangeDays = +d.dataset.days; draw(); return; }
-      const mp = e.target.closest("[data-min]");
-      if (mp) { minPrice = +mp.dataset.min; draw(); thumbs(); return; }
-      const c = e.target.closest("[data-copy]");
-      if (c) navigator.clipboard.writeText(c.dataset.copy).then(() => {
-        const old = c.textContent;
-        c.textContent = "Copied";
-        setTimeout(() => (c.textContent = old), 1200);
-      });
+  /* ---- drawing ---- */
+  const SECTIONS = { hero: heroHtml, socials: socialsHtml, games: gamesHtml, groups: groupsHtml, badges: badgesHtml, favorites: favoritesHtml, avatar: avatarHtml, value: valueCardHtml, items: itemsCardHtml, verify: verifyCardHtml, friends: friendsHtml, about: aboutHtml };
+  const painted = new Map(); // section -> the HTML it shows now
+  function paint(...names) {
+    if (!root) return;
+    for (const n of names) {
+      const el = root.querySelector(`[data-sec="${n}"]`);
+      if (!el) continue;
+      const html = SECTIONS[n]();
+      if (painted.get(n) === html) continue; // unchanged: keep the DOM (and an open X timeline) as it is
+      painted.set(n, html);
+      el.innerHTML = html;
+      el.hidden = !html;
+    }
+  }
+  const paintAll = () => paint(...Object.keys(SECTIONS));
+
+  function copy(e) {
+    const c = e.target.closest("[data-copy]");
+    if (!c) return false;
+    navigator.clipboard.writeText(c.dataset.copy).then(() => {
+      const old = c.textContent;
+      c.textContent = "Copied";
+      setTimeout(() => (c.textContent = old), 1200);
     });
-    if (!place()) return false;
-    draw();
-    // Roblox re-renders parts of the page; put the same panel back if it gets dropped
-    rcWatch(() => panel.isConnected || place());
     return true;
   }
 
+  function onClick(e) {
+    if (copy(e)) return;
+    const t = e.target;
+    if (t.closest("[data-classic]")) return classic(true);
+    if (t.closest("[data-more]")) { t.closest(".rcp-bio").classList.toggle("rcp-open"); t.closest("[data-more]").textContent = t.closest(".rcp-bio").classList.contains("rcp-open") ? "Show less" : "Show more"; return; }
+    const ex = t.closest("[data-expand]");
+    if (ex) { expanded.has(ex.dataset.expand) ? expanded.delete(ex.dataset.expand) : expanded.add(ex.dataset.expand); paint(ex.dataset.expand); return; }
+    const so = t.closest("[data-social]");
+    if (so) { socialTab = so.dataset.social; paint("socials"); return; }
+    const yt = t.closest("[data-yt]");
+    if (yt && /^[\w-]{11}$/.test(yt.dataset.yt)) return openModal(yt.title || "YouTube", player(`https://www.youtube-nocookie.com/embed/${yt.dataset.yt}?autoplay=1&rel=0`, yt.title || "YouTube video"), true);
+    if (t.closest("[data-twitch-live]") && S.tw?.login) return openModal(`${S.tw.name} on Twitch`, player(`https://player.twitch.tv/?channel=${encodeURIComponent(S.tw.login)}&parent=${PARENT}&autoplay=true`, "Twitch stream"), true);
+    const tv = t.closest("[data-twitch-video]");
+    if (tv && /^\d{1,15}$/.test(tv.dataset.twitchVideo)) return openModal(tv.title || "Twitch", player(`https://player.twitch.tv/?video=v${tv.dataset.twitchVideo}&parent=${PARENT}&autoplay=true`, tv.title || "Twitch video"), true);
+    const tc = t.closest("[data-twitch-clip]");
+    if (tc && /^[\w-]{1,120}$/.test(tc.dataset.twitchClip)) return openModal(tc.title || "Twitch clip", player(`https://clips.twitch.tv/embed?clip=${encodeURIComponent(tc.dataset.twitchClip)}&parent=${PARENT}&autoplay=true`, tc.title || "Twitch clip"), true);
+    const md = t.closest("[data-modal]");
+    if (md?.dataset.modal === "value" && S.rol) { openModal("Inventory value", valueModalHtml(), true); wireChart(); return; }
+    if (md?.dataset.modal === "items" && S.items) { openModal("Roblox items", itemsModalHtml(), true); itemThumbs(); return; }
+    if (md?.dataset.modal === "verify" && S.rv) return openModal("Why verified?", verifyModalHtml());
+  }
+
+  /* ---- layout: next to Roblox's, which CSS hides ---- */
+  function build() {
+    const host = document.querySelector(".profile-platform-container");
+    if (!host) return false;
+    root = document.createElement("div");
+    root.id = "rcp-root";
+    root.innerHTML =
+      `<section id="rcp-hero" data-sec="hero"></section>` +
+      `<div class="rcp-layout"><div class="rcp-main">` +
+      ["socials", "games", "groups", "badges", "favorites"].map((n) => `<section class="rcp-card" data-sec="${n}" hidden></section>`).join("") +
+      `</div><aside class="rcp-side">` +
+      ["avatar", "value", "items", "verify", "friends", "about"].map((n) => `<section class="rcp-card" data-sec="${n}" hidden></section>`).join("") +
+      `</aside></div>`;
+    root.addEventListener("click", onClick);
+    host.after(root);
+    document.documentElement.classList.add("rcp2");
+    paintAll();
+    // Roblox can re-render its container; keep ours right after it
+    rcWatch(() => {
+      if (!root || classicOn) return;
+      const h = document.querySelector(".profile-platform-container");
+      if (h && h.nextElementSibling !== root) h.after(root);
+    });
+    return true;
+  }
+
+  // "Roblox's layout": for this visit only, with a button back
+  let classicOn = false, back = null;
+  function classic(v) {
+    classicOn = v;
+    document.documentElement.classList.toggle("rcp2", !v);
+    if (root) root.hidden = v;
+    if (v && !back) {
+      back = Object.assign(document.createElement("button"), { type: "button", id: "rcp-back", textContent: "RoCreate profile" });
+      back.addEventListener("click", () => classic(false));
+      document.body.append(back);
+    }
+    if (back) back.hidden = !v;
+    try { sessionStorage.setItem("rc-classic", v ? "1" : ""); } catch {}
+  }
+
   /* ---- data ---- */
+  const count = (url) => api(url).then((r) => r.count).catch(() => null);
+
   const loaders = [
+    // who they are
     async () => {
       const [user, pres] = await Promise.allSettled([
         api(`https://users.roblox.com/v1/users/${uid}`),
@@ -315,45 +612,191 @@
       ]);
       if (user.status === "fulfilled") S.user = user.value;
       S.presence = pres.value?.userPresences?.[0] || null;
-    },
-    async () => { S.rol = await ask({ type: "rcx-rolimons", id: uid }); },
-    async () => { S.rv = await ask({ type: "rcx-rvuser", id: uid }); },
-    async () => {
-      const g = await api(`https://games.roblox.com/v2/users/${uid}/games?accessFilter=2&limit=50&sortOrder=Desc`);
-      const list = (g.data || []).filter((x) => x.rootPlace?.id);
-      if (!list.length) return;
-      const st = (await ask({ type: "rcx-stats", games: list.map((x) => ({ id: String(x.id), name: x.name })), search: true })) || {};
-      S.games = { count: list.length, revenue: list.reduce((n, x) => n + (st[String(x.id)]?.revenue ?? 0), 0) };
+      paint("hero", "about");
+      discover();
     },
     async () => {
-      const g = await api(`https://groups.roblox.com/v2/users/${uid}/groups/roles`);
-      const owned = (g.data || []).filter((x) => x.role?.rank === 255).sort((a, b) => (b.group.memberCount ?? 0) - (a.group.memberCount ?? 0));
-      if (owned.length) S.owned = { count: owned.length, biggest: `${owned[0].group.name} (${fmt(owned[0].group.memberCount)} members)` };
+      const [friends, followers, following] = await Promise.all([
+        count(`https://friends.roblox.com/v1/users/${uid}/friends/count`),
+        count(`https://friends.roblox.com/v1/users/${uid}/followers/count`),
+        count(`https://friends.roblox.com/v1/users/${uid}/followings/count`),
+      ]);
+      S.counts = { friends, followers, following };
+      paint("hero", "friends");
     },
     async () => {
-      const mine = me();
-      if (!mine || mine === uid) return;
-      const [a, b] = await Promise.all([api(`https://friends.roblox.com/v1/users/${mine}/friends`), api(`https://friends.roblox.com/v1/users/${uid}/friends`)]);
-      const theirs = new Set((b.data || []).map((x) => String(x.id)));
-      const ids = (a.data || []).map((x) => String(x.id)).filter((id) => theirs.has(id));
-      const show = ids.slice(0, 24);
-      const [names, heads] = show.length ? await Promise.all([
-        api("https://users.roblox.com/v1/users", { userIds: show.map(Number), excludeBannedUsers: false }).catch(() => null),
-        api(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${show.join(",")}&size=48x48&format=Png&isCircular=true`).catch(() => null),
-      ]) : [null, null];
-      const nm = Object.fromEntries((names?.data || []).map((u) => [String(u.id), u]));
-      const hd = Object.fromEntries((heads?.data || []).map((h) => [String(h.targetId), h.imageUrl]));
-      S.mutuals = { total: ids.length, list: show.map((id) => ({ id, name: nm[id]?.name || id, display: nm[id]?.displayName, img: hd[id] })) };
+      const [head, body] = await Promise.all([
+        api(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${uid}&size=150x150&format=Png&isCircular=false`).catch(() => null),
+        api(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${uid}&size=420x420&format=Png&isCircular=false`).catch(() => null),
+      ]);
+      S.head = head?.data?.[0]?.imageUrl || "";
+      S.body = body?.data?.[0]?.imageUrl || "";
+      paint("hero", "avatar");
     },
     async () => {
       const h = await api(`https://users.roblox.com/v1/users/${uid}/username-history?limit=100&sortOrder=Desc`);
       S.names = (h.data || []).map((x) => x.name);
+      paint("about");
+    },
+    async () => {
+      if (prefs.users === false) return;
+      const got = await ask({ type: "rcx-users", ids: [uid] });
+      S.marks = got?.[uid] || {};
+      paint("hero");
+    },
+    // what they make and belong to
+    async () => {
+      const g = await api(`https://groups.roblox.com/v2/users/${uid}/groups/roles`);
+      S.groups = (g.data || []).sort((a, b) => (b.role?.rank === 255) - (a.role?.rank === 255) || (b.group.memberCount || 0) - (a.group.memberCount || 0));
+      paint("groups");
+      await thumbs(S.groups.slice(0, 40).map((x) => ["GroupIcon", x.group.id]));
+      paint("groups");
+      discover();
+    },
+    async () => {
+      const g = await api(`https://games.roblox.com/v2/users/${uid}/games?accessFilter=2&limit=50&sortOrder=Desc`).catch(() => ({ data: [] }));
+      S.games = (g.data || []).filter((x) => x.rootPlace?.id).sort((a, b) => (b.placeVisits || 0) - (a.placeVisits || 0));
+      paint("games", "hero");
+      discover();
+      if (!S.games.length) return;
+      const ids = S.games.slice(0, 50).map((x) => x.id);
+      const [live, , ce] = await Promise.all([
+        api(`https://games.roblox.com/v1/games?universeIds=${ids.join(",")}`).catch(() => null),
+        thumbs(ids.map((id) => ["GameIcon", id])),
+        on("profileRevenue") || on("stats") ? ask({ type: "rcx-stats", games: S.games.slice(0, 30).map((x) => ({ id: String(x.id), name: x.name })), search: true }) : null,
+      ]);
+      for (const x of live?.data || []) S.gameStats[x.id] = { ...S.gameStats[x.id], playing: x.playing, visits: x.visits };
+      for (const [id, st] of Object.entries(ce || {})) if (st && !st.missing) S.gameStats[id] = { ...S.gameStats[id], revenue: st.revenue };
+      paint("games", "hero");
+    },
+    async () => {
+      const f = await api(`https://games.roblox.com/v2/users/${uid}/favorite/games?accessFilter=2&limit=10&sortOrder=Desc`);
+      S.favorites = (f.data || []).filter((x) => x.rootPlace?.id).slice(0, 8);
+      if (!S.favorites.length) return;
+      await thumbs(S.favorites.map((x) => ["GameIcon", x.id]));
+      paint("favorites");
+    },
+    async () => {
+      const w = await api(`https://avatar.roblox.com/v1/users/${uid}/currently-wearing`);
+      S.wearing = (w.assetIds || []).slice(0, 12);
+      paint("avatar");
+      await thumbs(S.wearing.map((id) => ["Asset", id]));
+      paint("avatar");
+    },
+    async () => {
+      const [rb, pb] = await Promise.allSettled([
+        api(`https://accountinformation.roblox.com/v1/users/${uid}/roblox-badges`),
+        api(`https://badges.roblox.com/v1/users/${uid}/badges?limit=10&sortOrder=Desc`),
+      ]);
+      S.robloxBadges = (rb.value || []).filter((b) => /^https:\/\/[\w.-]+\.rbxcdn\.com\//.test(b.imageUrl || ""));
+      S.badges = (pb.value?.data || []).slice(0, 8);
+      paint("badges");
+      if (S.badges.length) {
+        await thumbs(S.badges.map((b) => ["BadgeIcon", b.id]));
+        paint("badges");
+      }
+    },
+    // people
+    async () => {
+      const viewer = me();
+      const [theirs, yours] = await Promise.all([
+        api(`https://friends.roblox.com/v1/users/${uid}/friends`).catch(() => ({ data: [] })),
+        viewer && viewer !== uid ? api(`https://friends.roblox.com/v1/users/${viewer}/friends`).catch(() => null) : null,
+      ]);
+      const ids = (theirs.data || []).map((x) => String(x.id));
+      const yoursSet = new Set((yours?.data || []).map((x) => String(x.id)));
+      const mutual = yours ? ids.filter((id) => yoursSet.has(id)) : [];
+      const show = [...mutual.slice(0, 9), ...ids.filter((id) => !yoursSet.has(id)).slice(0, 9)].slice(0, 18);
+      const [names, heads] = show.length ? await Promise.all([
+        api("https://users.roblox.com/v1/users", { userIds: show.map(Number), excludeBannedUsers: false }).catch(() => null),
+        thumbs(show.map((id) => ["AvatarHeadShot", id])),
+      ]) : [null, () => ""];
+      const nm = Object.fromEntries((names?.data || []).map((u) => [String(u.id), u]));
+      const person = (id) => ({ id, name: nm[id]?.name || id, display: nm[id]?.displayName, img: heads("AvatarHeadShot", id) });
+      S.mutuals = yours ? { total: mutual.length, list: mutual.slice(0, 9).map(person) } : null;
+      S.friends = { total: ids.length, list: show.filter((id) => !mutual.includes(id)).map(person) };
+      paint("friends");
+    },
+    // value and verification
+    async () => {
+      if (!on("profileValue")) return;
+      S.rol = await ask({ type: "rcx-rolimons", id: uid });
+      paint("value", "hero");
+    },
+    async () => {
+      if (!on("profileVerify")) return;
+      S.rv = await ask({ type: "rcx-rvuser", id: uid });
+      paint("verify");
     },
   ];
 
+  /* ---- socials: where their links come from ---- */
+  let discovering = false, discovered = false;
+  function classify(raw, source, found) {
+    let u;
+    try { u = new URL(/^https?:\/\//i.test(raw) ? raw : "https://" + raw); } catch { return; }
+    if (u.protocol !== "https:" && u.protocol !== "http:") return;
+    const host = u.hostname.toLowerCase().replace(/^(www|m)\./, "");
+    const seg = u.pathname.split("/").filter(Boolean);
+    let hit = null;
+    if (host === "youtube.com" && seg.length && /^(@[^/]{1,100}|channel|c|user)$/.test(seg[0].startsWith("@") ? "@x" : seg[0])) {
+      const path = seg[0].startsWith("@") ? "/" + seg[0] : "/" + seg.slice(0, 2).join("/");
+      hit = ["youtube", { url: "https://www.youtube.com" + path, label: seg[0].startsWith("@") ? seg[0] : seg[1] || "YouTube" }];
+    } else if (host === "twitch.tv" && /^[a-z0-9_]{3,25}$/i.test(seg[0] || "") && !/^(directory|videos|p|search|settings|downloads|jobs)$/i.test(seg[0])) {
+      hit = ["twitch", { url: "https://www.twitch.tv/" + seg[0].toLowerCase(), label: seg[0], login: seg[0].toLowerCase() }];
+    } else if ((host === "x.com" || host === "twitter.com") && /^[A-Za-z0-9_]{1,15}$/.test(seg[0] || "") && !/^(home|i|intent|share|search|hashtag|explore|settings)$/i.test(seg[0])) {
+      hit = ["x", { url: "https://x.com/" + seg[0], label: "@" + seg[0], handle: seg[0] }];
+    } else if ((host === "discord.gg" && seg[0]) || (host === "discord.com" && seg[0] === "invite" && seg[1])) {
+      const code = host === "discord.gg" ? seg[0] : seg[1];
+      if (/^[\w-]{2,40}$/.test(code)) hit = ["discord", { url: "https://discord.gg/" + code, label: "Discord" }];
+    }
+    if (hit && !found[hit[0]]) found[hit[0]] = { ...hit[1], source };
+  }
+
+  async function discover() {
+    if (!on("socials") || prefs.socials === false || discovered || discovering || !S.user || !S.groups || !S.games) return;
+    discovering = true;
+    const found = {};
+    // 1. their own words: real links in the bio
+    for (const m of (S.user.description || "").matchAll(/(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/[^\s<>"']+|twitch\.tv\/\w+|(?:x|twitter)\.com\/\w+|discord\.gg\/[\w-]+)/gi)) classify(m[0], "from their bio", found);
+    // 2. their own experiences, then 3. the communities they own (Roblox keeps official links on both)
+    if (me()) {
+      for (const g of S.games.slice(0, 3)) {
+        const r = await api(`https://games.roblox.com/v1/games/${g.id}/social-links/list`).catch(() => null);
+        for (const l of r?.data || []) classify(l.url || "", `by their experience ${g.name}`, found);
+      }
+      for (const x of S.groups.filter((x) => x.role?.rank === 255).slice(0, 3)) {
+        const r = await api(`https://groups.roblox.com/v1/groups/${x.group.id}/social-links`).catch(() => null);
+        for (const l of r?.data || []) classify(l.url || "", `by their community ${x.group.name}`, found);
+      }
+    }
+    discovered = true;
+    discovering = false;
+    if (!Object.keys(found).length) return;
+    S.socials = found;
+    paint("hero");
+    // the feeds load once their card can be seen
+    const sec = root?.querySelector('[data-sec="socials"]');
+    const load = async () => {
+      await Promise.all([
+        found.youtube && on("socialsYoutube") ? ask({ type: "rcx-social", service: "youtube", url: found.youtube.url }).then((y) => (S.yt = y?.id ? y : false)) : null,
+        found.twitch && on("socialsTwitch") ? ask({ type: "rcx-social", service: "twitch", login: found.twitch.login }).then((t) => (S.tw = t?.login ? t : false)) : null,
+      ]);
+      paint("socials", "hero");
+    };
+    paint("socials");
+    if (!sec || sec.hidden) return; // only links without a feed (Discord): the header chips have them
+    if (!("IntersectionObserver" in window)) return load();
+    const io = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      load();
+    }, { rootMargin: "200px" });
+    io.observe(sec);
+  }
+
   /* ---- official Roblox items: inventory + bundles -> catalog details, cached per item ---- */
   const ITEM_TYPES = "Hat,HairAccessory,FaceAccessory,NeckAccessory,ShoulderAccessory,FrontAccessory,BackAccessory,WaistAccessory,Face,Gear,TShirtAccessory,ShirtAccessory,PantsAccessory,JacketAccessory,SweaterAccessory,ShortsAccessory,DressSkirtAccessory,LeftShoeAccessory,RightShoeAccessory,EmoteAnimation";
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const itemsDiag = {};
   // diagnostics must never break the count itself
   const saveDiag = (step, extra = {}) => {
@@ -424,6 +867,7 @@
     } catch (e) {
       saveDiag("crashed", { error: String(e && (e.stack || e.message || e)).slice(0, 400) });
     }
+    paint("items");
   }
 
   async function loadItemsInner() {
@@ -432,10 +876,10 @@
     // the last result for this account shows at once, while the inventory loads
     const sumKey = "ois2:" + uid, key = "oic2";
     const last = (await chrome.storage.local.get(sumKey))[sumKey];
-    if (last) { S.items = { ...last, scanned: 0, done: false, stale: true }; draw(); }
+    if (last) { S.items = { ...last, scanned: 0, done: false, stale: true }; paint("items"); }
     const onWait = (s) => {
       if (S.items) S.items.wait = s;
-      if (tab === "items") draw();
+      paint("items");
     };
     // 1. what they own: accessories, faces, gear, emotes... and bundles (Korblox, Headless)
     let assets;
@@ -475,7 +919,7 @@
       return { list, count: list.length, total: list.reduce((n, x) => n + (x.price || 0), 0), scanned, owned: want.length };
     };
     S.items = { ...tally(), done: false };
-    draw();
+    paint("items");
     const detErrors = [];
     for (let i = 0; i < todo.length; i += 100) {
       if (!rcAlive()) return;
@@ -500,51 +944,32 @@
       await chrome.storage.local.set({ [key]: cache });
       S.items = { ...tally(), done: false };
       saveDiag(`batch ${i / 100 + 1}/${Math.ceil(todo.length / 100)}`, { official: S.items.count, detErrors });
-      draw();
+      paint("items");
       if (i + 100 < todo.length) await sleep(1000);
     }
     S.items = { ...tally(), done: true, incomplete };
     const { list, ...rest } = S.items;
-    chrome.storage.local.set({ [sumKey]: { ...rest, list: list.map(({ img, ...x }) => x), savedAt: Date.now() } }).catch(() => {});
+    chrome.storage.local.set({ [sumKey]: { ...rest, list, savedAt: Date.now() } }).catch(() => {});
     saveDiag("done", { owned: want.length, official: S.items.count, unknown: list.filter((x) => x.price == null).length, detErrors, fromCache: want.length - todo.length });
-    await thumbs();
   }
   loaders.push(loadItems);
 
-  // thumbnails for the items the current filter lists
-  async function thumbs() {
-    const it = S.items;
-    if (!it?.list) return;
-    const top = it.list.filter((x) => x.price && (!minPrice || x.price >= minPrice))
-      .sort((a, b) => b.price - a.price).slice(0, minPrice ? 25 : 10).filter((x) => !x.img);
-    if (!top.length) return;
-    const ids = (bundle) => top.filter((x) => x.bundle === bundle).map((x) => x.id).join(",");
-    const [assets, bundles] = await Promise.all([
-      ids(false) && api(`https://thumbnails.roblox.com/v1/assets?assetIds=${ids(false)}&size=150x150&format=Png&isCircular=false`).catch(() => null),
-      ids(true) && api(`https://thumbnails.roblox.com/v1/bundles/thumbnails?bundleIds=${ids(true)}&size=150x150&format=Png&isCircular=false`).catch(() => null),
-    ]);
-    for (const [r, bundle] of [[assets, false], [bundles, true]]) {
-      for (const t of r?.data || []) {
-        const x = top.find((y) => y.id === t.targetId && y.bundle === bundle);
-        if (x) x.img = t.imageUrl;
-      }
-    }
-    draw();
-  }
-
+  /* ---- start ---- */
   function start() {
     if (!build()) return false;
-    for (const load of loaders) load().catch(() => {}).finally(draw);
+    if (sessionStorage.getItem("rc-classic") === "1") classic(true);
+    for (const load of loaders) load().catch(() => {});
     return true;
   }
 
-  let cfg = {}; // which parts this copy includes (config.json, via background.js)
-  chrome.storage.sync.get({ profile: true }, async (s) => {
+  chrome.storage.sync.get({ profile: true, users: true, socials: true }, async (s) => {
     if (!s.profile) return;
+    prefs = s;
     cfg = (await ask({ type: "rcx-config" })) || {};
+    if (cfg.profile === false) return;
     let tries = 0;
     const t = setInterval(() => {
-      if (document.getElementById("rcp-panel") || start() || ++tries > 80) clearInterval(t);
+      if (document.getElementById("rcp-root") || start() || ++tries > 80) clearInterval(t);
     }, 250);
   });
 })();

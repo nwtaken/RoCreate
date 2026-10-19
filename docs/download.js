@@ -4,13 +4,14 @@
    anywhere. */
 (() => {
   const RAW = "https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/";
-  const ALL = { stats: true, alerts: true, robux: true, sales: true, profile: true, profileValue: true, profileRevenue: true, profileVerify: true, admins: true, flags: true };
+  const ALL = { stats: true, alerts: true, robux: true, sales: true, profile: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
   const $ = (s) => document.querySelector(s);
   const boxes = [...document.querySelectorAll("input[data-f]")];
 
   const chosen = () => {
     const f = Object.fromEntries(boxes.map((b) => [b.dataset.f, b.checked]));
-    if (!f.profile) f.profileValue = f.profileRevenue = f.profileVerify = false;
+    if (!f.profile) f.profileValue = f.profileRevenue = f.profileVerify = f.socialsYoutube = f.socialsTwitch = f.socialsX = false;
+    f.socials = !!(f.socialsYoutube || f.socialsTwitch || f.socialsX);
     if (!f.stats) f.alerts = false;
     if (!f.robux) f.sales = false;
     return f;
@@ -20,6 +21,9 @@
     creatorexchange: f.stats || (f.profile && f.profileRevenue),
     rolimons: f.profile && f.profileValue,
     robloxverifieds: f.flags || (f.profile && f.profileVerify),
+    youtube: f.socialsYoutube,
+    twitch: f.socialsTwitch,
+    x: f.socialsX,
   });
 
   function refresh() {
@@ -52,7 +56,7 @@
   // presets: Creator = the money and stats side; Roblox only = nothing outside roblox.com
   const PRESETS = {
     all: Object.keys(ALL),
-    creator: ["stats", "alerts", "robux", "sales", "profile", "profileValue", "profileRevenue", "admins"],
+    creator: ["stats", "alerts", "robux", "sales", "profile", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
     roblox: ["robux", "sales", "profile", "admins"],
     theme: [],
   };
@@ -103,7 +107,11 @@
         : h.includes("rolimons.com") ? s.rolimons
         : h.includes("robloxverifieds.com") ? s.robloxverifieds
         : h.includes("accountinformation.roblox.com") ? features.admins
+        : h.includes("youtube.com") ? s.youtube
+        : h.includes("twitch.tv") || h.includes("jtvnw.net") ? s.twitch
         : true);
+    // only YouTube's feed needs the request rule (background.js)
+    if (!s.youtube) manifest.permissions = (manifest.permissions || []).filter((p) => p !== "declarativeNetRequestWithHostAccess");
 
     // every file the manifest and the popup refer to
     const files = new Set();

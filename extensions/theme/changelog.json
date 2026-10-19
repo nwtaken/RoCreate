@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.13.0",
+    "date": "2026-10-19",
+    "changes": [
+      "Profiles, rebuilt: a new header with badges, live status, stats and links, and a two-column layout with everything in one place",
+      "Latest from them: YouTube videos, Twitch streams, broadcasts and clips, and X posts, found through their bio, their experiences and the communities they own, and playable right on the profile",
+      "Experiences with players and revenue, communities, Roblox and recent badges, favorites, avatar and what they wear, value, Roblox items, friends with mutuals first",
+      "Roblox's own layout is one click away, and its Add Friend and menu buttons keep working"
+    ]
+  },
+  {
     "version": "0.12.6",
     "date": "2026-10-19",
     "changes": [

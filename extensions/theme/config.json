@@ -9,6 +9,10 @@
     "admins": true,
     "flags": true,
     "alerts": true,
-    "sales": true
+    "sales": true,
+    "socials": true,
+    "socialsYoutube": true,
+    "socialsTwitch": true,
+    "socialsX": true
   }
 }

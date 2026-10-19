@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RoCreate: Roblox Like the Creator Hub",
-  "version": "0.12.6",
+  "version": "0.13.0",
   "description": "Reskins Roblox to look like the Creator Hub: clean, flat and lightweight, with game stats from Creator Exchange. Works alongside RoValra.",
   "icons": {
     "16": "icons/icon-16.png",
@@ -20,7 +20,8 @@
   "permissions": [
     "storage",
     "alarms",
-    "notifications"
+    "notifications",
+    "declarativeNetRequestWithHostAccess"
   ],
   "content_scripts": [
     {
@@ -57,7 +58,10 @@
     "https://accountinformation.roblox.com/*",
     "https://api.rolimons.com/*",
     "https://www.rolimons.com/*",
-    "https://*.roblox.com/*"
+    "https://*.roblox.com/*",
+    "https://www.youtube.com/*",
+    "https://gql.twitch.tv/*",
+    "https://static-cdn.jtvnw.net/*"
   ],
   "commands": {
     "_execute_action": {

@@ -22,13 +22,13 @@
 
   <main class="wrap doc">
     <h1>Privacy policy</h1>
-    <p>Last updated: 18 October 2026 (spike and sales alerts added)</p>
+    <p>Last updated: 19 October 2026 (profile social feeds added)</p>
 
     <p>RoCreate is a browser extension that runs entirely on your own device. There is no RoCreate server and no RoCreate account. RoCreate doesn't collect, sell or share any personal data, and it has no analytics or tracking.</p>
 
     <h2>What RoCreate reads</h2>
     <p>RoCreate only runs on roblox.com. It reads the pages you open there so it can restyle them and add its own sections.</p>
-    <p>To show your pending Robux, your groups' funds, inventories and mutual friends, RoCreate calls Roblox's own APIs from the page. Those calls use the Roblox login you already have in your browser, exactly like the Roblox website does. RoCreate never reads, stores or sends your password or login cookie, and what Roblox returns stays in your browser.</p>
+    <p>To show your pending Robux, your groups' funds, inventories, mutual friends and the social links Roblox keeps on a person's communities and experiences, RoCreate calls Roblox's own APIs from the page. Those calls use the Roblox login you already have in your browser, exactly like the Roblox website does. RoCreate never reads, stores or sends your password or login cookie, and what Roblox returns stays in your browser.</p>
 
     <h2>Services RoCreate contacts</h2>
     <p>Some numbers come from other websites. They receive only what's listed below, plus your IP address, as with any web request. If you build your own copy on the download page, it only contacts the services of the features you picked, and its permissions for the others are removed.</p>
@@ -37,6 +37,9 @@
       <tr><td>Roblox (roblox.com)</td><td>Everything Roblox shows on its own pages, plus the Administrator badge of Roblox staff</td><td>The requests Roblox's website itself would make</td></tr>
       <tr><td>Creator Exchange (creatorexchange.io)</td><td>Game revenue estimates, visit trends and player history</td><td>The IDs and names of the games you view, and of the public games of communities you open</td></tr>
       <tr><td>Rolimons (rolimons.com)</td><td>Inventory value, RAP and value history</td><td>The user ID of profiles you open</td></tr>
+      <tr><td>YouTube (youtube.com)</td><td>The latest videos on a profile's YouTube channel, and playing one when you click it</td><td>The channel link the profile shows. Videos you play load from youtube-nocookie.com</td></tr>
+      <tr><td>Twitch (twitch.tv)</td><td>Whether a profile's Twitch channel is live, its past broadcasts and clips, and playing them when you click</td><td>The channel name the profile shows</td></tr>
+      <tr><td>X (x.com)</td><td>A profile's recent posts, shown with X's own embedded timeline when you open the X tab</td><td>The handle the profile shows. The timeline loads in your browser, so X sees that visit like any embed</td></tr>
       <tr><td>RobloxVerifieds (robloxverifieds.com)</td><td>Badges for flagged and formerly verified accounts, and the "Why verified?" tab</td><td>Requests for its public lists, and the user ID of profiles you open</td></tr>
     </table>
 
@@ -54,6 +57,7 @@
       <li><b>Access to the services above:</b> to load their numbers.</li>
       <li><b>Storage:</b> for settings and caches.</li>
       <li><b>Alarms:</b> a once-a-minute check that reloads the extension when its files were updated, and the spike alert check.</li>
+      <li><b>Changing one request header (declarativeNetRequest):</b> YouTube's own API refuses requests that say they come from an extension, so RoCreate sets that one header on its own requests to youtube.com's API. It never touches your browsing.</li>
       <li><b>Notifications:</b> only for spike alerts and sales alerts, which are off until you switch them on in the popup. Spike alerts check your watchlist's player counts on Creator Exchange every 15 minutes. Sales alerts check your pending Robux and your groups' funds on Roblox every 15 minutes, with your own login, and the numbers stay on your device.</li>
     </ul>
 

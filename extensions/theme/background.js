@@ -78,7 +78,7 @@ function warm() {
     await chrome.storage.local.set({ "cx:warmAt": Date.now() });
     // drop entries nobody has looked at for a day (hover history adds up)
     const all = await chrome.storage.local.get(null);
-    const old = Object.keys(all).filter((k) => /^(cx[dh]?|rvu|rol):\d/.test(k) && Date.now() - (all[k]?.at || 0) > 86400 * 1000);
+    const old = Object.keys(all).filter((k) => /^((cx[dh]?|rvu|rol):\d|(ytf|twf):)/.test(k) && Date.now() - (all[k]?.at || 0) > 86400 * 1000);
     if (old.length) await chrome.storage.local.remove(old);
   })()
     .catch(() => {}) // offline or rate limited: warmed up on a later request
@@ -387,6 +387,158 @@ async function rolimons(id) {
   return data;
 }
 
+/* ---- social feeds for profiles (profile.js) ----
+   YouTube: the channel link is resolved to its channel ID with YouTube's own URL resolver
+   (kept for good), then its public RSS feed gives the latest uploads. Twitch: the public
+   web API twitch.tv itself uses (live status, past broadcasts, clips); its images are
+   handed over as data URLs, because roblox.com's page policy only allows YouTube's image
+   host. (X needs nothing here: the profile embeds X's own timeline.) Every request goes
+   out without cookies, and any of these can change without notice, so each one fails
+   quietly and the profile just leaves that feed out. */
+const SOCIAL_TTL = 60 * 60 * 1000, LIVE_TTL = 5 * 60 * 1000;
+
+async function remember(k, ttl, make) {
+  const { [k]: hit } = await chrome.storage.local.get(k);
+  if (hit && Date.now() - hit.at < ttl) return hit.data;
+  const data = await make();
+  if (data) await chrome.storage.local.set({ [k]: { data, at: Date.now() } });
+  return data;
+}
+
+async function dataUrl(url) {
+  try {
+    const r = await fetch(url, { credentials: "omit" });
+    if (!r.ok) return null;
+    const blob = await r.blob();
+    if (!/^image\/(png|jpe?g|webp|gif)$/.test(blob.type) || blob.size > 350000) return null;
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return `data:${blob.type};base64,${btoa(bin)}`;
+  } catch {
+    return null;
+  }
+}
+
+const unXml = (s) => String(s || "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+
+async function youtube(link) {
+  let u;
+  try { u = new URL(link); } catch { return null; }
+  if (!/^((www|m)\.)?youtube\.com$/i.test(u.hostname)) return null;
+  const path = decodeURIComponent(u.pathname).replace(/\/+$/, "");
+  if (!/^\/(channel\/UC[\w-]{22}|@[^/\s]{1,100}|c\/[^/\s]{1,100}|user\/[^/\s]{1,100})$/.test(path)) return null;
+  const idKey = "ytid:" + path.toLowerCase();
+  let id = path.match(/^\/channel\/(UC[\w-]{22})$/)?.[1] || (await chrome.storage.local.get(idKey))[idKey];
+  if (!id) {
+    const r = await fetch("https://www.youtube.com/youtubei/v1/navigation/resolve_url", {
+      method: "POST",
+      credentials: "omit",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ context: { client: { clientName: "WEB", clientVersion: "2.20251001.00.00", hl: "en" } }, url: "https://www.youtube.com" + path }),
+    });
+    if (!r.ok) return null;
+    id = (await r.text()).match(/"browseId"\s*:\s*"(UC[\w-]{22})"/)?.[1];
+    if (!id) return null;
+    await chrome.storage.local.set({ [idKey]: id });
+  }
+  return remember("ytf:" + id, SOCIAL_TTL, async () => (await ytRss(id)) || (await ytBrowse(id)) || { id, channel: "", videos: [] });
+}
+
+// YouTube's own API refuses requests whose origin is an extension (403), and fetch can't
+// change that header, so this rule sets it for RoCreate's own requests (tabIds -1 means
+// requests that don't come from any tab) to youtube.com's API, and nothing else.
+chrome.declarativeNetRequest?.updateSessionRules({
+  removeRuleIds: [1],
+  addRules: [{
+    id: 1,
+    priority: 1,
+    condition: { urlFilter: "||www.youtube.com/youtubei/", resourceTypes: ["xmlhttprequest"], tabIds: [-1] },
+    action: { type: "modifyHeaders", requestHeaders: [{ header: "origin", operation: "set", value: "https://www.youtube.com" }] },
+  }],
+}).catch(() => {});
+
+async function ytRss(id) {
+  const r = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${id}`, { credentials: "omit" }).catch(() => null);
+  if (!r?.ok) return null; // YouTube's feeds answer 404 for hours at a time
+  const xml = await r.text();
+  const videos = [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].slice(0, 12).map(([, e]) => ({
+    id: e.match(/<yt:videoId>([\w-]{11})<\/yt:videoId>/)?.[1],
+    title: unXml(e.match(/<title>([^<]*)<\/title>/)?.[1]),
+    at: Date.parse(e.match(/<published>([^<]*)<\/published>/)?.[1] || "") || null,
+    views: Number(e.match(/<media:statistics views="(\d+)"/)?.[1]) || 0,
+    short: /youtube\.com\/shorts\//.test(e.match(/<link rel="alternate" href="([^"]*)"/)?.[1] || ""),
+  })).filter((v) => v.id);
+  return videos.length ? { id, channel: unXml(xml.match(/<title>([^<]*)<\/title>/)?.[1]), videos } : null;
+}
+
+// the Videos tab as youtube.com loads it; both the newer "lockup" and the older layout
+async function ytBrowse(id) {
+  const r = await fetch("https://www.youtube.com/youtubei/v1/browse", {
+    method: "POST",
+    credentials: "omit",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ context: { client: { clientName: "WEB", clientVersion: "2.20251001.00.00", hl: "en" } }, browseId: id, params: "EgZ2aWRlb3PyBgQKAjoA" }),
+  }).catch(() => null);
+  if (!r?.ok) return null;
+  const data = await r.json().catch(() => null);
+  if (!data) return null;
+  const videos = [];
+  const walk = (o, depth) => {
+    if (!o || typeof o !== "object" || depth > 40 || videos.length >= 12) return;
+    const l = o.lockupViewModel;
+    if (l && l.contentType === "LOCKUP_CONTENT_TYPE_VIDEO" && /^[\w-]{11}$/.test(l.contentId || "")) {
+      const md = l.metadata?.lockupMetadataViewModel;
+      const parts = (md?.metadata?.contentMetadataViewModel?.metadataRows || []).flatMap((row) => (row.metadataParts || []).map((x) => x.text?.content || ""));
+      const badge = JSON.stringify(l.contentImage?.thumbnailViewModel?.overlays || []).match(/"thumbnailBadgeViewModel":\{"text":"([\d:]{3,9})"/)?.[1];
+      videos.push({ id: l.contentId, title: md?.title?.content || "", viewsText: parts.find((x) => /view/i.test(x)) || "", agoText: parts.find((x) => /ago/i.test(x)) || "", length: badge || "" });
+      return;
+    }
+    const v = o.videoRenderer;
+    if (v && /^[\w-]{11}$/.test(v.videoId || "")) {
+      videos.push({ id: v.videoId, title: (v.title?.runs || []).map((x) => x.text).join(""), viewsText: v.viewCountText?.simpleText || "", agoText: v.publishedTimeText?.simpleText || "", length: v.lengthText?.simpleText || "" });
+      return;
+    }
+    for (const k in o) walk(o[k], depth + 1);
+  };
+  walk(data, 0);
+  return videos.length ? { id, channel: data.metadata?.channelMetadataRenderer?.title || "", videos } : null;
+}
+
+const TWITCH_QUERY = `query RoCreateProfile($login: String!) {
+  user(login: $login) {
+    login displayName profileImageURL(width: 70)
+    stream { title viewersCount createdAt game { displayName } previewImageURL(width: 440, height: 248) }
+    videos(first: 4, sort: TIME) { edges { node { id title publishedAt lengthSeconds viewCount previewThumbnailURL(width: 320, height: 180) } } }
+    clips(first: 4, criteria: { period: LAST_MONTH }) { edges { node { slug title viewCount createdAt thumbnailURL(width: 480, height: 272) } } }
+  }
+}`;
+const twitchImg = (x) => (typeof x === "string" && /^https:\/\/static-cdn\.jtvnw\.net\//.test(x) ? dataUrl(x) : null);
+
+async function twitch(login) {
+  if (!/^[a-z0-9_]{3,25}$/.test(login)) return null;
+  return remember("twf:" + login, LIVE_TTL, async () => {
+    const r = await fetch("https://gql.twitch.tv/gql", {
+      method: "POST",
+      credentials: "omit",
+      headers: { "Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko", "content-type": "application/json" },
+      body: JSON.stringify({ query: TWITCH_QUERY, variables: { login } }),
+    });
+    if (!r.ok) return null;
+    const u = (await r.json())?.data?.user;
+    if (!u) return { missing: true };
+    const vids = (u.videos?.edges || []).map((e) => e.node).filter((v) => /^\d{1,15}$/.test(v?.id));
+    const clips = (u.clips?.edges || []).map((e) => e.node).filter((c) => /^[\w-]{1,120}$/.test(c?.slug || ""));
+    const imgs = await Promise.all([u.profileImageURL, u.stream?.previewImageURL, ...vids.map((v) => v.previewThumbnailURL), ...clips.map((c) => c.thumbnailURL)].map(twitchImg));
+    return {
+      login: u.login, name: u.displayName, avatar: imgs[0],
+      live: u.stream ? { title: u.stream.title || "", viewers: u.stream.viewersCount || 0, since: Date.parse(u.stream.createdAt) || null, game: u.stream.game?.displayName || "", img: imgs[1] } : null,
+      videos: vids.map((v, i) => ({ id: v.id, title: v.title || "", at: Date.parse(v.publishedAt) || null, length: v.lengthSeconds || 0, views: v.viewCount || 0, img: imgs[2 + i] })),
+      clips: clips.map((c, i) => ({ slug: c.slug, title: c.title || "", at: Date.parse(c.createdAt) || null, views: c.viewCount || 0, img: imgs[2 + vids.length + i] })),
+    };
+  });
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
   const id = String(msg?.id);
   const okId = /^\d{1,15}$/.test(id);
@@ -410,6 +562,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
         return okId && on("stats") ? history(id) : null;
       case "rcx-details":
         return okId && on("stats") ? details(id) : null;
+      case "rcx-social": {
+        if (!on("profile") || !on("socials")) return null;
+        if (msg.service === "youtube" && on("socialsYoutube")) return youtube(String(msg.url || ""));
+        if (msg.service === "twitch" && on("socialsTwitch")) return twitch(String(msg.login || "").toLowerCase());
+        return null;
+      }
       case "rcx-stats": {
         // game cards and the watchlist, or the revenue tile on profiles
         if (!Array.isArray(msg.games) || !(on("stats") || profile("profileRevenue"))) return {};
