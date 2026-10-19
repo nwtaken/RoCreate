@@ -4,7 +4,7 @@
    anywhere. */
 (() => {
   const RAW = "https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/";
-  const ALL = { stats: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
+  const ALL = { stats: true, watchlistTools: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
   const $ = (s) => document.querySelector(s);
   const boxes = [...document.querySelectorAll("input[data-f]")];
 
@@ -12,7 +12,7 @@
     const f = Object.fromEntries(boxes.map((b) => [b.dataset.f, b.checked]));
     if (!f.profile) f.profileNav = f.profileValue = f.profileRevenue = f.profileVerify = f.socialsYoutube = f.socialsTwitch = f.socialsX = false;
     f.socials = !!(f.socialsYoutube || f.socialsTwitch || f.socialsX);
-    if (!f.stats) f.alerts = false;
+    if (!f.stats) f.alerts = f.watchlistTools = false;
     if (!f.robux) f.sales = false;
     return f;
   };
@@ -56,7 +56,7 @@
   // presets: Creator = the money and stats side; Roblox only = nothing outside roblox.com
   const PRESETS = {
     all: Object.keys(ALL),
-    creator: ["stats", "alerts", "robux", "sales", "profile", "profileNav", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
+    creator: ["stats", "watchlistTools", "alerts", "robux", "sales", "profile", "profileNav", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
     roblox: ["robux", "sales", "profile", "profileNav", "admins"],
     theme: [],
   };
@@ -93,6 +93,7 @@
     const manifest = JSON.parse(text(await get("manifest.json")));
     const leave = new Set();
     if (!features.stats) leave.add("stats.js");
+    if (!features.stats || !features.watchlistTools) leave.add("watchlist.html").add("watchlist.css").add("watchlist.js");
     if (!features.robux) leave.add("robux.js");
     if (!features.profile) leave.add("profile.js").add("profile.css");
     if (!features.admins && !features.flags) leave.add("users.js");
@@ -124,6 +125,7 @@
     const popupPath = manifest.action?.default_popup;
     const popup = popupPath ? await get(popupPath) : null;
     if (popup) for (const m of text(popup).matchAll(/(?:src|href)="([\w./-]+)"/g)) files.add(m[1]);
+    if (features.stats && features.watchlistTools) { files.add("watchlist.html"); files.add("watchlist.js"); files.add("watchlist.css"); }
     const optionsPath = manifest.options_ui?.page;
     if (optionsPath) {
       files.add(optionsPath);
@@ -135,7 +137,7 @@
       { name: "RoCreate/config.json", data: bytes(JSON.stringify({ features }, null, 2) + "\n") },
     ];
     if (popup) out.push({ name: "RoCreate/" + popupPath, data: popup });
-    const rest = [...files].filter((f) => f !== popupPath && f !== "manifest.json" && f !== "config.json");
+    const rest = [...files].filter((f) => f !== popupPath && f !== "manifest.json" && f !== "config.json" && !leave.has(f));
     out.push(...(await Promise.all(rest.map(async (f) => ({ name: "RoCreate/" + f, data: await get(f) })))));
     return zip(out);
   }

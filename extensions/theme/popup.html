@@ -121,6 +121,10 @@
     <label class="sw"><input type="checkbox" id="stats"><span class="track"></span></label>
   </div>
   <div class="row">
+    <div>Watchlist tools<div class="sub">A full page for your watched games</div></div>
+    <label class="sw"><input type="checkbox" id="watchlistTools"><span class="track"></span></label>
+  </div>
+  <div class="row">
     <div>Spike alerts<div class="sub">Notify me when a watched game jumps</div></div>
     <label class="sw"><input type="checkbox" id="alerts"><span class="track"></span></label>
   </div>
@@ -150,7 +154,7 @@
   </div>
 
   <div id="watchlist">
-    <div class="section wl-head"><span>Watchlist <span id="wl-count"></span></span><button type="button" id="wl-csv" class="mini" title="Copy the watchlist as CSV">Copy CSV</button></div>
+    <div class="section wl-head"><span>Watchlist <span id="wl-count"></span></span><a href="watchlist.html" id="wl-open" class="mini" target="_blank">Open</a><button type="button" id="wl-csv" class="mini" title="Copy the watchlist as CSV">Copy CSV</button></div>
     <div class="tools" id="wl-tools" hidden>
       <input type="search" id="wl-search" placeholder="Search watched games">
       <select id="wl-sort" title="Sort">

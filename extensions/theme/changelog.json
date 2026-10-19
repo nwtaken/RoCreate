@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.16.1",
+    "date": "2026-10-19",
+    "changes": [
+      "Optional watchlist dashboard with search, sorting, player and revenue totals, game links and CSV downloads",
+      "Dashboard uses the existing Creator Exchange cache and can be excluded from custom builds; no new permissions"
+    ]
+  },
+  {
     "version": "0.16.0",
     "date": "2026-10-19",
     "changes": [

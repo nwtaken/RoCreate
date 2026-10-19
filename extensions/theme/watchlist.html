@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your watchlist · RoCreate</title>
+<link rel="icon" href="icons/icon-48.png"><link rel="stylesheet" href="watchlist.css">
+</head>
+<body>
+<main>
+<header><a class="brand" href="https://rocreate.org" target="_blank" rel="noopener"><img src="icons/icon-48.png" alt="">Ro<span>Create</span></a><a href="options.html">Options</a></header>
+<div class="heading"><div><p class="eyebrow">Creator tools</p><h1>Your watchlist</h1><p>Keep your games in one place. Revenue figures are estimates from Creator Exchange.</p></div><button type="button" id="refresh">Refresh stats</button></div>
+<div id="summary" class="summary" aria-label="Watchlist summary"></div>
+<div class="toolbar"><input type="search" id="search" placeholder="Find a watched game" aria-label="Search watched games"><select id="sort" aria-label="Sort games"><option value="added">Recently added</option><option value="name">Name</option><option value="playing">Most players</option><option value="revenue">Highest revenue</option><option value="trend">Revenue trend</option></select><button type="button" id="export">Download CSV</button></div>
+<p id="status" role="status"></p>
+<div id="games" class="games"></div>
+<footer><span id="version"></span><span>Stats use the normal cache. Refresh does not bypass service limits.</span></footer>
+</main><script src="watchlist.js"></script>
+</body>
+</html>

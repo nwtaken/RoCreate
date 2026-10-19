@@ -1,10 +1,11 @@
-const DEFAULTS = { enabled: true, declutter: true, streamer: false, stats: true, alerts: false, users: true, robux: true, sales: false, profile: true, profileNav: true, socials: true };
+const DEFAULTS = { enabled: true, declutter: true, streamer: false, stats: true, watchlistTools: true, alerts: false, users: true, robux: true, sales: false, profile: true, profileNav: true, socials: true };
 const boxes = Object.keys(DEFAULTS).map((id) => document.getElementById(id));
 const version = chrome.runtime.getManifest().version;
 document.getElementById("ver").textContent = "Version " + version;
 
 chrome.storage.sync.get(DEFAULTS, (s) => {
   for (const b of boxes) b.checked = s[b.id];
+  showWatchlistLink();
 });
 
 // accent colour (content.js applies it to Roblox; the popup's switches follow it too)
@@ -27,7 +28,13 @@ for (const [name, color] of Object.entries(ACCENTS)) {
 }
 chrome.storage.sync.get({ accent: "blue" }, (s) => showAccent(s.accent));
 
+function showWatchlistLink() {
+  const link = document.getElementById("wl-open");
+  if (link) link.hidden = !document.getElementById("watchlistTools").checked || !document.getElementById("stats").checked;
+}
+
 function save() {
+  showWatchlistLink();
   chrome.storage.sync.set(Object.fromEntries(boxes.map((b) => [b.id, b.checked])));
 }
 
@@ -43,6 +50,7 @@ fetch(chrome.runtime.getURL("config.json"))
   .then(({ features: f = {} }) => {
     const off = (name) => f[name] === false;
     const hide = (id) => document.getElementById(id)?.closest(".row")?.remove();
+    if (off("watchlistTools") || off("stats")) { hide("watchlistTools"); document.getElementById("wl-open")?.remove(); }
     if (off("alerts") || off("stats")) hide("alerts");
     if (off("stats")) {
       hide("stats");
