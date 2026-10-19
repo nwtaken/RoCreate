@@ -45,16 +45,16 @@ Alt+Shift+R opens it. Its options page backs up and restores your settings and w
 
 <p align="center"><img src="docs/img/popup.png" alt="The RoCreate popup" width="300"></p>
 
-**Profile insights.** One tidy section with tabs: account age and last seen, inventory value and
-its history (from [Rolimons](https://www.rolimons.com)), every official Roblox item the account
-owns with prices and price filters, mutual friends and previous usernames.
+**Profiles, rebuilt.** Every profile gets a new layout. *Latest from them* shows their YouTube
+videos, Twitch streams, broadcasts and clips, and X posts, playable right on the profile; RoCreate
+finds the links in their bio, their experiences and the communities they own, and says where
+each came from. Around it: a header with badges, live status and counts, their experiences with
+players and estimated revenue, communities, badges, favorites, their avatar and what they wear,
+inventory value and its history (from [Rolimons](https://www.rolimons.com)), every official
+Roblox item they own with prices, and friends with mutuals first. Roblox's own layout is one
+click away.
 
-| | |
-|---|---|
-| <img src="docs/img/profile.jpg" alt="Profile insights overview"> | <img src="docs/img/value.jpg" alt="Inventory value chart"> |
-| Overview | Inventory value |
-
-<p align="center"><img src="docs/img/items.jpg" alt="Official Roblox items with their prices" width="90%"></p>
+<p align="center"><img src="docs/img/profile2.jpg" alt="Roblox's official profile in RoCreate's new layout" width="90%"></p>
 
 **Your Robux, in full.** The Robux menu shows your pending Robux and the funds of every group
 you manage, a total with its approximate DevEx value, when they were last updated, and a Refresh

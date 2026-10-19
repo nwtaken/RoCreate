@@ -43,6 +43,10 @@ img { max-width: 100%; display: block; }
 .hero .shot { margin: 56px auto 0; }
 
 /* features */
+.feature-wide { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 48px; align-items: start; padding: 40px 0; }
+.feature-wide p, .feature-wide ul { color: var(--muted); }
+.feature-wide li { margin: 6px 0; }
+.feature-wide b { color: var(--text); }
 .shot.popup-shot { max-width: 300px; justify-self: center; }
 section { padding: 72px 0; }
 .eyebrow { color: var(--teal); font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 10px; }
@@ -156,7 +160,7 @@ table.features td:first-child { color: var(--text); }
 @media (max-width: 860px) {
   .choose { grid-template-columns: 1fr; }
   .sub-options { margin-left: 0; }
-  .row, .row.flip { grid-template-columns: 1fr; gap: 24px; }
+  .row, .row.flip, .feature-wide { grid-template-columns: 1fr; gap: 24px; }
   .row.flip .text { order: 0; }
   .cards, .steps, .roadmap { grid-template-columns: 1fr; }
   .nav nav a.hide-sm { display: none; }
