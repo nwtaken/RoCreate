@@ -3,7 +3,7 @@
    so enabling/disabling never needs a page reload. Settings live in
    chrome.storage.sync: { enabled: bool, declutter: bool, accent: name, streamer: bool }. */
 
-const DEFAULTS = { enabled: true, declutter: true, accent: "blue", streamer: false, reduceMotion: false };
+const DEFAULTS = { enabled: true, declutter: true, accent: "blue", streamer: false, reduceMotion: false, workspace: true };
 // accent colours (normal, hover) for buttons and highlights; popup.js lists the same names
 const ACCENTS = {
   blue: ["#0a84ff", "#2f9bff"], teal: ["#0fb5a3", "#2cc9b8"], purple: ["#8b5cf6", "#a07bff"],
@@ -54,6 +54,18 @@ globalThis.rcWatch = (fn, opts = {}) => {
 
 let current = DEFAULTS;
 let forcedDark = false;
+
+/* Workspace pages (workspace.css): every www.roblox.com page except profiles, which
+   profile.js draws itself. Checked again whenever the page changes, because some
+   Roblox sections switch pages without a reload. */
+function workspacePage() {
+  return location.hostname === "www.roblox.com" &&
+    !/^(?:\/[a-z]{2}(?:[-_][a-z]{2,4})?)?\/users\/(?:\d+\/)?profile/i.test(location.pathname);
+}
+function syncWorkspace() {
+  const root = document.documentElement;
+  if (root) root.classList.toggle("rcw", !!current.enabled && current.workspace !== false && workspacePage());
+}
 let motionIncluded = false;
 
 // The theme is dark-only. Roblox ships both themes' CSS and switches by body
@@ -80,6 +92,7 @@ function apply(s) {
     root.classList.toggle("rc-declutter", !!s.enabled && !!s.declutter);
     root.classList.toggle("rc-reduce-motion", motionIncluded && !!s.reduceMotion);
     root.classList.toggle("rc-streamer", !!s.streamer); // works with the theme on or off
+    syncWorkspace();
     const [accent, hover] = ACCENTS[s.accent] || ACCENTS.blue;
     root.style.setProperty("--rc-accent", accent);
     root.style.setProperty("--rc-accent-h", hover);
@@ -187,6 +200,14 @@ function queueScan() {
 function onBody() {
   apply(current); // <html> exists now; also flips <body> to dark
   rcWatch(queueScan);
+  let lastPath = location.pathname;
+  const pathChanged = () => {
+    if (location.pathname === lastPath) return;
+    lastPath = location.pathname;
+    syncWorkspace();
+  };
+  rcWatch(pathChanged);
+  addEventListener("popstate", pathChanged);
   // Roblox's JS rewrites the body class after load, undoing the dark flip
   new MutationObserver(syncBodyTheme).observe(document.body, {
     attributes: true,

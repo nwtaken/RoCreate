@@ -84,6 +84,7 @@ badge with an X. *(Example names, except builderman.)*
 **And more:**
 
 - **Clean and fast:** a flat, dark style for the whole site, with ads and upsells hidden.
+- **Workspace pages:** trades, transactions, settings, the Marketplace, communities and their admin pages, inventory, the avatar editor, messages and every menu and dialog get Creator Hub panels: an obsidian canvas, flat cards, hairline borders and 12 to 16px corners. Profiles keep their own layout. Optional.
 
 ## Install
 

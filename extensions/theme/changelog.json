@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.19.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Workspace pages: Creator Hub panels on every page except profiles",
+      "Trades, transactions, settings, community and admin pages, the Marketplace, item pages, inventory, the avatar editor, messages, Robux and Plus pages use one flat obsidian design with hairline borders and 12 to 16px corners",
+      "Settings, Robux, search and notification menus, and every dialog, get the same flat surfaces",
+      "Community totals look like a Creator Hub analytics panel",
+      "The top bar and profiles look exactly as before; switch it off any time in the popup"
+    ]
+  },
+  {
     "version": "0.18.1",
     "date": "2026-10-19",
     "changes": [

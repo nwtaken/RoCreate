@@ -1,0 +1,1298 @@
+/* ==========================================================================
+   RoCreate Workspace pages: the Creator Hub workspace look for every
+   www.roblox.com page except profiles.
+
+   GATE: content.js adds html.rcw on www.roblox.com when the theme and the
+   "Workspace pages" switch are on and the page is not a profile
+   (/users/<id>/profile). html:not(.rcp2) is a second guard: profile.js sets
+   rcp2 while it draws a profile. Nothing in this file can reach a profile.
+
+   The top bar keeps the exact colours it has everywhere else (section 0.3), so
+   it does not change when you move between a profile and any other page.
+
+   Built against real page snapshots (October 2026): trades, transactions,
+   settings, community and community admin pages, Marketplace, item and bundle
+   pages, inventory, avatar, messages, Robux, Plus, redeem, search and error
+   pages. RoCreate's own injected parts (rcx-*, rc-*) and RoValra's (rovalra-*)
+   keep their behaviour; only their surfaces follow the workspace palette.
+   ========================================================================== */
+
+html.rocreate-on.rcw:not(.rcp2) {
+
+  /* ------------------------------------------------------------------------
+     0. WORKSPACE DESIGN SYSTEM
+     ------------------------------------------------------------------------ */
+
+  /* 0.1 Tokens */
+  --rw-bg: #0F1115;
+  --rw-panel: #17191E;
+  --rw-raised: #1D2026;
+  --rw-inset: #121418;
+  --rw-hover: rgba(208, 217, 251, .06);
+  --rw-press: rgba(208, 217, 251, .10);
+  --rw-line: rgba(255, 255, 255, .06);
+  --rw-line-2: rgba(255, 255, 255, .10);
+  --rw-line-3: rgba(255, 255, 255, .16);
+  --rw-head: #FFFFFF;
+  --rw-text: #E2E8F0;
+  --rw-muted: #94A3B8;
+  --rw-faint: #64748B;
+  --rw-good: #34D399;
+  --rw-bad: #F87171;
+  --rw-r-xs: 8px;
+  --rw-r-sm: 12px;
+  --rw-r: 16px;
+  --rw-pad: 24px;
+  --rw-font: "Builder Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* 0.2 The theme's own palette and Roblox's Foundation tokens, remapped */
+  --rc-app: var(--rw-bg);
+  --rc-surface: var(--rw-panel);
+  --rc-elevated: var(--rw-raised);
+  --rc-border: var(--rw-line-2);
+  --rc-text: var(--rw-text);
+  --rc-text-2: var(--rw-muted);
+  --rc-radius: var(--rw-r);
+  --rc-radius-sm: var(--rw-r-sm);
+
+  &, & body {
+    --color-surface-0: #0F1115 !important;
+    --color-surface-100: #17191E !important;
+    --color-surface-200: #1D2026 !important;
+    --color-surface-300: #24272E !important;
+    --surface-default: #17191E !important;
+    --color-content-default: #E2E8F0 !important;
+    --color-content-emphasis: #FFFFFF !important;
+    --color-content-secondary: #CBD5E1 !important;
+    --color-content-muted: #94A3B8 !important;
+    --text-default: #E2E8F0 !important;
+    --text-secondary: #94A3B8 !important;
+    --color-state-hover: rgba(208, 217, 251, .06) !important;
+    --color-state-press: rgba(208, 217, 251, .10) !important;
+    --color-shift-100: rgba(208, 217, 251, .04) !important;
+    --color-shift-200: #22252C !important;
+    --color-shift-300: #2A2D35 !important;
+    --color-shift-400: #333741 !important;
+    --divider-color: rgba(255, 255, 255, .06) !important;
+    --color-common-heavy-divider: rgba(255, 255, 255, .10) !important;
+    --border-default: rgba(255, 255, 255, .06) !important;
+    --color-stroke-muted: rgba(255, 255, 255, .06) !important;
+    --color-stroke-default: rgba(255, 255, 255, .10) !important;
+    --color-stroke-emphasis: rgba(255, 255, 255, .16) !important;
+    --color-action-standard-background: rgba(208, 217, 251, .08) !important;
+    --color-action-alert-background: rgba(208, 217, 251, .08) !important;
+    --radius-small: 8px !important;
+    --radius-medium: 12px !important;
+    --radius-large: 16px !important;
+  }
+
+  /* 0.3 Top bar pin: the bar and everything inside it keep the theme's
+     regular values, identical to how they look on profile pages. */
+  & #navigation-container {
+    --rc-app: #0e0f11;
+    --rc-surface: #16181b;
+    --rc-elevated: #1d1f23;
+    --rc-border: rgba(255, 255, 255, .10);
+    --rc-text: #e8eaed;
+    --rc-text-2: #a7acb3;
+    --rc-radius: 10px;
+    --rc-radius-sm: 8px;
+    --color-surface-0: #0e0f11 !important;
+    --color-surface-100: #16181b !important;
+    --color-surface-200: #1d1f23 !important;
+    --color-surface-300: #26292e !important;
+    --surface-default: #16181b !important;
+    --color-content-default: #e8eaed !important;
+    --color-content-emphasis: #ffffff !important;
+    --color-content-secondary: #c2c7cc !important;
+    --color-content-muted: #a7acb3 !important;
+    --text-default: #e8eaed !important;
+    --text-secondary: #a7acb3 !important;
+    --color-state-hover: rgba(255, 255, 255, .06) !important;
+    --color-state-press: rgba(255, 255, 255, .10) !important;
+    --color-shift-100: rgba(255, 255, 255, .04) !important;
+    --color-shift-200: #232428 !important;
+    --color-shift-300: #2b2c31 !important;
+    --color-shift-400: #34363b !important;
+    --divider-color: rgba(255, 255, 255, .08) !important;
+    --color-common-heavy-divider: rgba(255, 255, 255, .12) !important;
+    --border-default: rgba(255, 255, 255, .10) !important;
+    --color-stroke-muted: rgba(255, 255, 255, .06) !important;
+    --color-stroke-default: rgba(255, 255, 255, .10) !important;
+    --color-stroke-emphasis: rgba(255, 255, 255, .16) !important;
+    --color-action-standard-background: rgba(255, 255, 255, .08) !important;
+    --color-action-alert-background: rgba(255, 255, 255, .08) !important;
+    --radius-small: var(--size-100) !important;
+    --radius-medium: var(--size-200) !important;
+    --radius-large: var(--size-400) !important;
+  }
+
+  /* 0.4 Page canvas */
+  &, & body, & #wrap, & #container-main, & .container-main, & #content, & .content,
+  & .content-page-container, & #footer-container, & .container-footer {
+    background-color: var(--rw-bg) !important;
+  }
+  & #content {
+    color: var(--rw-text) !important;
+    font-family: var(--rw-font);
+  }
+
+  /* 0.5 Type scale */
+  /* (the theme paints its "Games" and "Groups" renames over hidden text, so
+     those headings are left alone) */
+  & #content :is(h1, .h1, .font-header-1, h2, h3, .h2, .h3, .font-header-2):not([class*="rcx"]):not([class*="rovalra"]):not(.groups-list-heading):not([data-rc-text]):not(.games-list-header > h1) {
+    color: var(--rw-head) !important;
+    letter-spacing: -.01em;
+  }
+  & #content :is(p, li, td, label, .text, .text-description, .font-body) {
+    color: inherit;
+  }
+  & #content :is(.text-secondary, .text-label, .text-caption, .font-caption-body, .rbx-tab-subtitle, .small, small) {
+    color: var(--rw-muted) !important;
+  }
+  & #content :is(p, .text-description, .description-content, .group-description, .item-description, .error-message, .account-info-inline-label + *, .form-group, .modal-message) a:not([class*="btn"]):not([class*="rcx"]):not([class*="rovalra"]) {
+    color: color-mix(in srgb, var(--rc-accent, #0a84ff) 70%, #ffffff) !important;
+  }
+
+  /* 0.6 Panels: one recipe for every legacy box */
+  & #content :is(.section-content:not(.remove-panel):not(.section-content-off), .rbx-panel, .panel, .panel-default, .card:not([class*="game-card"]):not([class*="item-card"])) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    box-shadow: none !important;
+    padding: 20px var(--rw-pad) !important;
+  }
+  & .panel-heading, & .panel-footer {
+    background: transparent !important;
+    border-color: var(--rw-line) !important;
+  }
+  & #content .container-header {
+    border: 0 !important;
+    background: transparent !important;
+  }
+  & #content :is(.container-header h2, .container-header h3) {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+  }
+
+  /* 0.7 Dividers */
+  & #content :is(hr, .rbx-divider, .divider-top, .divider-bottom) {
+    border-color: var(--rw-line) !important;
+    background-color: var(--rw-line) !important;
+  }
+  & #content .border-bottom { border-bottom-color: var(--rw-line) !important; }
+  & #content .border-top { border-top-color: var(--rw-line) !important; }
+
+  /* 0.8 Buttons: 12px geometry everywhere, flat fills, no glow */
+  & :is([class*="btn-primary-"], [class*="btn-cta-"], [class*="btn-growth-"], [class*="btn-secondary-"], [class*="btn-control-"], [class*="btn-alert-"], [class*="btn-generic-"], .btn-default, .btn):not(.btn-toggle):not(.btn-navigation-nav-robux-md):not(.btn-navigation-nav-settings-md) {
+    border-radius: var(--rw-r-sm) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  & #content :is([class*="btn-secondary-"], [class*="btn-control-"], [class*="btn-generic-more-"], .btn-default):not(.btn-toggle) {
+    background: rgba(208, 217, 251, .06) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    color: var(--rw-head) !important;
+  }
+  & #content :is([class*="btn-secondary-"], [class*="btn-control-"], [class*="btn-generic-more-"], .btn-default):not(.btn-toggle):hover {
+    background: rgba(208, 217, 251, .10) !important;
+    border-color: var(--rw-line-3) !important;
+  }
+  & #content [class*="btn-alert-"] {
+    background: rgba(248, 113, 113, .12) !important;
+    border: 1px solid rgba(248, 113, 113, .35) !important;
+    color: #FECACA !important;
+  }
+  & :is(.foundation-web-button, .foundation-web-icon-button) {
+    box-shadow: none !important;
+  }
+  & #content .foundation-web-button:not([class*="radius-circle"]) {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #content .btn-generic-edit-sm, & #content .btn-generic-edit-xs {
+    background: transparent !important;
+    border: 0 !important;
+  }
+
+  /* 0.9 Inputs, selects and textareas */
+  & #content :is(.form-control, .input-field, .rbx-select, select, textarea, input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="password"], input[type="tel"]):not([type="checkbox"]):not([type="radio"]):not([class*="rovalra"]):not(.bg-none):not(.foundation-web-input input) {
+    background: var(--rw-inset) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r-sm) !important;
+    color: var(--rw-head) !important;
+    box-shadow: none !important;
+  }
+  & #content :is(.form-control, .input-field, .rbx-select, select, textarea, input):not([type="checkbox"]):not([type="radio"]):not([class*="rovalra"]):not(.bg-none):not(.foundation-web-input input):focus {
+    border-color: var(--rc-accent, #0a84ff) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--rc-accent, #0a84ff) 22%, transparent) !important;
+    outline: none !important;
+  }
+  & #content :not(.groups-list-search-input)::placeholder { color: var(--rw-faint) !important; opacity: 1; }
+  & #content .foundation-web-input:not(input) {
+    background: var(--rw-inset) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #content .rbx-select-group, & #content .input-group {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #content :is(.input-dropdown-btn, .dropdown-toggle.btn) {
+    background: var(--rw-inset) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r-sm) !important;
+    color: var(--rw-head) !important;
+    min-height: 40px;
+  }
+
+  /* 0.10 Toggles, radios and checkboxes keep their shapes, gain the accent */
+  & #content .btn-toggle {
+    border-radius: 999px !important;
+    background: #2A2D35 !important;
+    border: 1px solid var(--rw-line-2) !important;
+  }
+  & #content .btn-toggle.on, & #content .btn-toggle.active {
+    background: var(--rc-accent, #0a84ff) !important;
+    border-color: transparent !important;
+  }
+  & #content .btn-toggle .toggle-flip {
+    background: #FFFFFF !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+  }
+  & #content input[type="checkbox"], & #content input[type="radio"] {
+    accent-color: var(--rc-accent, #0a84ff);
+  }
+
+  /* 0.11 Tabs: Creator Hub underline tabs */
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs, .rbx-scrollable-tabs-horizontal) {
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--rw-line) !important;
+    box-shadow: none !important;
+  }
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) > li,
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) .rbx-tab {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) .rbx-tab-heading,
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) > li > a {
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: var(--rw-muted) !important;
+  }
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) .rbx-tab-heading:hover,
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) > li > a:hover {
+    color: var(--rw-head) !important;
+    background: var(--rw-hover) !important;
+  }
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) .rbx-tab.active .rbx-tab-heading,
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) > li.active > a {
+    color: var(--rw-head) !important;
+    border-bottom-color: var(--rc-accent, #0a84ff) !important;
+  }
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) .rbx-tab-heading .text-lead,
+  & #content :is(.rbx-tabs-horizontal, .nav-tabs) .rbx-tab-heading span {
+    color: inherit !important;
+  }
+
+  /* 0.12 Tables */
+  & #content table:is(.table, .rbx-table, .table-striped) {
+    background: transparent !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+  }
+  & #content table:is(.table, .rbx-table, .table-striped) :is(th, td) {
+    background: transparent !important;
+    border-color: var(--rw-line) !important;
+    color: var(--rw-text);
+    padding: 12px 14px !important;
+    vertical-align: middle !important;
+  }
+  & #content table:is(.table, .rbx-table, .table-striped) th {
+    color: var(--rw-muted) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  & #content table:is(.table, .rbx-table, .table-striped) tbody tr:hover > td {
+    background: var(--rw-hover) !important;
+  }
+
+  /* 0.13 Pagers */
+  & #content :is(.pager, .pagination) :is(li > a, li > span, button) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+    color: var(--rw-text) !important;
+  }
+
+  /* 0.14 System feedback banners and tooltips */
+  & .sg-system-feedback .alert,
+  & #content .alert:not([class*="rovalra"]) {
+    border-radius: var(--rw-r-sm) !important;
+    box-shadow: none !important;
+  }
+  & #content .message-banner {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+    color: var(--rw-text) !important;
+  }
+  & :is(.tooltip-inner, .rbx-tooltip, [role="tooltip"]:not([class*="rovalra"])) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r-xs) !important;
+    box-shadow: none !important;
+    color: var(--rw-text) !important;
+  }
+
+  /* 0.15 Every legacy shadow and glow goes; focus rings stay */
+  & #content :is(.section-content, .item-card-container, .game-card-container, .avatar-card-container, .list-item, .dropdown-menu, .popover, .modal-content, .rbx-tab, .container-header, .game-card-thumb-container, .item-card-thumb-container, .thumbnail-2d-container):not(:focus-visible) {
+    box-shadow: none !important;
+  }
+  & #footer-container {
+    border-top: 1px solid var(--rw-line) !important;
+  }
+  & #footer-container :is(.copyright-container, .footer-links) {
+    border-color: var(--rw-line) !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     1. MAIN NAVIGATION & USER LANDING INTERFACES (NON-PROFILE)
+     ------------------------------------------------------------------------ */
+
+  /* 1.1 Top bar flyouts: settings menu, Robux menu, search suggestions,
+     notification drawer. The bar itself is pinned in 0.3. */
+  & :is(#navbar-settings, #navbar-robux, #navbar-stream, .navbar-search) .dropdown-menu,
+  & .popover:not([class*="rovalra"]),
+  & #settings-popover-menu,
+  & .foundation-web-menu:not([class*="rovalra"]),
+  & [data-radix-popper-content-wrapper] > [role="menu"] {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r-sm) !important;
+    box-shadow: none !important;
+    padding: 6px !important;
+  }
+  & :is(#navbar-settings, #navbar-robux, .navbar-search) .dropdown-menu > li > a,
+  & .popover .rbx-menu-item,
+  & .foundation-web-menu :is([role="menuitem"], .foundation-web-menu-item),
+  & [data-radix-popper-content-wrapper] [role="menuitem"] {
+    border-radius: var(--rw-r-xs) !important;
+    color: var(--rw-text) !important;
+  }
+  & :is(#navbar-settings, #navbar-robux, .navbar-search) .dropdown-menu > li > a:hover,
+  & .popover .rbx-menu-item:hover,
+  & .foundation-web-menu :is([role="menuitem"], .foundation-web-menu-item):hover,
+  & [data-radix-popper-content-wrapper] [role="menuitem"]:hover {
+    background: var(--rw-hover) !important;
+    color: var(--rw-head) !important;
+  }
+  & .navbar-search .dropdown-menu > li.selected > a,
+  & .navbar-search .dropdown-menu > li.new-selected > a {
+    background: var(--rw-press) !important;
+  }
+  & :is(.notification-stream-base, #notification-stream, .notification-stream-container, .notification-stream-root) {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  & :is(.notification-stream-base, #notification-stream) :is(.notification-item, .notification-stream-item, .rbx-list-item, .stream-item) {
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--rw-line) !important;
+    border-radius: 0 !important;
+  }
+  & :is(.notification-stream-base, #notification-stream) :is(.notification-item, .notification-stream-item, .rbx-list-item, .stream-item):hover {
+    background: var(--rw-hover) !important;
+  }
+  & .notification-stream-base .notification-content-view {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r) !important;
+    box-shadow: none !important;
+    overflow: hidden;
+  }
+  & .notification-stream-base .notification-stream-banner.banner-new {
+    background: var(--rw-raised) !important;
+    border-bottom: 1px solid var(--rw-line) !important;
+  }
+  & :is(.notification-stream-base, #notification-stream) :is(.notification-stream-header, .notifications-header, .stream-header) {
+    background: transparent !important;
+    border-bottom: 1px solid var(--rw-line) !important;
+  }
+
+  /* 1.2 Chat dock: same flat surface as everything else */
+  & #chat-container :is(.react-chat-top-radius, section) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    box-shadow: none !important;
+  }
+  & #chat-container section {
+    border-radius: var(--rw-r) var(--rw-r) 0 0 !important;
+  }
+
+  /* 1.3 Shared game card: a flat dashboard tile */
+  & #content :is(.game-card-container, .grid-item-container.game-card-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    transition: background-color .15s ease, border-color .15s ease;
+  }
+  & #content .game-card-container:hover {
+    background: var(--rw-raised) !important;
+    border-color: var(--rw-line-3) !important;
+  }
+  & #content .game-card-container .game-card-link {
+    padding: 8px 8px 10px !important;
+    display: block;
+    border-radius: inherit !important;
+  }
+  & #content .game-card-container :is(.game-card-thumb-container, .featured-game-icon-container, .game-card-thumb, .game-tile-thumb) {
+    border-radius: var(--rw-r-sm) !important;
+    overflow: hidden;
+  }
+  & #content .game-card-container .game-card-name {
+    color: var(--rw-head) !important;
+    font-weight: 700 !important;
+  }
+  & #content .game-card-container .game-card-info,
+  & #content .game-card-container .game-card-info :is(span, .info-label) {
+    color: var(--rw-muted) !important;
+  }
+  & #content :is(.list-item.game-card, .list-item.game-tile) {
+    background: transparent !important;
+  }
+
+  /* 1.4 Home dashboard: each sort becomes a workspace section panel */
+  & #HomeContainer :is(.game-sort-carousel-wrapper, .friend-carousel-container, .home-sort, .game-sort-wrapper) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px var(--rw-pad) 20px !important;
+    margin-bottom: 18px !important;
+  }
+  & #HomeContainer :is(.game-sort-carousel-wrapper, .home-sort) .game-card-container {
+    background: transparent !important;
+    border-color: transparent !important;
+  }
+  & #HomeContainer :is(.game-sort-carousel-wrapper, .home-sort) .game-card-container:hover {
+    background: var(--rw-hover) !important;
+    border-color: var(--rw-line) !important;
+  }
+  & #HomeContainer :is(.container-header, .people-list-header, .home-sort-header-container) {
+    margin-bottom: 12px !important;
+  }
+  & #HomeContainer :is(.container-header, .people-list-header, .home-sort-header-container) :is(h2, h3, a) {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+  & #HomeContainer .friends-carousel-tile {
+    border-radius: var(--rw-r-sm) !important;
+    transition: background-color .15s ease;
+  }
+  & #HomeContainer .friends-carousel-tile:hover {
+    background: var(--rw-hover) !important;
+  }
+  & #HomeContainer :is(.avatar-card-fullbody, .avatar-card-image, .friends-carousel-tile .avatar) {
+    background: var(--rw-raised) !important;
+    border-color: var(--rw-panel) !important;
+  }
+  & #HomeContainer .add-friends-icon-container {
+    background: var(--rw-raised) !important;
+    border: 1px dashed var(--rw-line-3) !important;
+  }
+  & #HomeContainer > .section .container-header h1 {
+    font-size: 32px !important;
+  }
+  & #rcx-home {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 16px var(--rw-pad) 18px !important;
+  }
+  & #rcx-home .rcx-home-tile {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+
+  /* 1.5 Games page (Charts): lanes as panels, filters as flat chips */
+  & .games-page-container .games-list-container {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 16px var(--rw-pad) 18px !important;
+    margin-bottom: 18px !important;
+  }
+  & .games-page-container .games-list-container .game-card-container {
+    background: transparent !important;
+    border-color: transparent !important;
+  }
+  & .games-page-container .games-list-container .game-card-container:hover {
+    background: var(--rw-hover) !important;
+    border-color: var(--rw-line) !important;
+  }
+  & .games-page-container .home-sort-header-container :is(h2, h3, a, span) {
+    color: var(--rw-head) !important;
+  }
+  & .games-page-container .new-scroll-arrows :is(button, .scroll-arrow, .arrow-left, .arrow-right) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+  }
+  & .games-page-container .filters-container {
+    background: transparent !important;
+    padding-bottom: 6px !important;
+  }
+  & .games-page-container .filters-container :is(button, .filter-select, .dropdown-toggle) {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #rcx-sort {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 8px 10px !important;
+  }
+  & #rcx-sort button {
+    border-radius: var(--rw-r-xs) !important;
+  }
+
+  /* 1.6 Search results (experiences, people, communities) */
+  & :is(.game-search-feed-container, .search-game-grid, .wide-tile-search-feed) .game-card-container {
+    padding: 0 !important;
+  }
+  & :is(.game-search-feed-container, .search-game-grid) :is(.featured-game-container, .hover-game-tile) {
+    background: transparent !important;
+    border-radius: var(--rw-r) !important;
+  }
+  & #content :is(.group-result-card-web, .group-card, .player-search-result, .avatar-card-container) {
+    border-radius: var(--rw-r) !important;
+  }
+  & #content :is(.group-result-card-web, .player-search-result) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    padding: 14px !important;
+  }
+  & #content .group-result-card-web:hover, & #content .player-search-result:hover {
+    border-color: var(--rw-line-3) !important;
+  }
+  & #content .group-card-thumb { border-radius: var(--rw-r-sm) !important; overflow: hidden; }
+
+  /* 1.7 Experience details page */
+  & #game-detail-page .game-main-content {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: var(--rw-pad) !important;
+  }
+  & #game-detail-page #game-details-carousel-container {
+    border-radius: var(--rw-r-sm) !important;
+    overflow: hidden;
+  }
+  & #game-detail-page .game-name { color: var(--rw-head) !important; }
+  & #game-detail-page .favorite-follow-vote-share > li {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #game-detail-page .favorite-follow-vote-share :is(.vote-bar, .vote-background) {
+    border-radius: 999px !important;
+  }
+  & #game-detail-page :is(#horizontal-tabs, .rbx-tabs-horizontal) {
+    margin-top: 18px !important;
+  }
+  & #game-detail-page .tab-content > .tab-pane {
+    background: transparent !important;
+  }
+  & #game-detail-page :is(.game-about-container, .game-description-container, #game-instances, .rbx-running-games-list, .game-badges-list, .store-cards, .game-stat-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px var(--rw-pad) !important;
+  }
+  & #game-detail-page .game-stats-container .game-stat {
+    border-color: var(--rw-line) !important;
+  }
+  & #game-detail-page .rbx-game-server-item,
+  & #game-detail-page .stack-list > li,
+  & #game-detail-page .badge-row {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #rcx-panel {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px var(--rw-pad) 14px !important;
+  }
+  & #rcx-panel .rcx-tile {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #rcx-panel .rcx-tile:first-child {
+    background: rgba(52, 211, 153, .07) !important;
+    border-color: rgba(52, 211, 153, .28) !important;
+  }
+  & #rcx-panel .rcx-chart7 {
+    background: var(--rw-inset) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     2. COMMERCIAL, MARKETPLACE, & CREATOR SPACES
+     ------------------------------------------------------------------------ */
+
+  /* 2.1 Marketplace: header, filters, category menus and the item grid */
+  & #catalog-react-page .catalog-header {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px var(--rw-pad) !important;
+    margin-bottom: 18px !important;
+  }
+  & #catalog-react-page :is(.catalog-heading-container, .heading-container) h1 {
+    font-size: 28px !important;
+  }
+  & #catalog-react-page :is(.search-bars input, .catalog-header input) {
+    min-height: 40px;
+  }
+  & #catalog-react-page :is(.filter-button, .dropdown-toggle, .catalog-filter-button, .search-options button, .filter-container button):not([class*="rovalra"]) {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #catalog-react-page :is(.catalog-category-menu, .category-menu, .catalog-left-nav, .search-options, .dropdown-menu) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r-sm) !important;
+    box-shadow: none !important;
+  }
+  & #catalog-react-page :is(.category-menu, .catalog-category-menu, .dropdown-menu) :is(li > a, li > button, .menu-option-content) {
+    border-radius: var(--rw-r-xs) !important;
+  }
+  & #catalog-react-page :is(.category-menu, .catalog-category-menu, .dropdown-menu) :is(li > a, li > button, .menu-option-content):hover {
+    background: var(--rw-hover) !important;
+  }
+  & #content :is(.catalog-item-container, .item-card-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 8px 8px 10px !important;
+    transition: background-color .15s ease, border-color .15s ease;
+  }
+  & #content :is(.catalog-item-container, .item-card-container):hover {
+    background: var(--rw-raised) !important;
+    border-color: var(--rw-line-3) !important;
+  }
+  & #content .catalog-item-container .item-card-container {
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+  & #content :is(.item-card-thumb-container, .item-card-thumb-container-inner, .item-card-thumb) {
+    background: var(--rw-raised) !important;
+    border-radius: var(--rw-r-sm) !important;
+    overflow: hidden;
+  }
+  & #content .catalog-item-container:hover .item-card-thumb-container,
+  & #content .item-card-container:hover .item-card-thumb-container {
+    background: #24272E !important;
+  }
+  & #content .item-card-caption { padding-top: 8px !important; }
+  & #content .item-card-name { color: var(--rw-head) !important; font-weight: 700 !important; }
+  & #content :is(.item-card-creator, .item-card-secondary-info) { color: var(--rw-muted) !important; }
+  & #content .item-card-price .text-robux-tile { color: var(--rw-head) !important; }
+  & #content .shopping-cart :is(.shopping-cart-container, .cart-container, .cart-items) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+  }
+
+  /* 2.2 Item, bundle and Look pages: thumbnail stage, purchase panel, resale */
+  & #item-details-container #item-info-container-frontend {
+    display: flow-root;
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: var(--rw-pad) !important;
+  }
+  & #item-details-container #item-thumbnail-container-frontend :is(img, canvas, .thumbnail-2d-container) {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #item-details-container .item-name-container h1 {
+    font-size: 28px !important;
+  }
+  & #item-details-container .item-info-row-container {
+    border-bottom: 1px solid var(--rw-line) !important;
+    padding: 10px 0 !important;
+    margin: 0 !important;
+  }
+  & #item-details-container .item-info-row-container:last-child { border-bottom: 0 !important; }
+  & #item-details-container .row-label { color: var(--rw-muted) !important; }
+  & #item-details-container :is(.price-container, .item-price-value, .item-first-line) .text-robux-lg {
+    color: var(--rw-head) !important;
+  }
+  & #item-details-container :is(#asset-resale-data-container, #item-list-container-recommendations, #item-list-container-included-items, #sponsored-catalog-items, #rovalra-dep-container) > :is(div, section) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px var(--rw-pad) !important;
+    margin-top: 18px !important;
+  }
+  & #item-details-container :is(#item-list-container-recommendations, #item-list-container-included-items) :is(.item-card-container, .catalog-item-container) {
+    background: var(--rw-raised) !important;
+  }
+  & #item-details-container :is(.resale-pricechart-container, .price-chart, .resale-data-container) {
+    background: var(--rw-inset) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #content :is(.purchase-modal, .item-purchase-container, .btn-container) [class*="btn-"] {
+    min-height: 40px;
+  }
+
+  /* 2.3 Communities: list sidebar, header card, tabs and every tab body */
+  & .groups-list-sidebar {
+    background: var(--rw-panel) !important;
+    border: 0 !important;
+    border-right: 1px solid var(--rw-line) !important;
+    border-radius: 0 !important;
+  }
+  & .groups-list-sidebar a.groups-list-item {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & .groups-list-sidebar a.groups-list-item:hover { background: var(--rw-hover) !important; }
+  & .groups-list-sidebar a.groups-list-item.active { background: var(--rw-press) !important; }
+  & #content :is(.group-header, .group-details .section-content, .group-profile-header, .community-header) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+  }
+  & #content :is(.group-details, .community-details) :is(.group-image, .group-caption .avatar, .thumbnail-2d-container.group-icon) {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #content :is(.group-details, .community-details) :is(.group-description, .group-shout, .group-wall, .group-about, .group-games, .group-store, .group-affiliates, .group-announcements, .announcement, .shout-container, .group-wall-container, .group-members-list-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px var(--rw-pad) !important;
+  }
+  & #content :is(.group-comments, .group-wall) .comment-item,
+  & #content .group-wall-post,
+  & #content .announcement-post {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #content .info-label, & #content .user-display-time { color: var(--rw-muted) !important; }
+  & #content :is(.group-details, .community-details) .rbx-tab-heading {
+    font-weight: 700 !important;
+  }
+  & #content :is(.group-stat, .group-info-pill, .community-stat) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: 999px !important;
+  }
+
+  /* 2.4 RoCreate's community totals as an official analytics panel */
+  & #rcx-group {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px var(--rw-pad) 20px !important;
+  }
+  & #rcx-group::before {
+    content: "Community analytics";
+    display: block;
+    margin-bottom: 12px;
+    color: var(--rw-head);
+    font: 700 16px/1.2 var(--rw-font);
+  }
+  & #rcx-group .rcx-tile {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #rcx-group .rcx-tile:first-child {
+    background: rgba(52, 211, 153, .07) !important;
+    border-color: rgba(52, 211, 153, .28) !important;
+  }
+  & #rcx-group .rcx-label { color: var(--rw-muted); opacity: 1 !important; }
+  & #rcx-group .rcx-value { color: var(--rw-head); }
+  & #rcx-group .rcx-group-top {
+    background: var(--rw-inset) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #rcx-group .rcx-group-row + .rcx-group-row { border-top-color: var(--rw-line) !important; }
+  & #rcx-group .rcx-group-row:hover { background: var(--rw-hover) !important; }
+
+  /* 2.5 Community admin (Configure): left menu, content panel, every tab */
+  & #configure-group-web-app .configure-group {
+    background: transparent !important;
+  }
+  & #configure-group-web-app :is(.menu-vertical, .menu-vertical-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 8px !important;
+  }
+  & #configure-group-web-app .menu-option-content {
+    border-radius: var(--rw-r-sm) !important;
+    color: var(--rw-text) !important;
+    box-shadow: none !important;
+  }
+  & #configure-group-web-app .menu-option-content:hover { background: var(--rw-hover) !important; }
+  & #configure-group-web-app :is(.menu-option.active > .menu-option-content, .menu-option-content.active, .menu-secondary-option.active .menu-option-content) {
+    background: var(--rw-press) !important;
+    color: var(--rw-head) !important;
+  }
+  & #configure-group-web-app .menu-secondary { background: transparent !important; }
+  & #configure-group-web-app .tab-content-group > :is(div, section) > .section-content,
+  & #configure-group-web-app .tab-content-group .section-content.remove-panel {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 20px var(--rw-pad) !important;
+  }
+  & #configure-group-web-app .tab-content-group .section-content .section-content {
+    background: var(--rw-raised) !important;
+  }
+  & #configure-group-web-app :is(.file-upload-container, .dropzone, .file-upload-content) {
+    background: var(--rw-inset) !important;
+    border: 1px dashed var(--rw-line-3) !important;
+    border-radius: var(--rw-r) !important;
+  }
+  & #configure-group-web-app :is(.asset-thumb-container, .thumbnail-holder, .image-wrapper) {
+    border-radius: var(--rw-r-sm) !important;
+    overflow: hidden;
+  }
+  & #configure-group-web-app :is(.audit-log, .audit-log-table, .audit-log-container, .revenue-summary, .payouts-container, .recurring-payouts, .one-time-payout, .group-relationships, .affiliates-container, .members-container, .roles-container, .group-wall-moderation) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+  }
+  & #configure-group-web-app :is(.audit-log-row, .audit-log-item, .member-row, .role-row, .relationship-row, .payout-row, .revenue-row, .list-item) {
+    border-color: var(--rw-line) !important;
+  }
+  & #configure-group-web-app :is(.audit-log-row, .audit-log-item, .member-row, .role-row, .relationship-row, .payout-row, .revenue-row):hover {
+    background: var(--rw-hover) !important;
+  }
+  & #configure-group-web-app .menu-pill, & #configure-group-web-app .notification-blue {
+    border-radius: 999px !important;
+  }
+  & #configure-group-web-app .save-button { min-width: 96px; }
+
+  /* ------------------------------------------------------------------------
+     3. FINANCIAL, TRANSACTION, & DEVEX SYSTEM
+     ------------------------------------------------------------------------ */
+
+  /* 3.1 Trades: list panel, detail panel, offer boxes */
+  & #trades-web-app .trades-react {
+    display: flex;
+    gap: 18px;
+    align-items: stretch;
+  }
+  & #trades-web-app :is(.trade-row-list, .trades-list-detail) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px !important;
+    min-height: 520px;
+    float: none !important;
+  }
+  & #trades-web-app .trade-row-list { flex: 0 0 34%; max-width: 380px; }
+  & #trades-web-app .trades-list-detail { flex: 1 1 auto; min-width: 0; width: auto !important; }
+  & #trades-web-app .trades-header h1 { font-size: 24px !important; }
+  & #trades-web-app .trade-filter-chips button { border-radius: 999px !important; }
+  & #trades-web-app :is(.trade-row, [class*="trade-row-item"], #trade-row-scroll-container > div:not(.trades-empty-state)) {
+    border-radius: var(--rw-r-sm) !important;
+    border: 1px solid transparent !important;
+  }
+  & #trades-web-app :is(.trade-row, [class*="trade-row-item"], #trade-row-scroll-container > div:not(.trades-empty-state)):hover {
+    background: var(--rw-hover) !important;
+    border-color: var(--rw-line) !important;
+  }
+  & #trades-web-app :is(.trade-row.active, .trade-row.selected, [class*="trade-row-item"][aria-selected="true"]) {
+    background: var(--rw-press) !important;
+    border-color: var(--rw-line-2) !important;
+  }
+  & #trades-web-app .trades-empty-state-art .tilted-glyph-frame {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r) !important;
+  }
+  & #trades-web-app .trade-detail-placeholder {
+    border: 1px dashed var(--rw-line-2) !important;
+    border-radius: var(--rw-r-sm) !important;
+    min-height: 480px;
+  }
+  & #trades-web-app :is(.trade-offer, .trade-offer-section, [class*="offer-container"], [class*="trade-detail"] section) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & :is(.trade-request-window, .trade-window, #trade-request-container) :is(.trade-request-panel, .trade-panel, .item-cards-container, .trade-items) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+  }
+
+  /* 3.2 Inventory and favorites: category menu and item grid */
+  & #content :is(.menu-vertical-container, #inventory-container .menu-vertical, .rbx-left-col .menu-vertical) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 8px !important;
+  }
+  & #content .menu-secondary-container, & #content .menu-secondary {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  & #content .menu-secondary-option :is(a, .menu-option-content) {
+    border-radius: var(--rw-r-xs) !important;
+  }
+  & #content :is(.menu-secondary-option, .menu-option) :is(a, .menu-option-content):hover {
+    background: var(--rw-hover) !important;
+  }
+  & #content :is(.menu-secondary-option.active, .menu-option.active) > :is(a, .menu-option-content) {
+    background: var(--rw-press) !important;
+    color: var(--rw-head) !important;
+  }
+  & #content .item-card-label {
+    border-radius: 999px !important;
+  }
+
+  /* 3.3 My Transactions: header, filters, summary sheet and detail rows */
+  & #transactions-web-app .user-transactions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  & #transactions-web-app .user-transactions-container > .container-header:first-child {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 20px var(--rw-pad) !important;
+    margin: 0 !important;
+  }
+  & #transactions-web-app .transactions-title-with-input {
+    color: var(--rw-head) !important;
+    margin-bottom: 0 !important;
+  }
+  & #transactions-web-app .balance-label {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: 999px !important;
+    padding: 4px 6px 4px 12px !important;
+  }
+  & #transactions-web-app .dropdown-container.container-header {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 16px var(--rw-pad) !important;
+    margin: 0 !important;
+  }
+  & #transactions-web-app .dropdown-btn { margin: 0 !important; }
+  & #transactions-web-app :is(#type-selection-label, #date-selection-label) {
+    color: var(--rw-muted) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  & #transactions-web-app :is(.summary, .transactions-table, .transaction-table-container, .table-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 10px var(--rw-pad) 16px !important;
+  }
+  & #transactions-web-app .summary table.summary,
+  & #transactions-web-app .summary > table {
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  & #transactions-web-app :is(.incoming-robux-label, .outgoing-robux-label) {
+    color: var(--rw-head) !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  & #transactions-web-app tr.border-bottom > td { border-bottom: 1px solid var(--rw-line) !important; }
+  & #transactions-web-app .summary-transaction-label { color: var(--rw-text) !important; }
+  & #transactions-web-app .amount-display { color: var(--rw-head) !important; font-variant-numeric: tabular-nums; }
+  & #transactions-web-app .summary-transaction-pending-text { color: var(--rw-muted) !important; }
+  & #transactions-web-app :is(.transactions-list, .transaction-table) :is(tr, .transaction-row):hover {
+    background: var(--rw-hover) !important;
+  }
+  & #transactions-web-app :is(section.rovalra-spent-per-creator-summary, section.rovalra-spent-per-game-summary) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 18px var(--rw-pad) !important;
+    margin-top: 18px !important;
+  }
+
+  /* 3.4 Robux store, gift cards, redeem and Roblox Plus */
+  & #content :is(.robux-section, .roblox-subscription-container, .convert-credit-container, .gift-card-instructions-container, .redeem-container, .premium-container, .upgrade-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: var(--rw-pad) !important;
+  }
+  & #content :is(.robux-package, .package-card, .robux-package-container, .foundation-web-list-item-container, .foundation-web-collection-carousel-item) {
+    border-radius: var(--rw-r) !important;
+  }
+  & #content :is(.robux-package, .package-card, .robux-package-container) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+  }
+  & #content :is(.robux-package, .package-card, .robux-package-container):hover {
+    border-color: var(--rw-line-3) !important;
+  }
+  & #content :is(.buy-robux-section-header, .hcc-container-header) { margin-bottom: 14px !important; }
+
+  /* 3.5 DevEx: the cash-out portal itself lives on create.roblox.com, which is
+     already the Creator Hub. On www.roblox.com, DevEx appears as the
+     Developer Exchange line of the transactions summary and in Robux menus. */
+  & #transactions-web-app .summary tr:has(> td .summary-transaction-label) > td:first-child {
+    padding-left: 2px !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     4. POPUPS, MODALS, SETTINGS & HIDDEN INTERNAL INTERFACES
+     ------------------------------------------------------------------------ */
+
+  /* 4.1 Settings & privacy center: menu panel, content panel, sections */
+  & #settings-container {
+    background: transparent !important;
+  }
+  & #settings-container .settings-left-navigation {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  & #settings-container ul.menu-vertical {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 8px !important;
+    flex: 0 0 236px;
+    position: sticky;
+    top: 72px;
+  }
+  & #settings-container .menu-vertical .menu-option-content {
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & #settings-container .menu-vertical .menu-option-content:hover { background: var(--rw-hover) !important; }
+  & #settings-container .menu-vertical .menu-option-content.active {
+    background: var(--rw-press) !important;
+    color: var(--rw-head) !important;
+  }
+  & #settings-container .menu-vertical .rbx-divider { margin: 6px 4px !important; }
+  & #settings-container .tab-content.rbx-tab-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 8px 28px 24px !important;
+  }
+  & #settings-container .settings-container-v2 { background: transparent !important; }
+  & #settings-container .setting-section {
+    border-bottom: 1px solid var(--rw-line) !important;
+    padding: 18px 0 !important;
+    margin: 0 !important;
+  }
+  & #settings-container .setting-section:last-child { border-bottom: 0 !important; }
+  & #settings-container :is(.settings-v2-header, .setting-section-header, .container-header) :is(h2, h3, h4, span) {
+    color: var(--rw-head) !important;
+  }
+  & #settings-container .settings-v2-header { padding-top: 16px !important; }
+  & #settings-container .account-info-inline-label,
+  & #settings-container .form-label {
+    color: var(--rw-head) !important;
+    font-weight: 700 !important;
+  }
+  & #settings-container .settings-text-span-visible { color: var(--rw-text) !important; }
+  & #settings-container :is(.foundation-web-radio, .gender-button) { border-radius: var(--rw-r-sm) !important; }
+  & #settings-container :is(.passkey-upsell, .passkey-banner, [class*="passkey"]):not(button):not(span) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r) !important;
+  }
+  & #settings-container :is(.two-step-verification, .two-step-verification-container, .security-section, .two-sv-method, [class*="two-step"], [class*="twoStep"]):not(button):not(span):not(input) {
+    border-radius: var(--rw-r-sm) !important;
+    border-color: var(--rw-line) !important;
+  }
+  & #settings-container :is(.payment-method, .billing-section, .payment-methods-container, .subscription-item, .subscriptions-container, .parental-controls-container, .linked-parent, .app-permission-row, .app-permissions-container, .browser-preference-row) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r-sm) !important;
+  }
+  & .mobile-navigation-dropdown .foundation-web-input {
+    border-radius: var(--rw-r-sm) !important;
+  }
+
+  /* 4.2 Messages and notifications pages */
+  & #content .private-message-page,
+  & #content .messages-container {
+    background: transparent !important;
+  }
+  & #content .messages-container {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 6px var(--rw-pad) 18px !important;
+  }
+  & #content .foundation-web-tabs {
+    border-bottom: 1px solid var(--rw-line) !important;
+  }
+  & #content .private-message-row {
+    border: 0 !important;
+    border-bottom: 1px solid var(--rw-line) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    transition: background-color .12s ease;
+  }
+  & #content .private-message-row:hover {
+    background: var(--rw-hover) !important;
+  }
+  & #content .private-message-row.unread, & #content .private-message-row.message-unread {
+    box-shadow: inset 3px 0 0 var(--rc-accent, #0a84ff) !important;
+  }
+  & #content .private-message-row-avatar :is(img, .avatar, .thumbnail-2d-container) {
+    border-radius: 999px !important;
+  }
+  & #content :is(.message-detail, .private-message-detail, .message-content-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: var(--rw-pad) !important;
+  }
+
+  /* 4.3 Every modal: Bootstrap, legacy purchase, Foundation and Radix
+     dialogs, report flows and the purchase confirmation */
+  & :is(.modal-content, #simplemodal-container, .simplemodal-wrap, .modal-window, .foundation-web-dialog, [role="dialog"]:not([class*="rovalra"]):not([id^="rcp"]):not([class*="rcp-"]):not([class*="rcx-"])) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line-2) !important;
+    border-radius: var(--rw-r) !important;
+    box-shadow: none !important;
+    color: var(--rw-text) !important;
+  }
+  & :is(.modal-content, .modal-window) :is(.modal-header, .modal-footer) {
+    background: transparent !important;
+    border-color: var(--rw-line) !important;
+  }
+  & :is(.modal-content, .modal-window) .modal-header { padding: 18px var(--rw-pad) 12px !important; }
+  & :is(.modal-content, .modal-window) .modal-body { padding: 16px var(--rw-pad) !important; }
+  & :is(.modal-content, .modal-window) .modal-footer { padding: 14px var(--rw-pad) 18px !important; }
+  & :is(.modal-content, .modal-window) :is(.modal-title, h4, h3) {
+    color: var(--rw-head) !important;
+    font-weight: 700 !important;
+  }
+  & :is(.modal-content, .modal-window) .modal-message { color: var(--rw-text) !important; }
+  & :is(.modal-content, .modal-window) :is(.modal-thumb, .modal-image-container, .roblox-item-image) {
+    border-radius: var(--rw-r-sm) !important;
+    overflow: hidden;
+  }
+  & :is(.modal-backdrop, .simplemodal-overlay, #simplemodal-overlay, [data-radix-dialog-overlay], .foundation-web-dialog-overlay) {
+    background: rgba(5, 6, 8, .72) !important;
+    opacity: 1 !important;
+  }
+  & .modal-backdrop:not(.in) { opacity: 0 !important; }
+  & :is(.modal-content, .modal-window, .foundation-web-dialog) :is(.close, .modal-close, .icon-close) {
+    opacity: .7;
+  }
+  & :is(.modal-content, .modal-window, .foundation-web-dialog) :is(.close, .modal-close, .icon-close):hover { opacity: 1; }
+  & :is(.purchase-modal, #modal-confirmation, .modal-confirmation) :is(.modal-body, .modal-top-body) {
+    background: transparent !important;
+  }
+  & :is(.purchase-modal, #modal-confirmation, .modal-confirmation) .balance-after-purchase {
+    color: var(--rw-muted) !important;
+  }
+
+  /* 4.4 Report abuse, age verification and policy acceptance panels */
+  & #content :is(.abuse-report-container, .report-abuse-container, .abuse-report-modal, #report-abuse-form, .user-agreements-container, .policy-acceptance, .age-verification-container, .verification-upsell, .id-verification-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: var(--rw-pad) !important;
+  }
+
+  /* 4.5 Error, support and receipt pages */
+  & #content .request-error-page-content .section-content,
+  & #content .default-error-page {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: 40px var(--rw-pad) !important;
+    text-align: center;
+  }
+  & #content .request-error-page-content .error-title { color: var(--rw-head) !important; font-size: 28px !important; }
+  & #content .request-error-page-content .error-message { color: var(--rw-muted) !important; }
+  & #content :is(.receipt-container, .transaction-receipt, .order-receipt) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: var(--rw-pad) !important;
+  }
+
+  /* 4.6 Avatar editor: tabs, item grid and the preview stage */
+  & #content :is(.avatar-editor-container, #avatar-web-app) :is(.section-content, .tab-content) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+  }
+  & #content .seven-tab .rbx-tab-heading { border-radius: var(--rw-r-sm) var(--rw-r-sm) 0 0 !important; }
+  & #content :is(.avatar-back, .avatar-thumbnail-container, .thumbnail-holder.avatar-back) {
+    background: var(--rw-raised) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+  }
+  & #content .item-card-equipped .item-card-thumb-container {
+    outline: 2px solid var(--rc-accent, #0a84ff);
+    outline-offset: -2px;
+  }
+  & #content .outfit-card .item-card-thumb-container { border-radius: var(--rw-r-sm) !important; }
+
+  /* 4.7 Friends, followers and following lists (outside profiles) */
+  & #content :is(.avatar-cards > li.avatar-card .avatar-card-container) {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    padding: 12px !important;
+  }
+  & #content .avatar-cards > li.avatar-card .avatar-card-container:hover {
+    background: var(--rw-raised) !important;
+    border-color: var(--rw-line-3) !important;
+  }
+  & #content .avatar-cards .avatar-card-fullbody {
+    background: var(--rw-raised) !important;
+    border-radius: 999px !important;
+  }
+}
+
+/* Small screens: stack the two-column layouts instead of squeezing them */
+@media (max-width: 900px) {
+  html.rocreate-on.rcw:not(.rcp2) {
+    & #trades-web-app .trades-react,
+    & #settings-container .settings-left-navigation {
+      flex-direction: column;
+    }
+    & #trades-web-app .trade-row-list { max-width: none; flex-basis: auto; width: 100% !important; }
+    & #settings-container ul.menu-vertical { position: static; flex-basis: auto; width: 100%; }
+  }
+}

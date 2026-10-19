@@ -1,4 +1,4 @@
-# RoCreate — Roblox Like the Creator Hub
+# RoCreate: Roblox Like the Creator Hub
 
 Chrome (MV3) extension that reskins the main Roblox website to the clean,
 lightweight **Create tab / Creator Hub** look: near-black flat surfaces,
@@ -13,7 +13,7 @@ Roblox's current site runs on the **Foundation** design system, which is
 driven by CSS custom properties. RoCreate re-defines those tokens
 (`--color-surface-0..300`, `--color-content-*`, `--color-state-hover/press`,
 `--divider-color`, …) with `!important`, which reskins the whole new UI at
-once — left nav, cards, dialogs, settings — instead of chasing per-component
+once (left nav, cards, dialogs, settings) instead of chasing per-component
 class names that Roblox renames often.
 
 The **topbar is still the legacy Bootstrap navbar** (`#header`,
@@ -27,7 +27,7 @@ RoValra styles its own injected UI with the **same Roblox tokens**
 override restyles RoValra to match automatically. RoCreate:
 - never redefines RoValra's private `--rovalra-theme-*` variables, so RoValra's
   own theme features (custom theme editor, Plus themes) still work;
-- never hides any `rovalra-*` / `roseal-*` element — declutter only targets ads
+- never hides any `rovalra-*` / `roseal-*` element; declutter only targets ads
   and Plus upsells;
 - lets a RoValra custom background image show through RoCreate's base.
 
@@ -39,13 +39,13 @@ override restyles RoValra to match automatically. RoCreate:
    Declutter on/off (no reload needed).
 
 ## Files
-- `manifest.json` — MV3, injects `theme.css` + `content.js` on roblox.com.
-- `theme.css` — token override + legacy fallbacks, all gated behind
+- `manifest.json`: MV3, injects `theme.css` + `content.js` on roblox.com.
+- `theme.css`: token override + legacy fallbacks, all gated behind
   `html.rocreate-on`.
-- `content.js` — flips the `rocreate-on` / `rc-declutter` classes from stored
+- `content.js`: flips the `rocreate-on` / `rc-declutter` classes from stored
   settings at `document_start` (no flash, no reload).
-- `popup.html` / `popup.js` — two toggles stored in `chrome.storage.sync`.
-- `icons/` — toolbar icon (16/48/128). Regenerate with
+- `popup.html` / `popup.js`: two toggles stored in `chrome.storage.sync`.
+- `icons/`: toolbar icon (16/48/128). Regenerate with
   `python icons/make_icon.py` after editing its colours.
 
 ## Tuning

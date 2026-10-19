@@ -21,6 +21,7 @@
     "gameNotes": true,
     "profileItems": true,
     "friendsPage": true,
-    "groupsPage": true
+    "groupsPage": true,
+    "workspace": true
   }
 }
