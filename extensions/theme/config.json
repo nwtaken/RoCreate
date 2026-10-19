@@ -24,6 +24,7 @@
     "groupsPage": true,
     "workspace": true,
     "palette": true,
-    "moneyTools": true
+    "moneyTools": true,
+    "myGames": true
   }
 }

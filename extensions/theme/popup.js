@@ -1,4 +1,4 @@
-const DEFAULTS = { moneyTools: true, palette: true, workspace: true, friendsPage: true, groupsPage: true, enabled: true, declutter: true, streamer: false, reduceMotion: false, stats: true, watchlistTools: true, gameNotes: true, alerts: false, users: true, robux: true, sales: false, profile: true, profileNav: true, profileFilters: true, profileItems: true, socials: true };
+const DEFAULTS = { myGames: true, moneyTools: true, palette: true, workspace: true, friendsPage: true, groupsPage: true, enabled: true, declutter: true, streamer: false, reduceMotion: false, stats: true, watchlistTools: true, gameNotes: true, alerts: false, users: true, robux: true, sales: false, profile: true, profileNav: true, profileFilters: true, profileItems: true, socials: true };
 const boxes = Object.keys(DEFAULTS).map((id) => document.getElementById(id));
 const version = chrome.runtime.getManifest().version;
 document.getElementById("ver").textContent = "Version " + version;
@@ -69,6 +69,7 @@ fetch(chrome.runtime.getURL("config.json"))
     if (off("workspace")) hide("workspace");
     if (off("palette")) hide("palette");
     if (off("moneyTools")) hide("moneyTools");
+    if (off("myGames")) hide("myGames");
     if (off("gameNotes") || off("watchlistTools") || off("stats")) hide("gameNotes");
     if (off("watchlistTools") || off("stats")) { hide("watchlistTools"); document.getElementById("wl-open")?.remove(); }
     if (off("alerts") || off("stats")) hide("alerts");

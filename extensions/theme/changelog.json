@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.22.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Your experiences: a Home panel with live players for the games you and your communities own",
+      "Live player counts with a two-hour trend line, visits, rating, favorites and a Creator Hub link for each experience",
+      "Refreshes once a minute only while the tab is visible; the list of experiences is re-read every ten minutes",
+      "Workspace pages: Roblox's white active bar in the inventory menu is gone and an empty settings tab no longer shows an empty panel"
+    ]
+  },
+  {
     "version": "0.21.0",
     "date": "2026-10-20",
     "changes": [

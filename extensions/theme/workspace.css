@@ -640,6 +640,10 @@ html.rocreate-on.rcw:not(.rcp2) {
     background: rgba(52, 211, 153, .07) !important;
     border-color: rgba(52, 211, 153, .28) !important;
   }
+  & #rcx-panel :is(.rcx-watch, .rcx-copy) {
+    border-color: var(--rw-line-2) !important;
+    border-radius: var(--rw-r-xs) !important;
+  }
   & #rcx-panel .rcx-chart7 {
     background: var(--rw-inset) !important;
     border: 1px solid var(--rw-line) !important;
@@ -965,6 +969,10 @@ html.rocreate-on.rcw:not(.rcp2) {
     background: var(--rw-press) !important;
     color: var(--rw-head) !important;
   }
+  & #content :is(.menu-vertical, .menu-vertical-container) li.active,
+  & #content :is(.menu-vertical, .menu-vertical-container) .menu-option.active {
+    box-shadow: none !important;
+  }
   & #content .item-card-label {
     border-radius: 999px !important;
   }
@@ -1112,6 +1120,11 @@ html.rocreate-on.rcw:not(.rcp2) {
     padding: 8px 28px 24px !important;
   }
   & #settings-container .settings-container-v2 { background: transparent !important; }
+  /* a tab Roblox leaves empty (it happens on Security) gets no empty panel */
+  & #settings-container .tab-content.rbx-tab-content:has(> .tab-pane.active > div:empty:only-child) {
+    background: transparent !important;
+    border-color: transparent !important;
+  }
   & #settings-container .setting-section {
     border-bottom: 1px solid var(--rw-line) !important;
     padding: 18px 0 !important;
