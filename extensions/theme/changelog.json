@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.14.0",
+    "date": "2026-10-19",
+    "changes": [
+      "Profiles work with RoValra: its name gradients and effects, badges, pronouns, status bubbles, profile views, RAP button and private notes show in RoCreate's header",
+      "The avatar banner is back, with the owner's background and RoValra's frame, Show Outfits and 3D",
+      "With RoValra on, profiles show Roblox's sections with RoValra's features (categorized Currently Wearing, hidden experiences, community sorting); one click switches to RoCreate's",
+      "Inventory value now adds official Roblox items and collectibles; Rolimons' chart is called Collectibles value",
+      "Verified, flagged and admin badges in the friends list, and the Add Friend buttons line up with the header"
+    ]
+  },
+  {
     "version": "0.13.4",
     "date": "2026-10-19",
     "changes": [

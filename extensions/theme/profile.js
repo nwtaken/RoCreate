@@ -125,6 +125,16 @@
   const SERVICE = { youtube: "YouTube", twitch: "Twitch", x: "X", discord: "Discord" };
 
   /* ---- header ---- */
+  // the same badges for anyone in a list (friends): small, after the name
+  function personBadges(p) {
+    const m = p.marks || {};
+    let html = "";
+    if (m.flag || m.ex) html += `<b class="rcp-pb" title="${esc(m.flag ? "Flagged on RobloxVerifieds" : "Previously verified")}">${BADGE("#e5484d", '<path d="M11.6 11.6l8.8 8.8M20.4 11.6l-8.8 8.8" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>')}</b>`;
+    else if (p.verified) html += `<b class="rcp-pb" title="Verified by Roblox">${BADGE("#335fff", '<path fill="#fff" d="M19.94 11.94a1.5 1.5 0 0 1 2.12 2.12l-7 7a1.5 1.5 0 0 1-2.12 0l-3-3a1.5 1.5 0 0 1 2.12-2.12L14 17.88Z"/>')}</b>`;
+    if (m.admin) html += `<b class="rcp-pb rcp-pb-admin" title="Roblox admin">${ROBLOX_LOGO}</b>`;
+    return html;
+  }
+
   function nameBadges() {
     const u = S.user, m = S.marks || {};
     let html = "";
@@ -150,6 +160,22 @@
     return `<span class="rcp-status"><i></i>Offline${r?.lastOnline ? " · seen " + ago(r.lastOnline) : ""}</span>`;
   }
 
+  // Inventory value: official Roblox items (their known prices) plus collectibles (Rolimons)
+  function inventoryStat(stat) {
+    const items = S.items && !S.items.private && !S.items.error ? S.items.total || 0 : 0;
+    const coll = on("profileValue") && S.rol && !(S.rol.privacy && !S.rol.value) ? S.rol.value || 0 : 0;
+    if (!items && !coll) return "";
+    const why = [`Official Roblox items R$ ${full(items)}${S.items && !S.items.done ? " (still counting)" : ""}`, on("profileValue") ? `Collectibles R$ ${full(coll)} (Rolimons)` : ""].filter(Boolean).join(" + ");
+    return `<div class="rcp-stat rcp-inv" title="${esc(why)}"><b>R$ ${fmt(items + coll)}</b><span>Inventory value</span></div>`;
+  }
+  // while the item scan runs, only that number changes (repainting the header would reset it)
+  function updateInventoryStat() {
+    const el = root?.querySelector("#rcp-hero .rcp-inv");
+    if (!el) return paint("hero");
+    const fresh = inventoryStat(() => "");
+    if (fresh && el.outerHTML !== fresh) el.outerHTML = fresh;
+  }
+
   function heroHtml() {
     const u = S.user;
     if (!u && S.gone) {
@@ -170,7 +196,7 @@
       created ? stat(month(created), "Joined · " + age(created)) : "",
       S.games?.length ? stat(String(S.games.length), S.games.length === 1 ? "Experience" : "Experiences") : "",
       revenue >= 100 ? stat("R$ " + fmt(revenue), "Est. game revenue") : "",
-      on("profileValue") && S.rol && !(S.rol.privacy && !S.rol.value) && S.rol.value ? stat("R$ " + fmt(S.rol.value), "Inventory value") : "",
+      inventoryStat(stat),
     ].join("");
     const live = S.tw?.live;
     const socials = S.socials ? Object.entries(S.socials).filter(([, v]) => v) : [];
@@ -188,15 +214,17 @@
       `<div class="rcp-hero-top">` +
         `<div class="rcp-avatar">${S.head ? `<img src="${esc(S.head)}" alt="">` : "<span></span>"}<i class="rcp-dot-${S.presence?.userPresenceType || 0}"></i></div>` +
         `<div class="rcp-ident">` +
-          `<div class="rcp-name"><h1>${esc(u?.displayName || u?.name || "")}</h1>${nameBadges()}</div>` +
-          `<div class="rcp-handle">${u ? "@" + esc(u.name) : ""}<button type="button" class="rcp-id" data-copy="${uid}" title="Copy user ID">ID ${uid}</button>${u ? `<button type="button" class="rcp-id" data-copy="${esc(u.name)}" title="Copy username">Copy name</button>` : ""}</div>` +
+          `<div class="rcp-name"><h1>${esc(u?.displayName || u?.name || "")}</h1>${nameBadges()}<span class="rcp-rv-badges"></span></div>` +
+          `<div class="rcp-handle">${u ? "@" + esc(u.name) : ""}<span class="rcp-rv-handle"></span><button type="button" class="rcp-id" data-copy="${uid}" title="Copy user ID">ID ${uid}</button>${u ? `<button type="button" class="rcp-id" data-copy="${esc(u.name)}" title="Copy username">Copy name</button>` : ""}</div>` +
           `<div>${u ? statusLine() : skel(1)}</div>` +
+          `<div class="rcp-rv-status"></div>` +
         `</div>` +
+        `<div class="rcp-actions-slot"></div>` +
       `</div>` +
       (live ? `<button type="button" class="rcp-live" data-twitch-live><span class="rcp-live-dot">LIVE</span><span class="rcp-live-text"><b>${esc(S.tw.name)} is live on Twitch</b>${esc(live.title)}${live.game ? " · " + esc(live.game) : ""}</span><span class="rcp-live-count">${fmt(live.viewers)} watching</span><span class="rcp-live-go">Watch</span></button>` : "") +
       `<div class="rcp-stats">${stats}</div>` +
       (bio ? `<div class="rcp-bio${bio.length > 260 || bio.split("\n").length > 4 ? " rcp-clamp" : ""}"><p>${esc(bio)}</p><button type="button" data-more>Show more</button></div>` : "") +
-      `<div class="rcp-links">${links}</div>`;
+      `<div class="rcp-links"><span class="rcp-rv-buttons"></span>${links}</div>`;
   }
 
   /* ---- Latest from them: YouTube, Twitch, X ---- */
@@ -313,12 +341,12 @@
   /* ---- sidebar ---- */
   function avatarHtml() {
     const items = (S.wearing || []).slice(0, 12);
-    return card("avatar", "Avatar",
-      `<div class="rcp-body-img">${S.body ? `<img src="${esc(S.body)}" alt="Avatar">` : '<span class="rcp-skel"></span>'}</div>` +
-      (items.length ? `<div class="rcp-subhead">Wearing</div><div class="rcp-wear">${items.map((id) => {
+    if (!items.length) return "";
+    return card("avatar", "Wearing",
+      (`<div class="rcp-wear">${items.map((id) => {
         const img = thumbCache.get("Asset:" + id + ":150x150");
         return `<a href="/catalog/${id}" title="Open in the Marketplace">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : "<span></span>"}</a>`;
-      }).join("")}</div>` : ""),
+      }).join("")}</div>`),
       mine() ? `<a class="rcp-head-link" href="/my/avatar">Edit avatar</a>` : "");
   }
 
@@ -335,9 +363,9 @@
   function valueCardHtml() {
     if (!on("profileValue")) return "";
     const r = S.rol;
-    if (!r) return card("value", "Inventory value", skel(2));
+    if (!r) return card("value", "Collectibles value", skel(2));
     const year = (r.chart || []).filter((p) => p[0] >= Date.now() - 365 * 86400000);
-    return card("value", "Inventory value",
+    return card("value", "Collectibles value",
       `<div class="rcp-tiles rcp-tiles-2">${tile("Value", r.privacy && !r.value ? "Private" : "R$ " + fmt(r.value))}${tile("RAP", r.privacy && !r.rap ? "Private" : "R$ " + fmt(r.rap))}</div>` +
       (r.rank ? `<div class="rcp-muted rcp-line">Rank #${full(r.rank)} on Rolimons</div>` : "") +
       (year.length >= 2 ? sparkSvg(year) : ""),
@@ -363,14 +391,16 @@
     if (!v || !(v.reason || v.flags?.length || v.history?.length)) return "";
     return card("verify", v.flags?.length ? '<span class="rcp-bad">Flagged</span>' : "Why verified?",
       (v.reason ? `<div class="rcp-reason-top"><span class="rcp-pill ${tone(v.reason.score)}">${esc(v.reason.label)}</span><span class="rcp-muted">${v.reason.score}/100</span></div>` : "") +
-      (v.flags?.length ? `<div class="rcp-flag-mini">${v.flags.slice(0, 2).map((f) => `<b>${esc(f.reason)}</b>`).join("")}</div>` : ""),
+      (v.flags?.length ? `<div class="rcp-flag-mini">${v.flags.slice(0, 2).map((f) => `<b>${esc(f.reason)}</b>`).join("")}</div>` : "") +
+      (!v.reason && !v.flags?.length && v.history?.length ? `<div class="rcp-muted">${(() => { const h = v.history.reduce((a, b) => (b.at > a.at ? b : a)); return (h.verified ? "Verified" : "Lost the badge") + " · " + day(h.at); })()}. No estimate of why yet.</div>` : ""),
       `<button type="button" class="rcp-head-link" data-modal="verify">Details</button>`);
   }
 
   function friendsHtml() {
     const f = S.friends, m = S.mutuals;
     if (!f && !m) return card("friends", "Friends", skel(2));
-    const person = (p, mutual) => `<a href="/users/${p.id}/profile" title="@${esc(p.name)}${mutual ? " (you're both friends)" : ""}">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : "<span></span>"}<span>${esc(p.display || p.name)}</span>${mutual ? "<i>Mutual</i>" : ""}</a>`;
+    const person = (p, mutual) => `<a href="/users/${p.id}/profile" title="@${esc(p.name)}${mutual ? " (you're both friends)" : ""}">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : "<span></span>"}` +
+      `<span class="rcp-pname"><span>${esc(p.display || p.name)}</span>${personBadges(p)}</span>${mutual ? "<i>Mutual</i>" : ""}</a>`;
     const mutualIds = new Set((m?.list || []).map((p) => p.id));
     const rest = (f?.list || []).filter((p) => !mutualIds.has(p.id));
     const people = [...(m?.list || []).map((p) => person(p, true)), ...rest.map((p) => person(p, false))].slice(0, 9);
@@ -486,7 +516,7 @@
       `<div class="rcp-tiles">${tile("Items", full(list.length), minPrice ? `of ${full(it.count)}` : "official")}${tile("Total", "R$ " + full(sum(list)), "known prices")}` +
       `${tile("On sale", full(onSale.length), "R$ " + fmt(sum(onSale)))}${tile("Off sale", full(off.length), "R$ " + fmt(sum(off)) + (unknown ? ` · ${unknown} unknown` : ""))}</div>` +
       (rows ? `<div class="rcp-list">${rows}</div>` : '<div class="rcp-muted">No items at this price.</div>') +
-      `<div class="rcp-note">Official Roblox items only: limiteds are in Inventory value. Bundles such as Korblox count once. Offsale items count at the last price Roblox lists; for most older ones it lists none.</div>`;
+      `<div class="rcp-note">Official Roblox items only: limiteds are in Collectibles value. Bundles such as Korblox count once. Offsale items count at the last price Roblox lists; for most older ones it lists none.</div>`;
   }
   function verifyModalHtml() {
     const v = S.rv;
@@ -533,8 +563,130 @@
       painted.set(n, html);
       el.innerHTML = html;
       el.hidden = !html;
+      if (n === "hero") syncRoValra();
+    }
+    if (names.includes("items") && !names.includes("hero")) updateInventoryStat();
+    dock();
+  }
+
+  /* Roblox's own pieces shown in this layout. They stay where Roblox put them in the DOM
+     (React owns them, and RoValra decorates them there); CSS lifts them out of the hidden
+     profile, and this lines each one up with its slot here and sizes the slot to fit:
+       buttons    Add Friend, the ... menu, RoValra's private note
+       banner     the avatar on its background, with RoValra's frame, Show Outfits and 3D
+       sections   Roblox's profile sections, when RoValra is improving them (categorized
+                  Currently Wearing, hidden experiences, ...) */
+  const DOCKS = [
+    { key: "act", slot: ".rcp-actions-slot", host: () => document.querySelector(".buttons-show-on-desktop"), natural: true },
+    { key: "banner", slot: ".rcp-banner-slot", host: () => document.querySelector(".currently-wearing-avatar-with-background") },
+    { key: "sections", slot: ".rcp-sections-slot", host: () => (sectionsMode() ? document.querySelector(".profile-platform-container .profile-content") : null) },
+  ];
+  function dock() {
+    const content = document.getElementById("content");
+    if (!root || !content || classicOn) return;
+    for (const d of DOCKS) {
+      const slot = root.querySelector(d.slot), host = d.host();
+      if (!slot) continue;
+      if (!host) { slot.hidden = true; continue; }
+      slot.hidden = false;
+      if (d.natural) {
+        if (innerWidth <= 900) { slot.style.width = slot.style.height = ""; continue; } // narrow: above the header
+        const size = host.getBoundingClientRect();
+        slot.style.width = Math.ceil(size.width) + "px";
+        slot.style.height = Math.ceil(size.height) + "px";
+      } else {
+        // RoValra's frame reaches 8% of the banner's height past each edge; keep room for it
+        const bleed = d.key === "banner" && host.querySelector(".rovalra-profile-frame") ? Math.round(host.offsetHeight * 0.08) : 0;
+        slot.style.padding = bleed + "px";
+        content.style.setProperty(`--rcp-${d.key}-w`, Math.max(0, slot.clientWidth - bleed * 2) + "px");
+        slot.style.height = Math.ceil(host.offsetHeight + bleed * 2) + "px";
+      }
+      const s = slot.getBoundingClientRect(), c = content.getBoundingClientRect();
+      const pad = parseFloat(slot.style.padding) || 0;
+      content.style.setProperty(`--rcp-${d.key}-top`, Math.round(s.top - c.top + pad) + "px");
+      content.style.setProperty(`--rcp-${d.key}-left`, Math.round(s.left - c.left + pad) + "px");
+      if (!d.watched && "ResizeObserver" in window) {
+        d.watched = host;
+        new ResizeObserver(() => dock()).observe(host);
+      }
     }
   }
+
+  /* ---- RoValra ----
+     RoValra (another extension) decorates Roblox's profile header: the display name's
+     gradient and effects, its badges, pronouns, profile views, the RAP button and the status
+     bubble. That header is hidden here, so those pieces are copied into this one whenever
+     RoValra changes them, and a click on a copy is passed on to RoValra's original. */
+  const rovalraHere = () => !!document.querySelector('[class*="rovalra-"], [id^="rovalra-"]');
+  let sectionsPref = "auto"; // "auto" (Roblox's sections when RoValra is on), "roblox" or "rocreate"
+  const sectionsMode = () => sectionsPref === "roblox" || (sectionsPref === "auto" && rovalraHere());
+  function applySectionsMode() {
+    const v = sectionsMode();
+    document.documentElement.classList.toggle("rcp-rv", v);
+    const note = root?.querySelector(".rcp-sections-note");
+    if (note) {
+      note.hidden = !rovalraHere() && sectionsPref === "auto";
+      note.innerHTML = v
+        ? `<span>Roblox's sections${rovalraHere() ? ", with RoValra's features" : ""}</span><button type="button" data-sections="rocreate">Use RoCreate's</button>`
+        : `<span>RoCreate's sections</span><button type="button" data-sections="roblox">Use Roblox's${rovalraHere() ? " with RoValra" : ""}</button>`;
+    }
+  }
+
+  const mirrors = new Map(); // key -> { src, clone, html }
+  function mirror(key, src, place) {
+    const m = mirrors.get(key);
+    if (!src || !place) {
+      m?.clone.remove();
+      mirrors.delete(key);
+      return;
+    }
+    const html = src.outerHTML;
+    if (m && m.src === src && m.html === html && m.clone.isConnected) return;
+    m?.clone.remove();
+    const clone = src.cloneNode(true);
+    clone.dataset.rcpMirror = key;
+    for (const el of [clone, ...clone.querySelectorAll("[aria-label]")]) if (!el.title && el.getAttribute("aria-label")) el.title = el.getAttribute("aria-label");
+    clone.addEventListener("click", (e) => forward(e, src, clone), true);
+    place(clone);
+    mirrors.set(key, { src, clone, html });
+  }
+  // the same element inside RoValra's original, found by its position, gets the click
+  function forward(e, src, clone) {
+    if (e.target.closest("a[href]")) return; // links work by themselves
+    const path = [];
+    for (let n = e.target; n && n !== clone; n = n.parentElement) path.unshift([...n.parentElement.children].indexOf(n));
+    let o = src;
+    for (const i of path) o = o?.children[i] || o;
+    e.preventDefault();
+    e.stopPropagation();
+    o.click();
+  }
+
+  function syncRoValra() {
+    if (!root || classicOn) return;
+    const hero = root.querySelector("#rcp-hero");
+    const header = document.querySelector(".profile-platform-container .profile-header-overlay");
+    if (!hero || !header) return;
+    // the display name: RoValra's gradient and effect classes, and its inline gradient
+    const name = header.querySelector("#profile-header-title-container-name"), h1 = hero.querySelector(".rcp-name h1");
+    if (name && h1) {
+      const want = [...name.classList].filter((c) => c.startsWith("rovalra-"));
+      for (const c of [...h1.classList]) if (c.startsWith("rovalra-") && !want.includes(c)) h1.classList.remove(c);
+      for (const c of want) h1.classList.add(c);
+      const style = want.length ? name.getAttribute("style") || "" : "";
+      if ((h1.getAttribute("style") || "") !== style) style ? h1.setAttribute("style", style) : h1.removeAttribute("style");
+    }
+    const slot = (sel) => hero.querySelector(sel);
+    const badges = header.querySelectorAll(".rovalra-header-badge");
+    badges.forEach((b, i) => mirror("badge" + i, b, (c) => slot(".rcp-rv-badges")?.append(c)));
+    for (let i = badges.length; mirrors.has("badge" + i); i++) mirror("badge" + i, null);
+    mirror("pronouns", header.querySelector(".rovalra-profile-pronouns"), (c) => slot(".rcp-rv-handle")?.append(c));
+    mirror("views", header.querySelector(".rovalra-profile-views-pill"), (c) => slot(".rcp-rv-handle")?.append(c));
+    mirror("buttons", header.querySelector(".rovalra-profile-button-container"), (c) => slot(".rcp-rv-buttons")?.append(c));
+    mirror("bubble", header.querySelector(".rovalra-status-bubble-wrapper"), (c) => slot(".rcp-rv-status")?.append(c));
+    applySectionsMode();
+  }
+
   const paintAll = () => paint(...Object.keys(SECTIONS));
 
   function copy(e) {
@@ -552,6 +704,14 @@
     if (copy(e)) return;
     const t = e.target;
     if (t.closest("[data-classic]")) return classic(true);
+    const sw = t.closest("[data-sections]");
+    if (sw) {
+      sectionsPref = sw.dataset.sections;
+      try { chrome.storage.local.set({ "rc:profileSections": sectionsPref }); } catch {}
+      applySectionsMode();
+      dock();
+      return;
+    }
     if (t.closest("[data-more]")) { t.closest(".rcp-bio").classList.toggle("rcp-open"); t.closest("[data-more]").textContent = t.closest(".rcp-bio").classList.contains("rcp-open") ? "Show less" : "Show more"; return; }
     const ex = t.closest("[data-expand]");
     if (ex) { expanded.has(ex.dataset.expand) ? expanded.delete(ex.dataset.expand) : expanded.add(ex.dataset.expand); paint(ex.dataset.expand); return; }
@@ -565,7 +725,7 @@
     const tc = t.closest("[data-twitch-clip]");
     if (tc && /^[\w-]{1,120}$/.test(tc.dataset.twitchClip)) return openModal(tc.title || "Twitch clip", player(`https://clips.twitch.tv/embed?clip=${encodeURIComponent(tc.dataset.twitchClip)}&parent=${PARENT}&autoplay=true`, tc.title || "Twitch clip"), true);
     const md = t.closest("[data-modal]");
-    if (md?.dataset.modal === "value" && S.rol) { openModal("Inventory value", valueModalHtml(), true); wireChart(); return; }
+    if (md?.dataset.modal === "value" && S.rol) { openModal("Collectibles value", valueModalHtml(), true); wireChart(); return; }
     if (md?.dataset.modal === "items" && S.items) { openModal("Roblox items", itemsModalHtml(), true); itemThumbs(); return; }
     if (md?.dataset.modal === "verify" && S.rv) return openModal("Why verified?", verifyModalHtml());
   }
@@ -579,19 +739,29 @@
     root.innerHTML =
       `<section id="rcp-hero" data-sec="hero"></section>` +
       `<div class="rcp-layout"><div class="rcp-main">` +
-      ["socials", "games", "groups", "badges", "favorites"].map((n) => `<section class="rcp-card" data-sec="${n}" hidden></section>`).join("") +
+      `<div class="rcp-banner-slot" hidden></div>` +
+      `<section class="rcp-card" data-sec="socials" hidden></section>` +
+      `<div class="rcp-sections-note" hidden></div><div class="rcp-sections-slot" hidden></div>` +
+      ["games", "groups", "badges", "favorites"].map((n) => `<section class="rcp-card rcp-own" data-sec="${n}" hidden></section>`).join("") +
       `</div><aside class="rcp-side">` +
-      ["avatar", "value", "items", "verify", "friends", "about"].map((n) => `<section class="rcp-card" data-sec="${n}" hidden></section>`).join("") +
+      ["value", "items", "verify", "friends", "avatar", "about"].map((n) => `<section class="rcp-card${n === "avatar" ? " rcp-own" : ""}" data-sec="${n}" hidden></section>`).join("") +
       `</aside></div>`;
     root.addEventListener("click", onClick);
     host.after(root);
     document.documentElement.classList.add("rcp2");
     paintAll();
-    // Roblox can re-render its container; keep ours right after it
+    syncRoValra();
+    // docked pieces follow the layout: anything that changes size here moves them
+    if ("ResizeObserver" in window) new ResizeObserver(() => dock()).observe(root);
+    addEventListener("resize", dock);
+    // Roblox can re-render its container (keep ours right after it), and RoValra adds its
+    // pieces whenever its data arrives
     rcWatch(() => {
       if (!root || classicOn) return;
       const h = document.querySelector(".profile-platform-container");
       if (h && h.nextElementSibling !== root) h.after(root);
+      syncRoValra();
+      dock();
     });
     return true;
   }
@@ -724,10 +894,16 @@
         thumbs(show.map((id) => ["AvatarHeadShot", id])),
       ]) : [null, () => ""];
       const nm = Object.fromEntries((names?.data || []).map((u) => [String(u.id), u]));
-      const person = (id) => ({ id, name: nm[id]?.name || id, display: nm[id]?.displayName, img: heads("AvatarHeadShot", id) });
+      const person = (id) => ({ id, name: nm[id]?.name || id, display: nm[id]?.displayName, verified: !!nm[id]?.hasVerifiedBadge, img: heads("AvatarHeadShot", id) });
       S.mutuals = yours ? { total: mutual.length, list: mutual.slice(0, 9).map(person) } : null;
       S.friends = { total: ids.length, list: show.filter((id) => !mutual.includes(id)).map(person) };
       paint("friends");
+      // RoCreate's own badges (flagged, formerly verified, Roblox admin) for the people shown
+      if (prefs.users !== false && show.length) {
+        const marks = (await ask({ type: "rcx-users", ids: show })) || {};
+        for (const p of [...(S.mutuals?.list || []), ...S.friends.list]) p.marks = marks[p.id] || null;
+        paint("friends");
+      }
     },
     // value and verification
     async () => {
@@ -882,7 +1058,7 @@
     } catch (e) {
       saveDiag("crashed", { error: String(e && (e.stack || e.message || e)).slice(0, 400) });
     }
-    paint("items");
+    paint("items", "hero");
   }
 
   async function loadItemsInner() {
@@ -891,7 +1067,7 @@
     // the last result for this account shows at once, while the inventory loads
     const sumKey = "ois2:" + uid, key = "oic2";
     const last = (await chrome.storage.local.get(sumKey))[sumKey];
-    if (last) { S.items = { ...last, scanned: 0, done: false, stale: true }; paint("items"); }
+    if (last) { S.items = { ...last, scanned: 0, done: false, stale: true }; paint("items", "hero"); }
     const onWait = (s) => {
       if (S.items) S.items.wait = s;
       paint("items");
@@ -981,6 +1157,7 @@
     if (!s.profile) return;
     prefs = s;
     cfg = (await ask({ type: "rcx-config" })) || {};
+    try { sectionsPref = (await chrome.storage.local.get("rc:profileSections"))["rc:profileSections"] || "auto"; } catch {}
     if (cfg.profile === false) return;
     let tries = 0;
     const t = setInterval(() => {
