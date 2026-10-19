@@ -639,6 +639,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
     switch (msg?.type) {
       case "rcx-config":
         return f;
+      case "rcx-open-options": // Quick jump's "RoCreate settings" action
+        chrome.runtime.openOptionsPage();
+        return true;
       case "rcx-rolimons":
         return okId && profile("profileValue") ? rolimons(id) : null;
       case "rcx-rvuser":

@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.26.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Quick jump commands: turn streamer mode, the RoCreate look or workspace pages on and off, open RoCreate settings, copy your user ID or the page link",
+      "Type a word like streamer and press Enter; the command shows whether it is on now"
+    ]
+  },
+  {
     "version": "0.25.2",
     "date": "2026-10-20",
     "changes": [

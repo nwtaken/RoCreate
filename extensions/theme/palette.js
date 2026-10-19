@@ -28,6 +28,7 @@
     admin: '<path d="M12 3l7 3v5.5c0 4.4-3 7.6-7 9.5-4-1.9-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2.2 2.2L15.5 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
     item: '<path d="M6 8h12l-1 12H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.8"/>',
     search: '<circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    action: '<path d="M13 3L5 14h6l-1 7 8-11h-6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
     recent: '<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
   };
   const icon = (k) => `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">${ICONS[k] || ICONS.page}</svg>`;
@@ -70,6 +71,24 @@
         { kind: "page", title: "My profile", url: `/users/${u}/profile`, words: "me" });
     }
     return list.map((p) => ({ ...p, sub: p.sub || (p.kind === "create" ? "Creator Hub" : "Page") }));
+  }
+
+  // commands: RoCreate switches and small helpers, run in place instead of navigating
+  let sync = { enabled: true, workspace: true, streamer: false };
+  const flip = (key, label, on, words) => ({ kind: "action", title: `${label}: turn ${on ? "off" : "on"}`, sub: on ? "On now" : "Off now", words, run: () => chrome.storage.sync.set({ [key]: !on }) });
+  function copyText(text, done) {
+    navigator.clipboard?.writeText(text).then(() => done("Copied"), () => done("Copy unavailable")) ?? done("Copy unavailable");
+  }
+  function actionItems() {
+    const out = [
+      flip("streamer", "Streamer mode", !!sync.streamer, "streamer blur hide robux privacy stream obs"),
+      flip("enabled", "RoCreate look", sync.enabled !== false, "theme reskin dark disable enable creator hub look"),
+    ];
+    if (sync.enabled !== false) out.push(flip("workspace", "Workspace pages", sync.workspace !== false, "workspace panels cards layout"));
+    out.push({ kind: "action", title: "RoCreate settings", sub: "Backup, restore and cached data", words: "options preferences settings backup restore extension", run: () => chrome.runtime.sendMessage({ type: "rcx-open-options" }, () => void chrome.runtime.lastError) });
+    if (uid()) out.push({ kind: "action", title: "Copy my user ID", sub: uid(), words: "copy id user number", keep: true, run: (note) => copyText(uid(), note) });
+    out.push({ kind: "action", title: "Copy this page's link", sub: location.href.replace(/^https:\/\//, "").slice(0, 60), words: "copy link url share", keep: true, run: (note) => copyText(location.href, note) });
+    return out;
   }
 
   let groupsPromise = null, groupsCache = [], recentCache = [], gamesCache = [];
@@ -205,6 +224,14 @@
 
   function go(item, newTab) {
     if (!item) return;
+    if (item.run) {
+      if (!rcAlive()) return close();
+      if (item.keep) {
+        // copying needs the page focused for a moment, so the palette shows the result instead
+        item.run((msg) => { const row = list.querySelector(`[data-i="${items.indexOf(item)}"] small`); if (row) row.textContent = msg; setTimeout(close, 650); });
+      } else { item.run(); close(); }
+      return;
+    }
     remember(item);
     const url = new URL(item.url, location.origin).href;
     if (newTab) { window.open(url, "_blank", "noopener"); return; }
@@ -231,7 +258,7 @@
 
   function renderLocal() {
     const q = input.value.trim().toLowerCase();
-    const local = [...pages(), ...gameItems(), ...groupItems()];
+    const local = [...pages(), ...gameItems(), ...groupItems(), ...actionItems()];
     const remote = sections.filter((s) => s.remote && s.q === q);
     if (!q) {
       const rec = recentCache.map((r) => ({ ...r, kind: r.kind === "game" || r.kind === "person" || r.kind === "item" || r.kind === "group" ? r.kind : "recent" }));
@@ -240,6 +267,7 @@
         { label: "Pages", items: local.filter((i) => i.kind === "page").slice(0, 8) },
         { label: "Your experiences", items: local.filter((i) => i.kind === "game").slice(0, 5) },
         { label: "Your communities", items: local.filter((i) => i.kind === "group").slice(0, 5) },
+        { label: "Actions", items: local.filter((i) => i.kind === "action").slice(0, 3) },
       ];
     } else {
       const hits = local.map((i) => [score(i, q), i]).filter(([s]) => s > 0).sort((a, b) => b[0] - a[0]).map(([, i]) => i).slice(0, 8);
@@ -289,6 +317,7 @@
     renderLocal();
     input.focus();
     // your communities and recent picks arrive once; the list redraws when they do
+    chrome.storage.sync.get({ enabled: true, workspace: true, streamer: false }, (v) => { if (!chrome.runtime.lastError) { sync = v; if (root.isConnected) renderLocal(); } });
     myGroups().then((g) => { groupsCache = g; if (root.isConnected && !input.value.trim()) renderLocal(); else if (root.isConnected) renderLocal(); });
     recent().then((r) => { recentCache = r; if (root.isConnected && !input.value.trim()) renderLocal(); });
     chrome.storage.local.get({ rcMyGamesList: null }, (r) => {
