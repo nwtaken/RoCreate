@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.13.4",
+    "date": "2026-10-19",
+    "changes": [
+      "X's tab only shows when X actually returns posts; when it refuses, X stays a link in the header and RoCreate pauses asking for an hour"
+    ]
+  },
+  {
     "version": "0.13.3",
     "date": "2026-10-19",
     "changes": [

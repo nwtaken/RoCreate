@@ -207,7 +207,7 @@
     const tabs = [
       sx.youtube && S.yt !== false ? ["youtube", "YouTube"] : null,
       sx.twitch && S.tw !== false && !S.tw?.missing ? ["twitch", "Twitch"] : null,
-      sx.x && on("socialsX") ? ["x", "X"] : null,
+      sx.x && S.x?.posts?.length ? ["x", "X"] : null, // X often refuses: no tab unless posts came back
     ].filter(Boolean);
     if (!tabs.length) return "";
     if (!tabs.some(([k]) => k === socialTab)) socialTab = S.tw?.live && tabs.some(([k]) => k === "twitch") ? "twitch" : tabs[0][0];
@@ -239,12 +239,9 @@
       }
     } else if (socialTab === "x") {
       const x = S.x;
-      const bar = `<div class="rcp-x-bar"><span>${x?.avatar ? `<img src="${esc(x.avatar)}" alt="">` : ICONS.x}<span><b>${esc(x?.name || "@" + v.handle)}</b> @${esc(x?.handle || v.handle)}</span></span>` +
+      const bar = `<div class="rcp-x-bar"><span>${x.avatar ? `<img src="${esc(x.avatar)}" alt="">` : ICONS.x}<span><b>${esc(x.name || "@" + v.handle)}</b> @${esc(x.handle || v.handle)}</span></span>` +
         `<a class="rcp-chip" href="${esc(v.url)}" target="_blank" rel="noopener">Open on X ↗</a></div>`;
-      if (x === null) { loadX(v.handle); body = bar + skel(3); }
-      else if (!x || x.limited) body = bar + `<div class="rcp-empty">X isn't sharing posts with RoCreate right now: it limits how often anyone can load them, and RoCreate tries again in a few minutes. Their posts are on X.</div>`;
-      else if (!x.posts?.length) body = bar + '<div class="rcp-empty">No recent posts.</div>';
-      else body = bar + `<div class="rcp-posts">${x.posts.map((p) =>
+      body = bar + `<div class="rcp-posts">${x.posts.map((p) =>
         `<a class="rcp-post" href="https://x.com/${encodeURIComponent(p.by)}/status/${encodeURIComponent(p.id)}" target="_blank" rel="noopener">` +
         (p.by.toLowerCase() !== (x.handle || "").toLowerCase() ? `<span class="rcp-post-rt">Reposted from @${esc(p.by)}</span>` : "") +
         `<span class="rcp-post-text">${esc(p.text)}</span>` +
@@ -254,17 +251,6 @@
     const open = v ? `<a class="rcp-open" href="${esc(v.url)}" target="_blank" rel="noopener">Open on ${SERVICE[socialTab]} ↗</a>` : "";
     return card("socials", `Latest from ${esc(S.user?.displayName || S.user?.name || "them")}`, head + body +
       (v ? `<div class="rcp-note">Linked ${esc(v.source)}${v.source.startsWith("from their bio") ? "" : ", so it may be the studio's channel rather than their own"}. ${open}</div>` : ""));
-  }
-
-  // X loads when its tab is first opened (X limits how often anyone can ask)
-  let xAsked = false;
-  function loadX(handle) {
-    if (xAsked) return;
-    xAsked = true;
-    ask({ type: "rcx-social", service: "x", handle }).then((x) => {
-      S.x = x || false;
-      paint("socials");
-    });
   }
 
   /* ---- main column sections ---- */
@@ -808,6 +794,7 @@
       await Promise.all([
         found.youtube && on("socialsYoutube") ? ask({ type: "rcx-social", service: "youtube", url: found.youtube.url }).then((y) => (S.yt = y?.id ? y : false)) : null,
         found.twitch && on("socialsTwitch") ? ask({ type: "rcx-social", service: "twitch", login: found.twitch.login }).then((t) => (S.tw = t?.login ? t : false)) : null,
+        found.x && on("socialsX") ? ask({ type: "rcx-social", service: "x", handle: found.x.handle }).then((x) => (S.x = x?.posts?.length ? x : false)) : null,
       ]);
       if (S.tw?.live && !socialPicked) socialTab = "twitch"; // live now beats the latest videos
       paint("socials", "hero");

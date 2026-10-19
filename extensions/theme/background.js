@@ -574,18 +574,19 @@ async function twitch(login) {
 }
 
 // X: the public feed X's own embedded timeline loads, fetched once an hour per account.
-// X limits how often it answers per address; a refusal is remembered for 10 minutes, so
-// RoCreate never keeps asking, and the profile says so instead of showing an error.
+// X refuses most requests from many connections; one refusal pauses every X request for
+// an hour, so RoCreate doesn't keep asking, and the profile just leaves X's tab out.
+const X_PAUSE = 60 * 60 * 1000;
 async function xPosts(handle) {
   if (!/^[A-Za-z0-9_]{1,15}$/.test(handle)) return null;
   const k = handle.toLowerCase();
-  const { ["xl:" + k]: limited } = await chrome.storage.local.get("xl:" + k);
-  if (limited && Date.now() - limited < 10 * 60 * 1000) return { handle, limited: true };
+  const { "xl": paused } = await chrome.storage.local.get("xl");
+  if (paused && Date.now() - paused < X_PAUSE) return { handle, limited: true };
   return (await remember("xf:" + k, SOCIAL_TTL, async () => {
     const r = await fetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${handle}`, { credentials: "omit" }).catch(() => null);
     if (!r) return null;
     if (r.status === 429) {
-      await chrome.storage.local.set({ ["xl:" + k]: Date.now() });
+      await chrome.storage.local.set({ "xl": Date.now() });
       return null;
     }
     if (!r.ok) return null;
@@ -617,7 +618,7 @@ async function xPosts(handle) {
     });
     const avatar = typeof own.profile_image_url_https === "string" && /^https:\/\/pbs\.twimg\.com\//.test(own.profile_image_url_https) ? own.profile_image_url_https : null;
     return { handle: own.screen_name || handle, name: own.name || handle, avatar, posts };
-  })) || ((await chrome.storage.local.get("xl:" + k))["xl:" + k] ? { handle, limited: true } : null);
+  })) || { handle, limited: true };
 }
 
 // what a profile gets: the stored posts with their pictures inlined (the avatar and up to 4)
