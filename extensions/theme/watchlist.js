@@ -86,7 +86,7 @@ async function load() {
 }
 $('version').textContent='RoCreate '+chrome.runtime.getManifest().version;
 $('search').addEventListener('input',render);$('sort').addEventListener('change',render);
-$('refresh').addEventListener('click',load);
+$('refresh').addEventListener('click',reload);
 $('export').addEventListener('click',()=>{
   // Spreadsheet programs interpret formula prefixes even inside quoted CSV cells.
   const cell=v=>'"'+String(v??'').replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"';
@@ -94,5 +94,9 @@ $('export').addEventListener('click',()=>{
   const url=URL.createObjectURL(new Blob(['\ufeff'+rows.map(row=>row.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
   const a=Object.assign(document.createElement('a'),{href:url,download:'rocreate-watchlist-'+new Date().toISOString().slice(0,10)+'.csv'});a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
-chrome.storage.onChanged.addListener((changes,area)=>{if(area==='sync'&&(changes.watch||changes.stats||changes.watchlistTools||changes.gameNotes))load();});
-load().catch(()=>{$('status').textContent='Could not read your watchlist. Reopen this page to try again.';});
+chrome.storage.onChanged.addListener((changes,area)=>{if(area==='sync'&&(changes.watch||changes.stats||changes.watchlistTools||changes.gameNotes))reload();});
+async function reload() {
+  try { await load(); }
+  catch { $('status').textContent='Could not read your watchlist. Your saved data is unchanged; reopen this page to try again.'; $('refresh').disabled=!allowed; }
+}
+reload();

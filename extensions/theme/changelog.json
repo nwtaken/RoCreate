@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.17.2",
+    "date": "2026-10-19",
+    "changes": [
+      "Watchlist refresh failures now show a recoverable message and leave saved games and notes intact",
+      "Website and README cover the new dashboard, private notes, compact popup, profile search and lighter browsing controls"
+    ]
+  },
+  {
     "version": "0.17.1",
     "date": "2026-10-19",
     "changes": [
