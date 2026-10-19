@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.13.2",
+    "date": "2026-10-19",
+    "changes": [
+      "Profiles use the width of your window (up to 1440px) instead of Roblox's narrow column, with more videos, experiences and communities per row",
+      "X posts are drawn by RoCreate, fetched at most once an hour per account; when X limits requests you get a clear note and an Open on X button instead of \"Rate limit exceeded\""
+    ]
+  },
+  {
     "version": "0.13.1",
     "date": "2026-10-19",
     "changes": [

@@ -78,7 +78,7 @@ function warm() {
     await chrome.storage.local.set({ "cx:warmAt": Date.now() });
     // drop entries nobody has looked at for a day (hover history adds up)
     const all = await chrome.storage.local.get(null);
-    const old = Object.keys(all).filter((k) => /^((cx[dh]?|rvu|rol):\d|(ytf|twf):)/.test(k) && Date.now() - (all[k]?.at || 0) > 86400 * 1000);
+    const old = Object.keys(all).filter((k) => /^((cx[dh]?|rvu|rol):\d|(ytf|twf|xf):)/.test(k) && Date.now() - (all[k]?.at || 0) > 86400 * 1000);
     if (old.length) await chrome.storage.local.remove(old);
   })()
     .catch(() => {}) // offline or rate limited: warmed up on a later request
@@ -392,7 +392,7 @@ async function rolimons(id) {
    (kept for good), then its public RSS feed gives the latest uploads. Twitch: the public
    web API twitch.tv itself uses (live status, past broadcasts, clips); its images are
    handed over as data URLs, because roblox.com's page policy only allows YouTube's image
-   host. (X needs nothing here: the profile embeds X's own timeline.) Every request goes
+   host; the same goes for X, below. Every request goes
    out without cookies, and any of these can change without notice, so each one fails
    quietly and the profile just leaves that feed out. */
 const SOCIAL_TTL = 60 * 60 * 1000, LIVE_TTL = 5 * 60 * 1000;
@@ -539,6 +539,53 @@ async function twitch(login) {
   });
 }
 
+// X: the public feed X's own embedded timeline loads, fetched once an hour per account.
+// X limits how often it answers per address; a refusal is remembered for 10 minutes, so
+// RoCreate never keeps asking, and the profile says so instead of showing an error.
+async function xPosts(handle) {
+  if (!/^[A-Za-z0-9_]{1,15}$/.test(handle)) return null;
+  const k = handle.toLowerCase();
+  const { ["xl:" + k]: limited } = await chrome.storage.local.get("xl:" + k);
+  if (limited && Date.now() - limited < 10 * 60 * 1000) return { handle, limited: true };
+  return (await remember("xf:" + k, SOCIAL_TTL, async () => {
+    const r = await fetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${handle}`, { credentials: "omit" }).catch(() => null);
+    if (!r) return null;
+    if (r.status === 429) {
+      await chrome.storage.local.set({ ["xl:" + k]: Date.now() });
+      return null;
+    }
+    if (!r.ok) return null;
+    const m = (await r.text()).match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+    if (!m) return null;
+    let tweets = [];
+    try {
+      tweets = (JSON.parse(m[1])?.props?.pageProps?.timeline?.entries || []).map((e) => e?.content?.tweet).filter((t) => t?.id_str);
+    } catch {}
+    if (!tweets.length) return { handle, empty: true, posts: [] };
+    const own = tweets.find((t) => t.user?.screen_name?.toLowerCase() === k)?.user || tweets[0].user || {};
+    const posts = tweets.slice(0, 6).map((t) => {
+      const media = (t.extended_entities?.media || t.entities?.media || [])[0];
+      return {
+        id: String(t.id_str),
+        text: String(t.full_text || t.text || "").replace(/\s*https:\/\/t\.co\/\w+\s*$/, ""),
+        at: Date.parse(t.created_at) || null,
+        likes: t.favorite_count || 0,
+        replies: t.reply_count || 0,
+        reposts: t.retweet_count || 0,
+        by: t.user?.screen_name || handle,
+        byName: t.user?.name || "",
+        video: media?.type === "video" || media?.type === "animated_gif",
+        img: media?.media_url_https || null,
+      };
+    });
+    // pictures as data URLs (roblox.com doesn't allow X's image host): the avatar and up to 4
+    const pics = await Promise.all([own.profile_image_url_https, ...posts.slice(0, 4).map((p) => p.img)].map((x) =>
+      typeof x === "string" && /^https:\/\/pbs\.twimg\.com\//.test(x) ? dataUrl(x.includes("/media/") ? x + "?name=small" : x) : null));
+    posts.forEach((p, i) => (p.img = pics[i + 1] || null));
+    return { handle: own.screen_name || handle, name: own.name || handle, avatar: pics[0], posts };
+  })) || ((await chrome.storage.local.get("xl:" + k))["xl:" + k] ? { handle, limited: true } : null);
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
   const id = String(msg?.id);
   const okId = /^\d{1,15}$/.test(id);
@@ -566,6 +613,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
         if (!on("profile") || !on("socials")) return null;
         if (msg.service === "youtube" && on("socialsYoutube")) return youtube(String(msg.url || ""));
         if (msg.service === "twitch" && on("socialsTwitch")) return twitch(String(msg.login || "").toLowerCase());
+        if (msg.service === "x" && on("socialsX")) return xPosts(String(msg.handle || ""));
         return null;
       }
       case "rcx-stats": {

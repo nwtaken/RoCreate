@@ -99,7 +99,7 @@
     user: null, presence: null, counts: {}, head: "", body: "", names: null, marks: null,
     groups: null, games: null, gameStats: {}, favorites: null, wearing: null, robloxBadges: null, badges: null,
     friends: null, mutuals: null, rol: null, rv: null, items: null,
-    socials: null, yt: null, tw: null,
+    socials: null, yt: null, tw: null, x: null,
   };
   let cfg = {}, prefs = {};
   const on = (name) => cfg[name] !== false;
@@ -212,7 +212,7 @@
       const y = S.yt;
       if (!y) body = skel(3, "rcp-skel-grid");
       else if (!y.videos?.length) body = `<div class="rcp-player"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=UU${esc(y.id.slice(2))}" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" title="${esc(y.channel || "YouTube uploads")}"></iframe></div>`;
-      else body = `<div class="rcp-media-grid">${y.videos.slice(0, 6).map((x) =>
+      else body = `<div class="rcp-media-grid">${y.videos.slice(0, 8).map((x) =>
         `<button type="button" class="rcp-media" data-yt="${esc(x.id)}" title="${esc(x.title)}">` +
         `<span class="rcp-thumb"><img src="https://i.ytimg.com/vi/${esc(x.id)}/mqdefault.jpg" alt="" loading="lazy">${x.length ? `<i>${esc(x.length)}</i>` : x.short ? "<i>Short</i>" : ""}</span>` +
         `<span class="rcp-media-title">${esc(x.title)}</span>` +
@@ -232,14 +232,33 @@
           (!t.live && !t.videos.length && !t.clips.length ? '<div class="rcp-muted">Nothing on this channel lately.</div>' : "");
       }
     } else if (socialTab === "x") {
-      // X's own embedded timeline: it loads in your browser, and X limits how often it answers
-      body = `<div class="rcp-x-bar"><span>${ICONS.x}Posts by <b>@${esc(v.handle)}</b></span><a class="rcp-chip" href="${esc(v.url)}" target="_blank" rel="noopener">Open on X ↗</a></div>` +
-        `<div class="rcp-x"><iframe src="https://syndication.twitter.com/srv/timeline-profile/screen-name/${esc(v.handle)}?dnt=true&theme=dark&showHeader=false&showReplies=false&transparent=true&lang=en" title="Posts by @${esc(v.handle)}" loading="lazy"></iframe></div>` +
-        `<div class="rcp-note">If this stays empty or says "Rate limit exceeded", X is limiting embeds for now: open the profile on X instead.</div>`;
+      const x = S.x;
+      const bar = `<div class="rcp-x-bar"><span>${x?.avatar ? `<img src="${esc(x.avatar)}" alt="">` : ICONS.x}<span><b>${esc(x?.name || "@" + v.handle)}</b> @${esc(x?.handle || v.handle)}</span></span>` +
+        `<a class="rcp-chip" href="${esc(v.url)}" target="_blank" rel="noopener">Open on X ↗</a></div>`;
+      if (x === null) { loadX(v.handle); body = bar + skel(3); }
+      else if (!x || x.limited) body = bar + `<div class="rcp-empty">X isn't sharing posts with RoCreate right now: it limits how often anyone can load them, and RoCreate tries again in a few minutes. Their posts are on X.</div>`;
+      else if (!x.posts?.length) body = bar + '<div class="rcp-empty">No recent posts.</div>';
+      else body = bar + `<div class="rcp-posts">${x.posts.map((p) =>
+        `<a class="rcp-post" href="https://x.com/${encodeURIComponent(p.by)}/status/${encodeURIComponent(p.id)}" target="_blank" rel="noopener">` +
+        (p.by.toLowerCase() !== (x.handle || "").toLowerCase() ? `<span class="rcp-post-rt">Reposted from @${esc(p.by)}</span>` : "") +
+        `<span class="rcp-post-text">${esc(p.text)}</span>` +
+        (p.img ? `<span class="rcp-post-img"><img src="${esc(p.img)}" alt="">${p.video ? "<i>Video</i>" : ""}</span>` : "") +
+        `<span class="rcp-post-meta">${p.at ? ago(p.at) : ""} · ${fmt(p.likes)} likes · ${fmt(p.replies)} replies</span></a>`).join("")}</div>`;
     }
     const open = v ? `<a class="rcp-open" href="${esc(v.url)}" target="_blank" rel="noopener">Open on ${SERVICE[socialTab]} ↗</a>` : "";
     return card("socials", `Latest from ${esc(S.user?.displayName || S.user?.name || "them")}`, head + body +
       (v ? `<div class="rcp-note">Linked ${esc(v.source)}${v.source.startsWith("from their bio") ? "" : ", so it may be the studio's channel rather than their own"}. ${open}</div>` : ""));
+  }
+
+  // X loads when its tab is first opened (X limits how often anyone can ask)
+  let xAsked = false;
+  function loadX(handle) {
+    if (xAsked) return;
+    xAsked = true;
+    ask({ type: "rcx-social", service: "x", handle }).then((x) => {
+      S.x = x || false;
+      paint("socials");
+    });
   }
 
   /* ---- main column sections ---- */

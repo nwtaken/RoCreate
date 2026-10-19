@@ -109,6 +109,7 @@
         : h.includes("accountinformation.roblox.com") ? features.admins
         : h.includes("youtube.com") ? s.youtube
         : h.includes("twitch.tv") || h.includes("jtvnw.net") ? s.twitch
+        : h.includes("twitter.com") || h.includes("twimg.com") ? s.x
         : true);
     // only YouTube's feed needs the request rule (background.js)
     if (!s.youtube) manifest.permissions = (manifest.permissions || []).filter((p) => p !== "declarativeNetRequestWithHostAccess");

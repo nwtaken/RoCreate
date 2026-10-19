@@ -2,7 +2,9 @@
    to it in #content. Only Roblox's real action buttons stay, in the header's top right. */
 
 /* ---- Roblox's own layout: hidden, except its action buttons ---- */
-html.rcp2 #content { position: relative; }
+/* Roblox caps the page at 970px; the rebuilt profile uses the window, up to 1440px */
+html.rcp2 #content { position: relative; max-width: 1440px !important; width: auto !important; padding-left: 32px !important; padding-right: 32px !important; box-sizing: border-box; }
+html.rcp2 .buttons-show-on-desktop { right: 66px !important; }
 html.rcp2 .profile-platform-container,
 html.rcp2 .profile-platform-container > div,
 html.rcp2 .profile-header-overlay,
@@ -107,7 +109,7 @@ a.rcp-stat:hover b { color: var(--rcp-accent); }
 .rcp-chip.rcp-quiet { opacity: .7; }
 
 /* ---- layout ---- */
-.rcp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; margin-top: 20px; align-items: start; }
+.rcp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; margin-top: 20px; align-items: start; }
 .rcp-main, .rcp-side { display: grid; gap: 20px; min-width: 0; }
 .rcp-card { background: var(--rcp-card); border: 1px solid var(--rcp-line); border-radius: 18px; padding: 18px 20px 20px; min-width: 0; }
 .rcp-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
@@ -124,7 +126,7 @@ a.rcp-stat:hover b { color: var(--rcp-accent); }
 .rcp-tabs .rcp-on, .rcp-ranges .rcp-on { opacity: 1; background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .25); }
 
 /* ---- Latest from them ---- */
-.rcp-media-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 14px; }
+.rcp-media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px 14px; }
 .rcp-media { display: grid; gap: 6px; align-content: start; text-align: left; background: none; border: 0; padding: 0; cursor: pointer; min-width: 0; }
 .rcp-thumb { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: rgba(255, 255, 255, .05); }
 .rcp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s, filter .2s; }
@@ -139,14 +141,26 @@ a.rcp-stat:hover b { color: var(--rcp-accent); }
 .rcp-live-info { display: grid; gap: 6px; }
 .rcp-live-info b { font-size: 15px; line-height: 1.35; }
 .rcp-live-info span { font-size: 13px; opacity: .7; }
-.rcp-x-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; font-size: 14px; }
-.rcp-x-bar > span { display: inline-flex; align-items: center; gap: 8px; }
-.rcp-x-bar svg { width: 16px; height: 16px; }
-.rcp-x iframe { display: block; width: 100%; height: 560px; border: 0; border-radius: 12px; background: transparent; color-scheme: dark; }
+.rcp-x-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: 14px; }
+.rcp-x-bar > span { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.rcp-x-bar > span > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
+.rcp-x-bar b { opacity: 1; margin-right: 4px; }
+.rcp-x-bar img { width: 36px; height: 36px; border-radius: 50%; }
+.rcp-x-bar svg { width: 18px; height: 18px; }
+.rcp-empty { padding: 18px; border-radius: 12px; border: 1px dashed var(--rcp-line); font-size: 13px; line-height: 1.5; opacity: .75; }
+.rcp-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.rcp-post { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: rgba(255, 255, 255, .03); border: 1px solid var(--rcp-soft); min-width: 0; }
+.rcp-post:hover { border-color: rgba(255, 255, 255, .25); }
+.rcp-post-rt { font-size: 12px; font-weight: 700; opacity: .55; }
+.rcp-post-text { font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.rcp-post-img { position: relative; display: block; border-radius: 10px; overflow: hidden; aspect-ratio: 16 / 9; background: rgba(255, 255, 255, .04); }
+.rcp-post-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rcp-post-img i { position: absolute; left: 8px; bottom: 8px; background: rgba(0, 0, 0, .75); color: #fff; font-style: normal; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
+.rcp-post-meta { margin-top: auto; font-size: 12px; opacity: .55; }
 .rcp-open { font-weight: 700; color: var(--rcp-accent) !important; }
 
 /* ---- experiences, communities, badges, favorites ---- */
-.rcp-game-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rcp-game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; }
 .rcp-game { display: flex; gap: 12px; align-items: center; padding: 8px; border-radius: 14px; min-width: 0; }
 .rcp-game:hover, .rcp-group:hover { background: rgba(255, 255, 255, .05); }
 .rcp-game-icon { flex: none; width: 68px; height: 68px; border-radius: 14px; overflow: hidden; background: rgba(255, 255, 255, .05); }
@@ -156,7 +170,7 @@ a.rcp-stat:hover b { color: var(--rcp-accent); }
 .rcp-game-info > span { opacity: .65; }
 .rcp-game-info .rcp-rev { color: #2fd4b4; opacity: 1; font-weight: 700; }
 .rcp-live-n { font-style: normal; color: #2ecc71; font-weight: 700; }
-.rcp-group-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.rcp-group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px; }
 .rcp-group { display: flex; gap: 12px; align-items: center; padding: 7px; border-radius: 12px; min-width: 0; }
 .rcp-group img, .rcp-group-ph { flex: none; width: 44px; height: 44px; border-radius: 10px; background: rgba(255, 255, 255, .05); }
 .rcp-group-info { display: grid; gap: 2px; min-width: 0; flex: 1; font-size: 12px; }
@@ -271,6 +285,7 @@ html.rcp-modal-open { overflow: hidden; }
   .rcp-side { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 }
 @media (max-width: 900px) {
+  html.rcp2 #content { padding-left: 16px !important; padding-right: 16px !important; }
   html.rcp2 .buttons-show-on-desktop { position: static !important; margin: 0 0 12px !important; }
   .rcp-hero-top { padding-right: 0; }
   .rcp-media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
