@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.15.1",
+    "date": "2026-10-19",
+    "changes": [
+      "Profile menus close cleanly when toggled, dismissed or replaced, with keyboard navigation and disabled-action handling",
+      "Profile dialogs keep keyboard focus inside and return focus to the opener when closed",
+      "Outfits are reused during a profile visit; a late response cannot replace another dialog, and failed requests show a clear error"
+    ]
+  },
+  {
     "version": "0.15.0",
     "date": "2026-10-19",
     "changes": [

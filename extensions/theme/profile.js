@@ -202,7 +202,7 @@
           `<div>${u ? statusLine() : skel(1)}</div>` +
           `${S.custom.status ? `<div class="rcp-speech">${esc(S.custom.status)}</div>` : ""}` +
         `</div>` +
-        `<div class="rcp-actions">${(S.custom.actions || []).map(a => `<button type="button" data-proxy="${esc(a.id)}"${a.disabled ? " disabled" : ""}>${esc(a.label)}</button>`).join("")}<button type="button" data-actions aria-label="More profile actions">•••</button></div>` +
+        `<div class="rcp-actions">${(S.custom.actions || []).map(a => `<button type="button" data-proxy="${esc(a.id)}"${a.disabled ? " disabled" : ""}>${esc(a.label)}</button>`).join("")}<button type="button" data-actions aria-haspopup="menu" aria-expanded="false" aria-label="More profile actions">•••</button></div>` +
       `</div>` +
       (live ? `<button type="button" class="rcp-live" data-twitch-live><span class="rcp-live-dot">LIVE</span><span class="rcp-live-text"><b>${esc(S.tw.name)} is live on Twitch</b>${esc(live.title)}${live.game ? " · " + esc(live.game) : ""}</span><span class="rcp-live-count">${fmt(live.viewers)} watching</span><span class="rcp-live-go">Watch</span></button>` : "") +
       `<div class="rcp-stats">${stats}</div>` +
@@ -440,9 +440,10 @@
   }
 
   /* ---- modal: players, the value chart, the full item list ---- */
-  let modal = null;
+  let modal = null, modalReturnFocus = null;
   function openModal(title, html, wide) {
     closeModal();
+    modalReturnFocus = document.activeElement;
     modal = document.createElement("div");
     modal.id = "rcp-modal";
     modal.innerHTML = `<div class="rcp-modal-box${wide ? " rcp-wide" : ""}" role="dialog" aria-modal="true" aria-label="${esc(title)}">` +
@@ -453,13 +454,24 @@
     });
     document.body.append(modal);
     document.documentElement.classList.add("rcp-modal-open");
+    modal.querySelector("[data-close]").focus({ preventScroll: true });
   }
   function closeModal() {
     modal?.remove(); // removing it also stops any player inside
     modal = null;
     document.documentElement.classList.remove("rcp-modal-open");
+    if (modalReturnFocus?.isConnected) modalReturnFocus.focus({ preventScroll: true });
+    modalReturnFocus = null;
   }
-  addEventListener("keydown", (e) => e.key === "Escape" && modal && closeModal());
+  addEventListener("keydown", (e) => {
+    if (!modal) return;
+    if (e.key === "Escape") { e.preventDefault(); closeModal(); return; }
+    if (e.key !== "Tab") return;
+    const focusable = [...modal.querySelectorAll('button:not(:disabled), a[href], input, select, textarea, iframe, [tabindex="0"]')].filter(el => el.getClientRects().length);
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) { e.preventDefault(); last?.focus(); }
+    else if (!e.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) { e.preventDefault(); first?.focus(); }
+  });
   const player = (src, title) => `<div class="rcp-player"><iframe src="${src}" title="${esc(title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
   const PARENT = encodeURIComponent(location.hostname);
 
@@ -577,6 +589,7 @@
       if (!el) continue;
       const html = SECTIONS[n]();
       if (painted.get(n) === html) continue; // unchanged: keep the DOM (and an open X timeline) as it is
+      if (n === "hero") closeActions();
       painted.set(n, html);
       el.innerHTML = html;
       el.hidden = !html;
@@ -634,13 +647,15 @@
   function noteHtml() {
     return S.custom.notes ? card("note", "Private note", `<textarea class="rcp-note-input" maxlength="256" aria-label="Private RoValra note" placeholder="Only you can see this">${esc(S.custom.note)}</textarea><button type="button" class="rcp-more" data-save-note>Save note</button><p class="rcp-muted" role="status" data-note-status>Private to you. Stored by RoValra.</p>`) : "";
   }
+  let outfitRequest = null;
   async function outfits() {
     openModal("Outfits", '<div class="rcp-empty">Loading outfits...</div>');
-    const r = await api(`https://avatar.roblox.com/v1/users/${uid}/outfits?page=1&itemsPerPage=25`).catch(() => null);
+    const target = modal;
+    const r = await (outfitRequest ||= api(`https://avatar.roblox.com/v1/users/${uid}/outfits?page=1&itemsPerPage=25`).catch(() => { outfitRequest = null; return null; }));
     const list = r?.data || [];
     await thumbs(list.map(o => ["Outfit", o.id]), "420x420");
-    if (!modal) return;
-    modal.querySelector(".rcp-modal-body").innerHTML = list.length ? `<div class="rcp-outfits">${list.map(o => `<div><img src="${esc(thumbCache.get("Outfit:"+o.id+":420x420") || "")}" alt=""><b>${esc(o.name)}</b></div>`).join("")}</div>` : '<div class="rcp-empty">No public outfits available.</div>';
+    if (modal !== target) return;
+    modal.querySelector(".rcp-modal-body").innerHTML = !r ? '<div class="rcp-empty">Outfits could not load. Close this window and try again.</div>' : list.length ? `<div class="rcp-outfits">${list.map(o => `<div><img src="${esc(thumbCache.get("Outfit:"+o.id+":420x420") || "")}" alt=""><b>${esc(o.name)}</b></div>`).join("")}</div>` : '<div class="rcp-empty">No public outfits available.</div>';
   }
   async function saveNote(button) {
     const value = root.querySelector(".rcp-note-input").value;
@@ -656,45 +671,66 @@
     const status = root.querySelector("[data-note-status]");
     if (status) status.textContent = S.custom.note === value.trim() ? "Saved through RoValra." : "RoValra could not save the note. Try again.";
   }
+  let actionMenu = null;
+  function closeActions(restoreFocus = false) {
+    if (!actionMenu) return;
+    const { box, button, original, outside, keyboard } = actionMenu;
+    actionMenu = null;
+    box.remove();
+    button.setAttribute("aria-expanded", "false");
+    if (original.getAttribute("aria-expanded") === "true") original.click();
+    document.documentElement.classList.remove("rcp-proxying");
+    document.removeEventListener("click", outside);
+    document.removeEventListener("keydown", keyboard);
+    if (restoreFocus && button.isConnected) button.focus({ preventScroll: true });
+  }
   async function showActions(button) {
-    const old = root.querySelector(".rcp-action-menu");
-    if (old) { old.remove(); return; }
+    if (actionMenu) { closeActions(true); return; }
     const original = source("#user-profile-header-contextual-menu-button");
     if (!original) return;
+    const box = document.createElement("div");
+    box.className = "rcp-action-menu";
+    box.id = "rcp-action-menu";
+    box.setAttribute("role", "menu");
+    const outside = e => { if (!button.parentElement.contains(e.target)) closeActions(); };
+    const keyboard = e => {
+      if (e.key === "Escape") { e.preventDefault(); closeActions(true); return; }
+      if (e.key === "Tab") { closeActions(true); return; }
+      if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) return;
+      e.preventDefault();
+      const items = [...box.querySelectorAll("button:not(:disabled)")];
+      const current = items.indexOf(document.activeElement);
+      const index = e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : (current + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+      items[index]?.focus();
+    };
+    const state = actionMenu = { box, button, original, outside, keyboard };
+    button.setAttribute("aria-expanded", "true");
+    button.setAttribute("aria-controls", box.id);
     document.documentElement.classList.add("rcp-proxying");
     original.click();
     let menu;
     for (let i=0;i<10;i++) {
       await sleep(50);
+      if (actionMenu !== state) return;
       menu = document.getElementById(original.getAttribute("aria-controls")) || document.querySelector("ul.new-dropdown-menu");
       if (menu?.querySelector('[role="menuitem"], a, button')) break;
     }
     const entries = [...(menu?.querySelectorAll('[role="menuitem"]') || [])];
     if (!entries.length) entries.push(...(menu?.querySelectorAll("a, button") || []));
-    const box = document.createElement("div");
-    box.className = "rcp-action-menu";
     for (const item of entries) {
       const action = document.createElement("button");
       action.type = "button";
+      action.setAttribute("role", "menuitem");
       action.textContent = item.textContent.trim();
-      action.addEventListener("click", () => {
-        item.click(); box.remove();
-        document.documentElement.classList.remove("rcp-proxying");
-      });
+      action.disabled = item.disabled || item.getAttribute("aria-disabled") === "true";
+      action.addEventListener("click", () => { item.click(); closeActions(); });
       box.append(action);
     }
-    if (!entries.length) { original.click(); document.documentElement.classList.remove("rcp-proxying"); return; }
+    if (!entries.length) { closeActions(true); return; }
     button.parentElement.append(box);
-    const close = e => {
-      if (e.type === "keydown" && e.key !== "Escape") return;
-      if (e.type === "click" && button.parentElement.contains(e.target)) return;
-      box.remove();
-      if (original.getAttribute("aria-expanded") === "true") original.click();
-      document.documentElement.classList.remove("rcp-proxying");
-      document.removeEventListener("click", close);
-      document.removeEventListener("keydown", close);
-    };
-    setTimeout(() => { document.addEventListener("click", close); document.addEventListener("keydown", close); }, 0);
+    box.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
+    document.addEventListener("click", outside);
+    document.addEventListener("keydown", keyboard);
   }
 
   const paintAll = () => paint(...Object.keys(SECTIONS));
@@ -775,6 +811,8 @@
   // "Roblox's layout": for this visit only, with a button back
   let classicOn = false, back = null;
   function classic(v) {
+    closeActions();
+    if (v) closeModal();
     classicOn = v;
     document.documentElement.classList.toggle("rcp2", !v);
     if (root) root.hidden = v;
