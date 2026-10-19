@@ -165,3 +165,13 @@ table.features td:first-child { color: var(--text); }
   .cards, .steps, .roadmap { grid-template-columns: 1fr; }
   .nav nav a.hide-sm { display: none; }
 }
+
+/* Mobile visitors need a desktop browser to install the extension. */
+.device-notice { width: min(460px, 100% - 40px); margin: max(48px, 12vh) auto; padding: 32px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.device-notice img { margin-bottom: 28px; border-radius: 12px; }
+.device-notice .device-label { color: var(--teal); font-size: 12px; font-weight: 700; letter-spacing: .12em; }
+.device-notice h1 { font-size: 32px; line-height: 1.15; margin: 12px 0 20px; }
+.device-notice p { color: var(--muted); }
+.device-notice strong { color: var(--text); }
+.device-notice a { display: inline-block; margin-top: 16px; }
+body:has(> .device-notice) > [hidden] { display: none !important; }
