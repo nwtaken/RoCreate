@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.20.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Quick jump: press Ctrl+K (⌘K on a Mac) anywhere on Roblox",
+      "Jump to any page or settings tab, your communities, and the revenue, audit log, members and roles pages of communities you own",
+      "Live search for experiences, people, communities and Marketplace items, debounced and cached, with a clear note when Roblox rate limits",
+      "Keyboard first: arrows to move, Enter to open, Ctrl or ⌘ with Enter for a new tab; recent picks stay on your device"
+    ]
+  },
+  {
     "version": "0.19.0",
     "date": "2026-10-20",
     "changes": [

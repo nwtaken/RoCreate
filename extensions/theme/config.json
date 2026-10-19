@@ -22,6 +22,7 @@
     "profileItems": true,
     "friendsPage": true,
     "groupsPage": true,
-    "workspace": true
+    "workspace": true,
+    "palette": true
   }
 }
