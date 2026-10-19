@@ -41,11 +41,13 @@
     const primary = (await json(`https://groups.roblox.com/v1/users/${u}/groups/primary/role`).catch(() => null))?.group;
     const groups = managed.map((g) => ({ id: g.id, name: g.name, manage: true }));
     if (primary && !groups.some((g) => g.id === primary.id)) groups.unshift({ id: primary.id, name: primary.name, manage: false });
-    for (const g of groups.slice(0, 25)) {
-      const list = await json(`https://games.roblox.com/v2/groups/${g.id}/gamesV2?accessFilter=2&limit=50&sortOrder=Desc`).catch(() => ({ data: [] }));
-      for (const x of list.data || []) add(x, g.name, g.manage);
-      await sleep(150); // a gentle pace for the one-off list read
+    // four communities at a time keeps the one-off list read quick but gentle
+    const todo = groups.slice(0, 25), lists = new Array(todo.length);
+    for (let i = 0; i < todo.length; i += 4) {
+      await Promise.all(todo.slice(i, i + 4).map((g, k) => json(`https://games.roblox.com/v2/groups/${g.id}/gamesV2?accessFilter=2&limit=50&sortOrder=Desc`).then((l) => (lists[i + k] = l.data || []), () => (lists[i + k] = []))));
+      if (i + 4 < todo.length) await sleep(120);
     }
+    todo.forEach((g, i) => { for (const x of lists[i] || []) add(x, g.name, g.manage); });
     listAt = Date.now();
     chrome.storage.local.set({ [LIST_KEY]: { v: 2, uid: u, at: listAt, games } });
     return games;

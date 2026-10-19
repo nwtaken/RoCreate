@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.25.1",
+    "date": "2026-10-20",
+    "changes": [
+      "Your experiences reads your communities' experience lists four at a time, so the first load takes a couple of seconds instead of about fifteen"
+    ]
+  },
+  {
     "version": "0.25.0",
     "date": "2026-10-20",
     "changes": [
