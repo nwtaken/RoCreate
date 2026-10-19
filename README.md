@@ -43,7 +43,8 @@ watchlist (searchable and sortable, with a 7-day sparkline per game, and exporta
 get spike alerts when a watched game jumps. It shows what's new after every update, and
 Alt+Shift+R opens it. The optional watchlist dashboard opens from **Open** beside Watchlist:
 search by name or ID, sort by players or estimated revenue, see totals, copy IDs and download
-a CSV. Its options page backs up and restores your settings and watchlist.
+a CSV. Optional private notes give each watched game a scratchpad stored only on this device.
+Its options page backs up and restores your settings, watched games and private game notes.
 
 <p align="center"><img src="docs/img/popup.png" alt="The RoCreate popup" width="300"></p>
 
@@ -57,7 +58,8 @@ history), every official Roblox item they own with prices, and friends with mutu
 uses RoCreate's own sections throughout. RoValra name colors, badges, pronouns, status,
 views, frames, avatar borders and private notes appear in the native design. Public and hidden
 experiences, wearing categories, outfits and community sorting use RoCreate controls.
-An optional sticky section bar jumps to experiences, socials, items and friends.
+An optional sticky section bar jumps to experiences, socials, items and friends. Optional search
+filters find experiences, communities and worn items locally.
 Roblox's own layout is one click away.
 
 <p align="center"><img src="docs/img/profile2.jpg" alt="Roblox's official profile in RoCreate's new layout" width="90%"></p>

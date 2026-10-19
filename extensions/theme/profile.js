@@ -270,6 +270,14 @@
   const expanded = new Set();
   const more = (sec, total, shown) => total > shown ? `<button type="button" class="rcp-more" data-expand="${sec}">${expanded.has(sec) ? "Show less" : `Show all ${total}`}</button>` : "";
 
+  const profileQueries = { games: "", groups: "", avatar: "" };
+  const filtersOn = () => on("profileFilters") && prefs.profileFilters !== false;
+  const filterHtml = (section, label) => filtersOn() ? `<label class="rcp-filter"><span class="rcp-sr-only">${label}</span><input type="search" data-profile-filter="${section}" value="${esc(profileQueries[section])}" placeholder="${label}" autocomplete="off"></label>` : "";
+  const filterList = (section, list, name) => {
+    const query = filtersOn() ? profileQueries[section].trim().toLocaleLowerCase() : "";
+    return !query ? list : list.filter(item => String(name(item) || "").toLocaleLowerCase().includes(query));
+  };
+
   let gameTab = "public", hiddenGames = null, hiddenLoading = false, hiddenError = "";
   async function loadHidden() {
     if (hiddenLoading || hiddenGames) return;
@@ -302,14 +310,16 @@
   }
   function gamesHtml() {
     const tabs = `<div class="rcp-tabs">${["public","hidden"].map(t => `<button type="button" class="${gameTab === t ? "rcp-on" : ""}" data-games="${t}">${t === "public" ? "Public" : "Hidden"}</button>`).join("")}</div>`;
-    const list = gameTab === "hidden" ? hiddenGames : S.games;
+    const all = gameTab === "hidden" ? hiddenGames : S.games;
+    const list = all && filterList("games", all, g => g.name);
+    const search = filterHtml("games", "Search experiences");
     if (gameTab === "hidden" && !list) return card("games", "Experiences", tabs + `<div class="rcp-empty">${esc(hiddenError || "Loading hidden experiences...")}</div>`);
     if (!list) return card("games", "Experiences", skel(4, "rcp-skel-grid"));
-    if (!list.length) return card("games", "Experiences", tabs + `<div class="rcp-empty">No ${gameTab} experiences.</div>`);
+    if (!list.length) return card("games", "Experiences", tabs + (all.length ? search : "") + `<div class="rcp-empty">${all.length ? "No experiences match your search." : `No ${gameTab} experiences.`}</div>`);
     const show = expanded.has("games") ? list : list.slice(0, 6);
     const icon = (g) => thumbCache.get("GameIcon:" + g.id + ":150x150");
     return card("games", `Experiences <span class="rcp-count">${list.length}</span>`,
-      tabs + `<div class="rcp-game-grid">${show.map((g) => {
+      tabs + search + `<div class="rcp-game-grid">${show.map((g) => {
         const st = S.gameStats[g.id] || {};
         return `<a class="rcp-game" href="/games/${g.rootPlace?.id || ""}">` +
           `<span class="rcp-game-icon">${icon(g) ? `<img src="${esc(icon(g))}" alt="" loading="lazy">` : ""}</span>` +
@@ -322,12 +332,12 @@
 
   let groupSort = "members";
   function groupsHtml() {
-    const list = S.groups && [...S.groups].sort((a,b) => groupSort === "name" ? a.group.name.localeCompare(b.group.name) : groupSort === "rank" ? b.role.rank-a.role.rank : (b.group.memberCount || 0)-(a.group.memberCount || 0));
+    const list = S.groups && filterList("groups", S.groups, x => x.group.name).sort((a,b) => groupSort === "name" ? a.group.name.localeCompare(b.group.name) : groupSort === "rank" ? b.role.rank-a.role.rank : (b.group.memberCount || 0)-(a.group.memberCount || 0));
     if (!list) return card("groups", "Communities", skel(4, "rcp-skel-grid"));
-    if (!list.length) return "";
+    if (!list.length) return S.groups.length ? card("groups", "Communities", filterHtml("groups", "Search communities") + '<div class="rcp-empty">No communities match your search.</div>') : "";
     const show = expanded.has("groups") ? list : list.slice(0, 8);
     return card("groups", `Communities <span class="rcp-count">${list.length}</span>`,
-      `<div class="rcp-tabs">${["members","name","rank"].map(t => `<button type="button" data-group-sort="${t}" class="${groupSort === t ? "rcp-on" : ""}">${t[0].toUpperCase()+t.slice(1)}</button>`).join("")}</div><div class="rcp-group-grid">${show.map((x) => {
+      filterHtml("groups", "Search communities") + `<div class="rcp-tabs">${["members","name","rank"].map(t => `<button type="button" data-group-sort="${t}" class="${groupSort === t ? "rcp-on" : ""}">${t[0].toUpperCase()+t.slice(1)}</button>`).join("")}</div><div class="rcp-group-grid">${show.map((x) => {
         const img = thumbCache.get("GroupIcon:" + x.group.id + ":150x150");
         return `<a class="rcp-group" href="/communities/${x.group.id}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="rcp-group-ph"></span>'}` +
           `<span class="rcp-group-info"><b>${esc(x.group.name)}</b><span>${x.role?.rank === 255 ? '<em class="rcp-owner">Owner</em>' : esc(x.role?.name || "")} · ${fmt(x.group.memberCount)} members</span></span></a>`;
@@ -365,8 +375,8 @@
       return items.length ? card("avatar", "Wearing", `<div class="rcp-wear">${items.map(id => `<a href="/catalog/${id}"><img src="${esc(thumbCache.get("Asset:"+id+":150x150") || "")}" alt="Item ${id}"></a>`).join("")}</div>`) : "";
     }
     const category = a => /Emote/.test(a.assetType?.name) ? "Emotes" : /Animation/.test(a.assetType?.name) ? "Animations" : /Head|Face|Torso|Arm|Leg/.test(a.assetType?.name) && !/Accessory/.test(a.assetType?.name) ? "Body" : "Items";
-    const list = assets.filter(a => category(a) === wearTab);
-    return card("avatar", "Currently wearing", `<div class="rcp-tabs">${["Items","Body","Animations","Emotes"].map(t => `<button type="button" class="${wearTab === t ? "rcp-on" : ""}" data-wear="${t}">${t}</button>`).join("")}</div><div class="rcp-wear">${list.map(a => `<a href="/catalog/${a.id}" title="${esc(a.name)}"><img src="${esc(thumbCache.get("Asset:"+a.id+":150x150") || "")}" alt="${esc(a.name)}" loading="lazy"></a>`).join("")}</div>`);
+    const list = filterList("avatar", assets.filter(a => category(a) === wearTab), a => a.name);
+    return card("avatar", "Currently wearing", filterHtml("avatar", "Search worn items") + `<div class="rcp-tabs">${["Items","Body","Animations","Emotes"].map(t => `<button type="button" class="${wearTab === t ? "rcp-on" : ""}" data-wear="${t}">${t}</button>`).join("")}</div><div class="rcp-wear">${list.map(a => `<a href="/catalog/${a.id}" title="${esc(a.name)}"><img src="${esc(thumbCache.get("Asset:"+a.id+":150x150") || "")}" alt="${esc(a.name)}" loading="lazy"></a>`).join("")}</div>`);
   }
 
   function sparkSvg(points) {
@@ -829,6 +839,17 @@
       ["avatar", "value", "items", "verify", "note", "friends", "about"].map((n) => `<section class="rcp-card${n === "avatar" ? " rcp-own" : ""}" data-sec="${n}" hidden></section>`).join("") +
       `</aside></div>`;
     root.addEventListener("click", onClick);
+    root.addEventListener("input", e => {
+      const input = e.target.closest("[data-profile-filter]");
+      if (!input) return;
+      const section = input.dataset.profileFilter;
+      profileQueries[section] = input.value.slice(0, 120);
+      const start = input.selectionStart, end = input.selectionEnd;
+      paint(section);
+      const next = root.querySelector(`[data-profile-filter="${section}"]`);
+      next?.focus({ preventScroll: true });
+      if (next && start != null) next.setSelectionRange(start, end);
+    });
     host.after(root);
     document.documentElement.classList.add("rcp2");
     paintAll();
@@ -1244,9 +1265,9 @@
   loaders.push(loadItems);
 
   chrome.storage.onChanged?.addListener((changes, area) => {
-    if (area !== "sync" || !changes.profileNav) return;
-    prefs.profileNav = changes.profileNav.newValue !== false;
-    updateProfileNav();
+    if (area !== "sync") return;
+    if (changes.profileNav) { prefs.profileNav = changes.profileNav.newValue !== false; updateProfileNav(); }
+    if (changes.profileFilters) { prefs.profileFilters = changes.profileFilters.newValue !== false; paint("games", "groups", "avatar"); }
   });
 
   /* ---- start ---- */
@@ -1257,7 +1278,7 @@
     return true;
   }
 
-  chrome.storage.sync.get({ profile: true, users: true, socials: true, profileNav: true }, async (s) => {
+  chrome.storage.sync.get({ profile: true, users: true, socials: true, profileNav: true, profileFilters: true }, async (s) => {
     if (!s.profile) return;
     prefs = s;
     cfg = (await ask({ type: "rcx-config" })) || {};

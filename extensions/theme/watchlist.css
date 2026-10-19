@@ -42,3 +42,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { 
 .empty b { color:#f2f3f5; display:block; margin-bottom:6px; }
 footer { display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; color:#7f8a99; font-size:11px; margin-top:32px; }
 @media(max-width:600px) { main { padding:18px; }.heading { align-items:flex-start; flex-direction:column; }.summary { gap:8px; }.summary > div { padding:12px; }.summary b { font-size:22px; }.games { grid-template-columns:minmax(0,1fr); } }
+
+.game-note { display:block; margin-top:18px; border-top:1px solid var(--line); padding-top:14px; }
+.game-note > span { display:block; color:#aab3bf; font-size:12px; margin-bottom:6px; }
+.game-note textarea { width:100%; resize:vertical; min-height:82px; border:1px solid var(--line); border-radius:9px; padding:10px; background:#10141b; color:inherit; font:inherit; font-size:12px; }
+.game-note textarea:focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
+.note-tools { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:8px; }
+.note-tools button { font-size:11px; padding:6px 10px; }
+.note-tools span { font-size:10px; color:#9fa8b6; }

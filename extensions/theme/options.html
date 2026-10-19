@@ -16,6 +16,7 @@
   p { color: #a7acb3; font-size: 14px; margin: 0 0 14px; line-height: 1.5; }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   button, .file { background: #23262c; color: #f2f3f5; border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; padding: 9px 14px; font-weight: 600; font-size: 14px; font-family: inherit; cursor: pointer; }
+  button:focus-visible, .file:focus-visible, a:focus-visible { outline:2px solid #0a84ff; outline-offset:3px; }
   button:hover, .file:hover { border-color: rgba(255,255,255,0.3); }
   button.primary { background: #0a84ff; border-color: #0a84ff; }
   button.danger { color: #ff6b6b; }
@@ -35,11 +36,11 @@
 
   <section>
     <h2>Backup and restore</h2>
-    <p>Save your settings and watchlist to a file, and load them again on another computer or after a reinstall.</p>
+    <p>Save your settings, watchlist and private game notes to a file, then restore them on another computer or after a reinstall. Backup files contain your notes: keep them private.</p>
     <div class="actions">
       <button type="button" class="primary" id="export">Download backup</button>
-      <label class="file">Restore from file<input type="file" id="import" accept="application/json,.json"></label>
-      <span class="status" id="backup-status"></span>
+      <label class="file" tabindex="0" role="button">Restore from file<input type="file" id="import" accept="application/json,.json"></label>
+      <span class="status" role="status" id="backup-status"></span>
     </div>
   </section>
 
@@ -48,20 +49,21 @@
     <p>RoCreate keeps stats, item prices and values on your device so pages load fast. Clearing it is safe: everything is fetched again when you need it.</p>
     <div class="actions">
       <button type="button" id="clear-cache">Clear cached data</button>
-      <span class="status" id="cache-status"></span>
+      <span class="status" role="status" id="cache-status"></span>
     </div>
   </section>
 
   <section>
     <h2>Reset</h2>
-    <p>Turn every setting back to its default and empty your watchlist.</p>
+    <p>Turn every setting back to its default and empty your watchlist. Private game notes stay on this device.</p>
     <div class="actions">
       <button type="button" class="danger" id="reset">Reset everything</button>
-      <span class="status" id="reset-status"></span>
+      <span class="status" role="status" id="reset-status"></span>
     </div>
   </section>
 
   <footer>
+    <a href="watchlist.html" id="dashboard">Watchlist</a>
     <a href="https://rocreate.org" target="_blank" rel="noopener">rocreate.org</a>
     <a href="https://rocreate.org/changelog.html" target="_blank" rel="noopener">Changelog</a>
     <a href="https://rocreate.org/privacy.html" target="_blank" rel="noopener">Privacy</a>

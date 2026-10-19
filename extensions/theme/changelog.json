@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.17.0",
+    "date": "2026-10-19",
+    "changes": [
+      "Private game notes on the watchlist dashboard, stored only on this device and included in your backup files",
+      "Optional profile search filters find experiences, communities and worn items locally without extra requests",
+      "Watchlist note drafts survive filtering and sorting; backups protect notes when cached data is cleared"
+    ]
+  },
+  {
     "version": "0.16.2",
     "date": "2026-10-19",
     "changes": [

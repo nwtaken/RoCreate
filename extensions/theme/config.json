@@ -16,6 +16,8 @@
     "socialsX": true,
     "profileNav": true,
     "watchlistTools": true,
-    "reduceMotion": true
+    "reduceMotion": true,
+    "profileFilters": true,
+    "gameNotes": true
   }
 }

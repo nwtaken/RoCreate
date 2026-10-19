@@ -4,15 +4,16 @@
    anywhere. */
 (() => {
   const RAW = "https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/";
-  const ALL = { reduceMotion: true, stats: true, watchlistTools: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
+  const ALL = { reduceMotion: true, stats: true, watchlistTools: true, gameNotes: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileFilters: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
   const $ = (s) => document.querySelector(s);
   const boxes = [...document.querySelectorAll("input[data-f]")];
 
   const chosen = () => {
     const f = Object.fromEntries(boxes.map((b) => [b.dataset.f, b.checked]));
-    if (!f.profile) f.profileNav = f.profileValue = f.profileRevenue = f.profileVerify = f.socialsYoutube = f.socialsTwitch = f.socialsX = false;
+    if (!f.profile) f.profileNav = f.profileFilters = f.profileValue = f.profileRevenue = f.profileVerify = f.socialsYoutube = f.socialsTwitch = f.socialsX = false;
     f.socials = !!(f.socialsYoutube || f.socialsTwitch || f.socialsX);
-    if (!f.stats) f.alerts = f.watchlistTools = false;
+    if (!f.stats) f.alerts = f.watchlistTools = f.gameNotes = false;
+    if (!f.watchlistTools) f.gameNotes = false;
     if (!f.robux) f.sales = false;
     return f;
   };
@@ -32,7 +33,7 @@
     $("#stats-parts").classList.toggle("off", !f.stats);
     $("#robux-parts").classList.toggle("off", !f.robux);
     for (const b of $("#robux-parts").querySelectorAll("input")) b.disabled = !f.robux;
-    for (const b of $("#stats-parts").querySelectorAll("input")) b.disabled = !f.stats;
+    for (const b of $("#stats-parts").querySelectorAll("input")) b.disabled = !f.stats || (b.dataset.f === "gameNotes" && !f.watchlistTools);
     for (const b of $("#profile-parts").querySelectorAll("input")) b.disabled = !f.profile;
     const s = services(f);
     for (const c of document.querySelectorAll("#services [data-s]")) {
@@ -56,8 +57,8 @@
   // presets: Creator = the money and stats side; Roblox only = nothing outside roblox.com
   const PRESETS = {
     all: Object.keys(ALL),
-    creator: ["reduceMotion", "stats", "watchlistTools", "alerts", "robux", "sales", "profile", "profileNav", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
-    roblox: ["reduceMotion", "robux", "sales", "profile", "profileNav", "admins"],
+    creator: ["reduceMotion", "stats", "watchlistTools", "gameNotes", "alerts", "robux", "sales", "profile", "profileNav", "profileFilters", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
+    roblox: ["reduceMotion", "robux", "sales", "profile", "profileNav", "profileFilters", "admins"],
     theme: [],
   };
   $("#presets").addEventListener("click", (e) => {

@@ -7,7 +7,9 @@ const short = n => {
   return Math.round(n).toLocaleString();
 };
 const node = (tag,cls,text) => Object.assign(document.createElement(tag),{className:cls || "", ...(text!=null && {textContent:text})});
-let watched=[], stats={}, allowed=false, generation=0;
+let watched=[], stats={}, allowed=false, generation=0, notesEnabled=false;
+const notes={}, drafts=new Map(), dirty=new Set();
+const noteKey=id=>"rc:gameNote:"+id;
 const name = g => stats[g.id]?.name || g.name || "Universe "+g.id;
 const link = g => /^\d+$/.test(String(g.place)) ? `https://www.roblox.com/games/${g.place}` : `https://creatorexchange.io/roblox-game/${g.id}`;
 function render() {
@@ -27,6 +29,7 @@ function render() {
   }
   $('games').replaceChildren(...list.map(g=>{
     const s=stats[g.id] || {}, card=node('article','game'), title=node('h2'), a=node('a','',name(g));
+    card.dataset.id=String(g.id);
     a.href=link(g);a.target='_blank';a.rel='noopener';title.append(a);
     const metrics=node('div','metrics');
     for (const [value,label,cls] of [[short(s.playing),'Playing now',''],[Number.isFinite(s.revenue)?'R$ '+short(s.revenue):'-','Estimated revenue','revenue']]) {const cell=node('div',cls);cell.append(node('b','',value),node('span','',label));metrics.append(cell);}
@@ -39,17 +42,40 @@ function render() {
       const {watch=[]}=await chrome.storage.sync.get({watch:[]});
       await chrome.storage.sync.set({watch:watch.filter(x=>String(x.id)!==String(g.id))});
     });
-    actions.append(open,copy,remove);card.append(actions);return card;
+    actions.append(open,copy,remove);card.append(actions);
+    if(notesEnabled){
+      const label=node('label','game-note'), caption=node('span','','Private game note'), input=node('textarea');
+      input.maxLength=500;input.rows=3;input.placeholder='Ideas, experiments, reminders...';input.setAttribute('aria-label','Private note for '+name(g));
+      input.value=drafts.has(g.id)?drafts.get(g.id):notes[g.id] || '';
+      const tools=node('div','note-tools'), save=node('button','','Save note'), status=node('span','',dirty.has(g.id)?'Unsaved changes':'Stored only on this device');
+      save.type='button';status.setAttribute('role','status');
+      input.addEventListener('input',()=>{drafts.set(g.id,input.value);dirty.add(g.id);status.textContent='Unsaved changes';});
+      input.addEventListener('keydown',event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();save.click();}});
+      save.addEventListener('click',async()=>{
+        const value=input.value;save.disabled=true;status.textContent='Saving...';
+        try{await chrome.storage.local.set({[noteKey(g.id)]:value});notes[g.id]=value;drafts.delete(g.id);dirty.delete(g.id);status.textContent='Saved on this device';}
+        catch{status.textContent='Could not save. Your draft is still here.';}
+        finally{save.disabled=false;}
+      });
+      label.append(caption,input);tools.append(save,status);card.append(label,tools);
+    }
+    return card;
   }));
 }
 async function load() {
   const current=++generation;
-  const [settings, config]=await Promise.all([chrome.storage.sync.get({watch:[],stats:true,watchlistTools:true}),fetch(chrome.runtime.getURL('config.json')).then(r=>r.json())]);
+  const [settings, config]=await Promise.all([chrome.storage.sync.get({watch:[],stats:true,watchlistTools:true,gameNotes:true}),fetch(chrome.runtime.getURL('config.json')).then(r=>r.json())]);
   if(current!==generation)return;
   allowed=settings.stats && settings.watchlistTools && config.features?.stats!==false && config.features?.watchlistTools!==false;
   $('refresh').disabled=!allowed;
   if(!allowed){watched=[];stats={};render();$('status').textContent='Watchlist tools are disabled for this copy or in the popup.';return;}
+  notesEnabled=settings.gameNotes && config.features?.gameNotes!==false;
   watched=(Array.isArray(settings.watch)?settings.watch:[]).filter(g=>/^\d{1,15}$/.test(String(g.id)));
+  if(notesEnabled){
+    const saved=await chrome.storage.local.get(watched.map(g=>noteKey(g.id)));
+    if(current!==generation)return;
+    for(const g of watched)notes[g.id]=typeof saved[noteKey(g.id)]==='string'?saved[noteKey(g.id)]:'';
+  }
   render();
   if(!watched.length){$('status').textContent='';return;}
   $('status').textContent='Loading tracked stats...';$('refresh').disabled=true;
@@ -68,5 +94,5 @@ $('export').addEventListener('click',()=>{
   const url=URL.createObjectURL(new Blob(['\ufeff'+rows.map(row=>row.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
   const a=Object.assign(document.createElement('a'),{href:url,download:'rocreate-watchlist-'+new Date().toISOString().slice(0,10)+'.csv'});a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
-chrome.storage.onChanged.addListener((changes,area)=>{if(area==='sync'&&(changes.watch||changes.stats||changes.watchlistTools))load();});
+chrome.storage.onChanged.addListener((changes,area)=>{if(area==='sync'&&(changes.watch||changes.stats||changes.watchlistTools||changes.gameNotes))load();});
 load().catch(()=>{$('status').textContent='Could not read your watchlist. Reopen this page to try again.';});
