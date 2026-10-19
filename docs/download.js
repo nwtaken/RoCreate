@@ -4,7 +4,7 @@
    anywhere. */
 (() => {
   const RAW = "https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/";
-  const ALL = { stats: true, watchlistTools: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
+  const ALL = { reduceMotion: true, stats: true, watchlistTools: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
   const $ = (s) => document.querySelector(s);
   const boxes = [...document.querySelectorAll("input[data-f]")];
 
@@ -56,8 +56,8 @@
   // presets: Creator = the money and stats side; Roblox only = nothing outside roblox.com
   const PRESETS = {
     all: Object.keys(ALL),
-    creator: ["stats", "watchlistTools", "alerts", "robux", "sales", "profile", "profileNav", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
-    roblox: ["robux", "sales", "profile", "profileNav", "admins"],
+    creator: ["reduceMotion", "stats", "watchlistTools", "alerts", "robux", "sales", "profile", "profileNav", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
+    roblox: ["reduceMotion", "robux", "sales", "profile", "profileNav", "admins"],
     theme: [],
   };
   $("#presets").addEventListener("click", (e) => {

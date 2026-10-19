@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.16.2",
+    "date": "2026-10-19",
+    "changes": [
+      "Reduce motion from the popup without changing your system setting; profile shortcuts respect it",
+      "Profile sections show retry controls after failed requests instead of loading forever; connection errors no longer look like deleted accounts",
+      "Cache clearing preserves service cooldowns; profile links can be copied and clipboard failures get useful feedback"
+    ]
+  },
+  {
     "version": "0.16.1",
     "date": "2026-10-19",
     "changes": [

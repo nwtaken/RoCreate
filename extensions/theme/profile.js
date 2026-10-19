@@ -34,6 +34,7 @@
 
   let csrf = "";
   async function api(url, body, signal) {
+    signal ||= AbortSignal.timeout(20000);
     if (body && !csrf) csrf = document.querySelector('meta[name="csrf-token"]')?.dataset.token || "";
     const opts = () => ({
       method: body ? "POST" : "GET",
@@ -185,6 +186,7 @@
     const socials = S.socials ? Object.entries(S.socials).filter(([, v]) => v) : [];
     const links = [
       ...socials.map(([k, v]) => `<a class="rcp-chip rcp-${k}" href="${esc(v.url)}" target="_blank" rel="noopener" title="${esc(SERVICE[k] + ", linked " + v.source)}">${ICONS[k]}${esc(v.label)}</a>`),
+      `<button type="button" class="rcp-chip" data-copy="https://www.roblox.com/users/${uid}/profile">Copy profile link</button>`,
       `<a class="rcp-chip" href="/users/${uid}/inventory">Inventory</a>`,
       `<a class="rcp-chip" href="/users/${uid}/favorites">Favorites</a>`,
       me() && !mine() ? `<a class="rcp-chip" href="/users/${uid}/trade">Trade</a>` : "",
@@ -580,6 +582,8 @@
   }
 
   /* ---- drawing ---- */
+  const LOAD_LABELS = { hero:"Profile", avatar:"Currently wearing", groups:"Communities", games:"Experiences", favorites:"Favorites", friends:"Friends" };
+  const loadErrors = {}, loadingSections = new Set();
   const SECTIONS = { stage: stageHtml, note: noteHtml, hero: heroHtml, socials: socialsHtml, games: gamesHtml, groups: groupsHtml, badges: badgesHtml, favorites: favoritesHtml, avatar: avatarHtml, value: valueCardHtml, items: itemsCardHtml, verify: verifyCardHtml, friends: friendsHtml, about: aboutHtml };
   const painted = new Map(); // section -> the HTML it shows now
   function paint(...names) {
@@ -587,7 +591,8 @@
     for (const n of names) {
       const el = root.querySelector(`[data-sec="${n}"]`);
       if (!el) continue;
-      const html = SECTIONS[n]();
+      const failure = loadErrors[n];
+      const html = failure ? card(n, LOAD_LABELS[n] || "Profile", `<div class="rcp-empty" role="status">${esc(failure.message)}</div><button type="button" class="rcp-more" data-retry="${n}"${failure.retryAt > Date.now() ? " disabled" : ""}>${failure.retryAt > Date.now() ? "Wait a minute before retrying" : "Try again"}</button>`) : SECTIONS[n]();
       if (painted.get(n) === html) continue; // unchanged: keep the DOM (and an open X timeline) as it is
       if (n === "hero") closeActions();
       painted.set(n, html);
@@ -753,11 +758,10 @@
   function copy(e) {
     const c = e.target.closest("[data-copy]");
     if (!c) return false;
-    navigator.clipboard.writeText(c.dataset.copy).then(() => {
-      const old = c.textContent;
-      c.textContent = "Copied";
-      setTimeout(() => (c.textContent = old), 1200);
-    });
+    const old = c.textContent;
+    const feedback = text => { c.textContent = text; setTimeout(() => { if (c.isConnected) c.textContent = old; }, 1600); };
+    if (!navigator.clipboard) { feedback("Copy unavailable"); return true; }
+    navigator.clipboard.writeText(c.dataset.copy).then(() => feedback("Copied"), () => feedback("Copy unavailable"));
     return true;
   }
 
@@ -767,12 +771,18 @@
       const section = root.querySelector(`[data-sec="${jump.dataset.jump}"]`);
       section?.setAttribute("tabindex", "-1");
       section?.focus({ preventScroll: true });
-      section?.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      section?.scrollIntoView({ block: "start", behavior: (document.documentElement.classList.contains("rc-reduce-motion") || matchMedia("(prefers-reduced-motion: reduce)").matches) ? "instant" : "smooth" });
       return;
     }
     if (copy(e)) return;
     const t = e.target;
     if (t.closest("[data-classic]")) return classic(true);
+    const retry = t.closest("[data-retry]");
+    if (retry) {
+      const key = retry.dataset.retry, load = loaders.find(fn => fn.name === key);
+      if (load && (!loadErrors[key] || loadErrors[key].retryAt <= Date.now())) runLoader(load);
+      return;
+    }
     const games = t.closest("[data-games]");
     if (games) { gameTab = games.dataset.games; if (gameTab === "hidden") loadHidden(); paint("games"); return; }
     const sort = t.closest("[data-group-sort]");
@@ -852,20 +862,35 @@
   /* ---- data ---- */
   const count = (url) => api(url).then((r) => r.count).catch(() => null);
 
+  async function runLoader(load) {
+    const section = LOAD_LABELS[load.name] ? load.name : null;
+    if (section && loadingSections.has(section)) return;
+    if (section) { loadingSections.add(section); delete loadErrors[section]; paint(section); }
+    try { await load(); }
+    catch (error) {
+      if (!section || !rcAlive()) return;
+      const limited = error.message === "429";
+      loadErrors[section] = { message: limited ? "Roblox is limiting requests. Give it a minute, then try again." : "This section could not load. Your connection or this account's privacy settings may prevent it.", retryAt: limited ? Date.now() + 60000 : 0 };
+      paint(section);
+      if (limited) setTimeout(() => { if (rcAlive() && root) paint(section); }, 60050);
+    } finally { if (section) loadingSections.delete(section); }
+  }
+
   const loaders = [
-    async () => {
+    async function avatar() {
       S.avatar = await api(`https://avatar.roblox.com/v1/users/${uid}/avatar`);
       await thumbs([...(S.avatar.assets || []).map(a => ["Asset", a.id]), ...(S.avatar.emotes || []).map(a => ["Asset", a.assetId])]);
       paint("avatar");
     },
     // who they are
-    async () => {
+    async function hero() {
       const [user, pres] = await Promise.allSettled([
         api(`https://users.roblox.com/v1/users/${uid}`),
         api("https://presence.roblox.com/v1/presence/users", { userIds: [Number(uid)] }),
       ]);
-      if (user.status === "fulfilled") S.user = user.value;
-      else S.gone = true; // deleted, terminated, or Roblox didn't answer
+      if (user.status === "fulfilled") { S.user = user.value; S.gone = false; }
+      else if (user.reason?.message === "404") S.gone = true;
+      else throw user.reason;
       S.presence = pres.value?.userPresences?.[0] || null;
       paint("hero", "about");
       discover();
@@ -900,7 +925,7 @@
       paint("hero");
     },
     // what they make and belong to
-    async () => {
+    async function groups() {
       const g = await api(`https://groups.roblox.com/v2/users/${uid}/groups/roles`);
       S.groups = (g.data || []).sort((a, b) => (b.role?.rank === 255) - (a.role?.rank === 255) || (b.group.memberCount || 0) - (a.group.memberCount || 0));
       paint("groups");
@@ -908,8 +933,8 @@
       paint("groups");
       discover();
     },
-    async () => {
-      const g = await api(`https://games.roblox.com/v2/users/${uid}/games?accessFilter=2&limit=50&sortOrder=Desc`).catch(() => ({ data: [] }));
+    async function games() {
+      const g = await api(`https://games.roblox.com/v2/users/${uid}/games?accessFilter=2&limit=50&sortOrder=Desc`);
       S.games = (g.data || []).filter((x) => x.rootPlace?.id).sort((a, b) => (b.placeVisits || 0) - (a.placeVisits || 0));
       paint("games", "hero");
       discover();
@@ -924,7 +949,7 @@
       for (const [id, st] of Object.entries(ce || {})) if (st && !st.missing) S.gameStats[id] = { ...S.gameStats[id], revenue: st.revenue };
       paint("games", "hero");
     },
-    async () => {
+    async function favorites() {
       const f = await api(`https://games.roblox.com/v2/users/${uid}/favorite/games?accessFilter=2&limit=10&sortOrder=Desc`);
       S.favorites = (f.data || []).filter((x) => x.rootPlace?.id).slice(0, 8);
       if (!S.favorites.length) return;
@@ -952,10 +977,10 @@
       }
     },
     // people
-    async () => {
+    async function friends() {
       const viewer = me();
       const [theirs, yours] = await Promise.all([
-        api(`https://friends.roblox.com/v1/users/${uid}/friends`).catch(() => ({ data: [] })),
+        api(`https://friends.roblox.com/v1/users/${uid}/friends`),
         viewer && viewer !== uid ? api(`https://friends.roblox.com/v1/users/${viewer}/friends`).catch(() => null) : null,
       ]);
       const ids = (theirs.data || []).map((x) => String(x.id));
@@ -1228,7 +1253,7 @@
   function start() {
     if (!build()) return false;
     if (sessionStorage.getItem("rc-classic") === "1") classic(true);
-    for (const load of loaders) load().catch(() => {});
+    for (const load of loaders) runLoader(load);
     return true;
   }
 

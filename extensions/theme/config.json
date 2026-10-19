@@ -15,6 +15,7 @@
     "socialsTwitch": true,
     "socialsX": true,
     "profileNav": true,
-    "watchlistTools": true
+    "watchlistTools": true,
+    "reduceMotion": true
   }
 }

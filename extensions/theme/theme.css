@@ -905,3 +905,8 @@ html.rocreate-on .groups-list-search:has(.groups-list-search-input:placeholder-s
   content: "Search My Groups"; position: absolute; left: 32px; top: 50%; transform: translateY(-50%);
   font-size: 16px; color: var(--rc-text-2); pointer-events: none;
 }
+
+/* Optional reduced motion applies only to RoCreate components. */
+html.rc-reduce-motion { scroll-behavior:auto !important; }
+html.rc-reduce-motion :is(#rcp-root, #rcp-modal, .rcx-panel, .rcx-spark, .rcx-home, #rcx-sort),
+html.rc-reduce-motion :is(#rcp-root, #rcp-modal, .rcx-panel, .rcx-spark, .rcx-home, #rcx-sort) * { animation:none !important; transition:none !important; scroll-behavior:auto !important; }

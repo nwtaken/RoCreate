@@ -5,7 +5,7 @@ $("ver").textContent = "Version " + chrome.runtime.getManifest().version;
 
 // the settings a backup may carry, and what each must look like
 const KEYS = {
-  enabled: "boolean", declutter: "boolean", streamer: "boolean", stats: "boolean", watchlistTools: "boolean", alerts: "boolean", users: "boolean",
+  enabled: "boolean", declutter: "boolean", streamer: "boolean", reduceMotion: "boolean", stats: "boolean", watchlistTools: "boolean", alerts: "boolean", users: "boolean",
   robux: "boolean", sales: "boolean", profile: "boolean", profileNav: "boolean", socials: "boolean", accent: "string", sort: "string", watch: "object",
 };
 
@@ -55,7 +55,7 @@ $("import").addEventListener("change", async (e) => {
 
 async function cacheInfo() {
   const all = await chrome.storage.local.get(null);
-  const keys = Object.keys(all).filter((k) => !k.startsWith("rc:"));
+  const keys = Object.keys(all).filter((k) => !k.startsWith("rc:") && k !== "xl");
   const bytes = await chrome.storage.local.getBytesInUse(keys);
   return { keys, bytes };
 }

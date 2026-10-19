@@ -3,7 +3,7 @@
    so enabling/disabling never needs a page reload. Settings live in
    chrome.storage.sync: { enabled: bool, declutter: bool, accent: name, streamer: bool }. */
 
-const DEFAULTS = { enabled: true, declutter: true, accent: "blue", streamer: false };
+const DEFAULTS = { enabled: true, declutter: true, accent: "blue", streamer: false, reduceMotion: false };
 // accent colours (normal, hover) for buttons and highlights; popup.js lists the same names
 const ACCENTS = {
   blue: ["#0a84ff", "#2f9bff"], teal: ["#0fb5a3", "#2cc9b8"], purple: ["#8b5cf6", "#a07bff"],
@@ -54,6 +54,7 @@ globalThis.rcWatch = (fn, opts = {}) => {
 
 let current = DEFAULTS;
 let forcedDark = false;
+let motionIncluded = false;
 
 // The theme is dark-only. Roblox ships both themes' CSS and switches by body
 // class, so a light-mode account is flipped to dark (and back when disabled).
@@ -77,6 +78,7 @@ function apply(s) {
   if (root) {
     root.classList.toggle("rocreate-on", !!s.enabled);
     root.classList.toggle("rc-declutter", !!s.enabled && !!s.declutter);
+    root.classList.toggle("rc-reduce-motion", motionIncluded && !!s.reduceMotion);
     root.classList.toggle("rc-streamer", !!s.streamer); // works with the theme on or off
     const [accent, hover] = ACCENTS[s.accent] || ACCENTS.blue;
     root.style.setProperty("--rc-accent", accent);
@@ -206,6 +208,11 @@ else {
 // then correct once stored settings load.
 apply(DEFAULTS);
 
+chrome.runtime.sendMessage({ type: "rcx-config" }, (config) => {
+  if (chrome.runtime.lastError) return;
+  motionIncluded = config?.reduceMotion !== false;
+  apply(current);
+});
 chrome.storage.sync.get(DEFAULTS, apply);
 
 chrome.storage.onChanged.addListener((changes, area) => {
