@@ -1,5 +1,17 @@
 [
   {
+    "version": "0.21.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Money tools: a DevEx estimate card and CSV exports on My Transactions",
+      "The DevEx estimate reads the summary Roblox already shows (no extra requests) and tracks the 30,000 Robux cash-out minimum",
+      "Export sales, purchases, community payouts or Robux purchases for the past 30 days, 90 days, year or everything",
+      "Community admins can export the community's sales from the Revenue tab and the audit log from the Audit log tab",
+      "Exports run at about one request a second, wait when Roblox rate limits, can be cancelled, and neutralise spreadsheet formulas in names",
+      "Streamer mode blurs the estimate"
+    ]
+  },
+  {
     "version": "0.20.0",
     "date": "2026-10-20",
     "changes": [

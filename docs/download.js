@@ -4,7 +4,7 @@
    anywhere. */
 (() => {
   const RAW = "https://raw.githubusercontent.com/nwtaken/RoCreate/main/extensions/theme/";
-  const ALL = { palette: true, workspace: true, friendsPage: true, groupsPage: true, reduceMotion: true, stats: true, watchlistTools: true, gameNotes: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileFilters: true, profileItems: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
+  const ALL = { moneyTools: true, palette: true, workspace: true, friendsPage: true, groupsPage: true, reduceMotion: true, stats: true, watchlistTools: true, gameNotes: true, alerts: true, robux: true, sales: true, profile: true, profileNav: true, profileFilters: true, profileItems: true, profileValue: true, profileRevenue: true, profileVerify: true, socials: true, socialsYoutube: true, socialsTwitch: true, socialsX: true, admins: true, flags: true };
   const $ = (s) => document.querySelector(s);
   const boxes = [...document.querySelectorAll("input[data-f]")];
 
@@ -57,8 +57,8 @@
   // presets: Creator = the money and stats side; Roblox only = nothing outside roblox.com
   const PRESETS = {
     all: Object.keys(ALL),
-    creator: ["palette", "workspace", "friendsPage", "groupsPage", "reduceMotion", "stats", "watchlistTools", "gameNotes", "alerts", "robux", "sales", "profile", "profileNav", "profileFilters", "profileItems", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
-    roblox: ["palette", "workspace", "friendsPage", "groupsPage", "reduceMotion", "robux", "sales", "profile", "profileNav", "profileFilters", "profileItems", "admins"],
+    creator: ["moneyTools", "palette", "workspace", "friendsPage", "groupsPage", "reduceMotion", "stats", "watchlistTools", "gameNotes", "alerts", "robux", "sales", "profile", "profileNav", "profileFilters", "profileItems", "profileValue", "profileRevenue", "socialsYoutube", "socialsTwitch", "socialsX", "admins"],
+    roblox: ["moneyTools", "palette", "workspace", "friendsPage", "groupsPage", "reduceMotion", "robux", "sales", "profile", "profileNav", "profileFilters", "profileItems", "admins"],
     theme: ["workspace"],
   };
   $("#presets").addEventListener("click", (e) => {
@@ -99,6 +99,7 @@
     if (!features.friendsPage && !features.groupsPage) leave.add("directories.js").add("directories.css");
     if (!features.workspace) leave.add("workspace.css");
     if (!features.palette) leave.add("palette.js").add("palette.css");
+    if (!features.moneyTools) leave.add("money.js").add("money.css");
     if (!features.profile) leave.add("profile.js").add("profile.css");
     if (!features.admins && !features.flags) leave.add("users.js");
     for (const cs of manifest.content_scripts) {

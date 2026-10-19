@@ -23,6 +23,7 @@
     "friendsPage": true,
     "groupsPage": true,
     "workspace": true,
-    "palette": true
+    "palette": true,
+    "moneyTools": true
   }
 }

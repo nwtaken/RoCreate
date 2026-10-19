@@ -1,0 +1,48 @@
+/* Money tools (money.js): DevEx estimate and CSV export cards. Self-contained colours so
+   they look the same with or without Workspace pages. */
+#rc-money, #rc-money-group {
+  display: grid; gap: 18px;
+  margin: 0 0 18px;
+  padding: 20px 24px;
+  background: #17191E;
+  border: 1px solid rgba(255, 255, 255, .06);
+  border-radius: 16px;
+  color: #E2E8F0;
+  font-family: "Builder Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+#rc-money { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+#rc-money-group { gap: 10px; }
+#rc-money .rc-money-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+#rc-money .rc-money-col + .rc-money-col { border-left: 1px solid rgba(255, 255, 255, .06); padding-left: 22px; }
+.rc-money-eyebrow { color: #94A3B8; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.rc-money-big { color: #FFFFFF; font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.rc-money-sub { color: #94A3B8; font-size: 13px; line-height: 1.4; }
+.rc-money-bar { height: 8px; border-radius: 999px; background: #24272E; overflow: hidden; margin-top: 4px; }
+.rc-money-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #22C55E, #34D399); }
+.rc-money-link { color: #7DD3FC !important; font-size: 13px; font-weight: 700; text-decoration: none; }
+.rc-money-link:hover { text-decoration: underline; }
+.rc-money-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.rc-money-row label { display: flex; flex-direction: column; gap: 6px; margin: 0; color: #94A3B8; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.rc-money-row select {
+  min-width: 170px; height: 40px; padding: 0 12px;
+  background: #121418 !important; color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, .10) !important; border-radius: 12px !important;
+  font: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none;
+}
+.rc-money-btn {
+  height: 40px; padding: 0 18px;
+  background: var(--rc-accent, #0a84ff); color: #FFFFFF;
+  border: 0; border-radius: 12px;
+  font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.rc-money-btn:hover { filter: brightness(1.08); }
+.rc-money-btn.rc-busy { background: rgba(208, 217, 251, .10); color: #FFFFFF; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
+.rc-money-btn:focus-visible, .rc-money-row select:focus-visible { outline: 2px solid var(--rc-accent, #0a84ff); outline-offset: 2px; }
+.rc-money-note { color: #94A3B8; font-size: 13px; align-self: center; }
+@media (max-width: 800px) {
+  #rc-money { grid-template-columns: 1fr; }
+  #rc-money .rc-money-col + .rc-money-col { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255, 255, 255, .06); padding-top: 16px; }
+}
+/* streamer mode: earnings stay hidden until you point at them */
+html.rc-streamer #rc-money :is(.rc-money-big, [data-k="earned"], [data-k="min"]) { filter: blur(6px); transition: filter .15s; }
+html.rc-streamer #rc-money .rc-money-col:hover :is(.rc-money-big, [data-k="earned"], [data-k="min"]) { filter: none; }
