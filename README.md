@@ -50,9 +50,10 @@ videos, Twitch streams, broadcasts and clips, and X posts, playable right on the
 finds the links in their bio, their experiences and the communities they own, and says where
 each came from. Around it: a header with badges, live status and counts, their experiences with
 players and estimated revenue, communities, badges, favorites, their avatar and what they wear,
-inventory value and its history (from [Rolimons](https://www.rolimons.com)), every official
-Roblox item they own with prices, and friends with mutuals first. Roblox's own layout is one
-click away.
+inventory value (official items plus collectibles, with [Rolimons](https://www.rolimons.com)'
+history), every official Roblox item they own with prices, and friends with mutuals first. It
+works with RoValra: its name gradients, badges, pronouns, status bubbles, frames and improved
+sections all show. Roblox's own layout is one click away.
 
 <p align="center"><img src="docs/img/profile2.jpg" alt="Roblox's official profile in RoCreate's new layout" width="90%"></p>
 
