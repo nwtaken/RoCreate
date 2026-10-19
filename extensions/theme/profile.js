@@ -1139,15 +1139,21 @@
   // Roblox's catalog allows 10 requests a minute (x-ratelimit-limit: 10;w=60), its own page
   // uses some of them, and a VPN address shares the limit with other people. So a 429 means
   // wait the window out, with a countdown, and carry on.
+  let itemRetryAt = 0;
   async function patient(url, body, onWait) {
     for (let tries = 0; ; tries++) {
       if (!itemScanOn()) throw new Error("Item scan disabled");
+      while (itemRetryAt > Date.now()) {
+        if (!itemScanOn()) throw new Error("Item scan disabled");
+        onWait(Math.ceil((itemRetryAt - Date.now()) / 1000));
+        await sleep(Math.min(1000, itemRetryAt - Date.now()));
+      }
+      onWait(0);
       try {
         return await api(url, body);
       } catch (e) {
         if (e.message !== "429" || tries >= 5 || !rcAlive()) throw e;
-        for (let s = 20; s > 0; s--) { if (!itemScanOn()) throw new Error("Item scan disabled"); onWait(s); await sleep(1000); }
-        onWait(0);
+        itemRetryAt = Date.now() + 20000;
       }
     }
   }

@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.17.3",
+    "date": "2026-10-19",
+    "changes": [
+      "Turning the official-item scan off stops further requests; turning it back on preserves any active rate-limit cooldown"
+    ]
+  },
+  {
     "version": "0.17.2",
     "date": "2026-10-19",
     "changes": [
