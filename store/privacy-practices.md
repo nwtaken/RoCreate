@@ -26,7 +26,7 @@ Customize roblox.com with a cohesive interface and contextual Roblox creator inf
 
 Do not blindly select "no user data". The extension handles contextual profile/game identifiers, Roblox page content, friendship information and virtual-currency balances. Some public IDs, game names and social handles are sent to their respective services for visible lookup features; recipients also receive the ordinary IP address of the request.
 
-Use the actual dashboard's definitions to classify these accurately. In particular, review its categories for web history/website content and financial or payment information, since optional tools display virtual-currency balances. This draft is not a completed or certified dashboard declaration.
+The prepared dashboard draft selects Personally identifiable information (Roblox identifiers and public names), Financial and payment information (optional virtual-currency balances and transaction totals), Web history (contextual game/profile lookups, not a general history log), and Website content. Health information, Authentication information, Personal communications, Location and User activity are not selected. The three limited-use certifications are checked in the draft. Review these choices before submission.
 
 Private game notes are stored locally and included only in user-requested local backups. They are not sent in statistics requests. No passwords, cookie values or payment-card data are read by extension code. No analytics or RoCreate server exists. User data is not sold or used for unrelated advertising, profiling or creditworthiness decisions.
 
