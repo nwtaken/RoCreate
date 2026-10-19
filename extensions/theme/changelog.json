@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.13.3",
+    "date": "2026-10-19",
+    "changes": [
+      "Live on Twitch takes over the Latest tab automatically",
+      "Social feeds keep pictures out of storage, so they can't crowd out other saved data, and Twitch clip thumbnails load 7x lighter",
+      "Images on X posts marked sensitive stay on X",
+      "A clear header for accounts Roblox doesn't return"
+    ]
+  },
+  {
     "version": "0.13.2",
     "date": "2026-10-19",
     "changes": [

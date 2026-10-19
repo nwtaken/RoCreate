@@ -152,6 +152,12 @@
 
   function heroHtml() {
     const u = S.user;
+    if (!u && S.gone) {
+      return `<div class="rcp-hero-top"><div class="rcp-avatar"><span></span></div><div class="rcp-ident">` +
+        `<div class="rcp-name"><h1>This account isn't available</h1></div>` +
+        `<div class="rcp-handle">Roblox didn't return this account. It may be deleted or terminated.<button type="button" class="rcp-id" data-copy="${uid}" title="Copy user ID">ID ${uid}</button></div></div></div>` +
+        `<div class="rcp-links"><button type="button" class="rcp-chip rcp-quiet" data-classic>Roblox's layout</button></div>`;
+    }
     const created = u ? Date.parse(u.created) : null;
     const c = S.counts;
     const stat = (value, label, href) =>
@@ -194,7 +200,7 @@
   }
 
   /* ---- Latest from them: YouTube, Twitch, X ---- */
-  let socialTab = "";
+  let socialTab = "", socialPicked = false;
   function socialsHtml() {
     const sx = S.socials;
     if (!sx) return "";
@@ -242,7 +248,7 @@
         `<a class="rcp-post" href="https://x.com/${encodeURIComponent(p.by)}/status/${encodeURIComponent(p.id)}" target="_blank" rel="noopener">` +
         (p.by.toLowerCase() !== (x.handle || "").toLowerCase() ? `<span class="rcp-post-rt">Reposted from @${esc(p.by)}</span>` : "") +
         `<span class="rcp-post-text">${esc(p.text)}</span>` +
-        (p.img ? `<span class="rcp-post-img"><img src="${esc(p.img)}" alt="">${p.video ? "<i>Video</i>" : ""}</span>` : "") +
+        (p.img ? `<span class="rcp-post-img"><img src="${esc(p.img)}" alt="">${p.video ? "<i>Video</i>" : ""}</span>` : p.sensitive ? '<span class="rcp-post-hidden">Sensitive media, open on X</span>' : "") +
         `<span class="rcp-post-meta">${p.at ? ago(p.at) : ""} · ${fmt(p.likes)} likes · ${fmt(p.replies)} replies</span></a>`).join("")}</div>`;
     }
     const open = v ? `<a class="rcp-open" href="${esc(v.url)}" target="_blank" rel="noopener">Open on ${SERVICE[socialTab]} ↗</a>` : "";
@@ -564,7 +570,7 @@
     const ex = t.closest("[data-expand]");
     if (ex) { expanded.has(ex.dataset.expand) ? expanded.delete(ex.dataset.expand) : expanded.add(ex.dataset.expand); paint(ex.dataset.expand); return; }
     const so = t.closest("[data-social]");
-    if (so) { socialTab = so.dataset.social; paint("socials"); return; }
+    if (so) { socialTab = so.dataset.social; socialPicked = true; paint("socials"); return; }
     const yt = t.closest("[data-yt]");
     if (yt && /^[\w-]{11}$/.test(yt.dataset.yt)) return openModal(yt.title || "YouTube", player(`https://www.youtube-nocookie.com/embed/${yt.dataset.yt}?autoplay=1&rel=0`, yt.title || "YouTube video"), true);
     if (t.closest("[data-twitch-live]") && S.tw?.login) return openModal(`${S.tw.name} on Twitch`, player(`https://player.twitch.tv/?channel=${encodeURIComponent(S.tw.login)}&parent=${PARENT}&autoplay=true`, "Twitch stream"), true);
@@ -630,6 +636,7 @@
         api("https://presence.roblox.com/v1/presence/users", { userIds: [Number(uid)] }),
       ]);
       if (user.status === "fulfilled") S.user = user.value;
+      else S.gone = true; // deleted, terminated, or Roblox didn't answer
       S.presence = pres.value?.userPresences?.[0] || null;
       paint("hero", "about");
       discover();
@@ -802,6 +809,7 @@
         found.youtube && on("socialsYoutube") ? ask({ type: "rcx-social", service: "youtube", url: found.youtube.url }).then((y) => (S.yt = y?.id ? y : false)) : null,
         found.twitch && on("socialsTwitch") ? ask({ type: "rcx-social", service: "twitch", login: found.twitch.login }).then((t) => (S.tw = t?.login ? t : false)) : null,
       ]);
+      if (S.tw?.live && !socialPicked) socialTab = "twitch"; // live now beats the latest videos
       paint("socials", "hero");
     };
     paint("socials");

@@ -401,8 +401,33 @@ async function remember(k, ttl, make) {
   const { [k]: hit } = await chrome.storage.local.get(k);
   if (hit && Date.now() - hit.at < ttl) return hit.data;
   const data = await make();
-  if (data) await chrome.storage.local.set({ [k]: { data, at: Date.now() } });
+  if (data) {
+    await chrome.storage.local.set({ [k]: { data, at: Date.now() } });
+    prune(k.slice(0, k.indexOf(":") + 1), ttl).catch(() => {});
+  }
   return data;
+}
+
+// expired feed entries go as soon as there are a few of them, not once a day
+async function prune(prefix, ttl) {
+  const keys = (await chrome.storage.local.getKeys?.()) ?? Object.keys(await chrome.storage.local.get(null));
+  const mine = keys.filter((k) => k.startsWith(prefix));
+  if (mine.length < 15) return;
+  const got = await chrome.storage.local.get(mine);
+  const old = mine.filter((k) => Date.now() - (got[k]?.at || 0) > ttl);
+  if (old.length) await chrome.storage.local.remove(old);
+}
+
+// Pictures are stored as their URLs and only turned into data URLs when a profile asks,
+// through a small in-memory cache, so they never pile up in storage.
+const pictures = new Map();
+async function inline(url) {
+  if (!url) return null;
+  if (pictures.has(url)) return pictures.get(url);
+  const d = await dataUrl(url);
+  pictures.set(url, d);
+  if (pictures.size > 80) pictures.delete(pictures.keys().next().value);
+  return d;
 }
 
 async function dataUrl(url) {
@@ -410,7 +435,7 @@ async function dataUrl(url) {
     const r = await fetch(url, { credentials: "omit" });
     if (!r.ok) return null;
     const blob = await r.blob();
-    if (!/^image\/(png|jpe?g|webp|gif)$/.test(blob.type) || blob.size > 350000) return null;
+    if (!/^image\/(png|jpe?g|webp|gif)$/.test(blob.type) || blob.size > 250000) return null;
     const bytes = new Uint8Array(await blob.arrayBuffer());
     let bin = "";
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
@@ -513,11 +538,11 @@ const TWITCH_QUERY = `query RoCreateProfile($login: String!) {
     clips(first: 4, criteria: { period: LAST_MONTH }) { edges { node { slug title viewCount createdAt thumbnailURL(width: 480, height: 272) } } }
   }
 }`;
-const twitchImg = (x) => (typeof x === "string" && /^https:\/\/static-cdn\.jtvnw\.net\//.test(x) ? dataUrl(x) : null);
+const twitchUrl = (x) => (typeof x === "string" && /^https:\/\/static-cdn\.jtvnw\.net\//.test(x) ? x : null);
 
 async function twitch(login) {
   if (!/^[a-z0-9_]{3,25}$/.test(login)) return null;
-  return remember("twf:" + login, LIVE_TTL, async () => {
+  const d = await remember("twf:" + login, LIVE_TTL, async () => {
     const r = await fetch("https://gql.twitch.tv/gql", {
       method: "POST",
       credentials: "omit",
@@ -529,14 +554,23 @@ async function twitch(login) {
     if (!u) return { missing: true };
     const vids = (u.videos?.edges || []).map((e) => e.node).filter((v) => /^\d{1,15}$/.test(v?.id));
     const clips = (u.clips?.edges || []).map((e) => e.node).filter((c) => /^[\w-]{1,120}$/.test(c?.slug || ""));
-    const imgs = await Promise.all([u.profileImageURL, u.stream?.previewImageURL, ...vids.map((v) => v.previewThumbnailURL), ...clips.map((c) => c.thumbnailURL)].map(twitchImg));
     return {
-      login: u.login, name: u.displayName, avatar: imgs[0],
-      live: u.stream ? { title: u.stream.title || "", viewers: u.stream.viewersCount || 0, since: Date.parse(u.stream.createdAt) || null, game: u.stream.game?.displayName || "", img: imgs[1] } : null,
-      videos: vids.map((v, i) => ({ id: v.id, title: v.title || "", at: Date.parse(v.publishedAt) || null, length: v.lengthSeconds || 0, views: v.viewCount || 0, img: imgs[2 + i] })),
-      clips: clips.map((c, i) => ({ slug: c.slug, title: c.title || "", at: Date.parse(c.createdAt) || null, views: c.viewCount || 0, img: imgs[2 + vids.length + i] })),
+      login: u.login, name: u.displayName, avatar: twitchUrl(u.profileImageURL),
+      live: u.stream ? { title: u.stream.title || "", viewers: u.stream.viewersCount || 0, since: Date.parse(u.stream.createdAt) || null, game: u.stream.game?.displayName || "", img: twitchUrl(u.stream.previewImageURL) } : null,
+      videos: vids.map((v) => ({ id: v.id, title: v.title || "", at: Date.parse(v.publishedAt) || null, length: v.lengthSeconds || 0, views: v.viewCount || 0, img: twitchUrl(v.previewThumbnailURL) })),
+      // clip thumbnails come at 1920x1080 whatever the query asks; the CDN serves a small one too
+      clips: clips.map((c) => ({ slug: c.slug, title: c.title || "", at: Date.parse(c.createdAt) || null, views: c.viewCount || 0, img: twitchUrl(c.thumbnailURL)?.replace(/-\d+x\d+\.jpg$/, "-480x272.jpg") || null })),
     };
   });
+  if (!d || d.missing) return d;
+  const pics = await Promise.all([d.avatar, d.live?.img, ...d.videos.map((v) => v.img), ...d.clips.map((c) => c.img)].map(inline));
+  return {
+    ...d,
+    avatar: pics[0],
+    live: d.live ? { ...d.live, img: pics[1] } : null,
+    videos: d.videos.map((v, i) => ({ ...v, img: pics[2 + i] })),
+    clips: d.clips.map((c, i) => ({ ...c, img: pics[2 + d.videos.length + i] })),
+  };
 }
 
 // X: the public feed X's own embedded timeline loads, fetched once an hour per account.
@@ -565,6 +599,7 @@ async function xPosts(handle) {
     const own = tweets.find((t) => t.user?.screen_name?.toLowerCase() === k)?.user || tweets[0].user || {};
     const posts = tweets.slice(0, 6).map((t) => {
       const media = (t.extended_entities?.media || t.entities?.media || [])[0];
+      const sensitive = !!t.possibly_sensitive;
       return {
         id: String(t.id_str),
         text: String(t.full_text || t.text || "").replace(/\s*https:\/\/t\.co\/\w+\s*$/, ""),
@@ -575,15 +610,22 @@ async function xPosts(handle) {
         by: t.user?.screen_name || handle,
         byName: t.user?.name || "",
         video: media?.type === "video" || media?.type === "animated_gif",
-        img: media?.media_url_https || null,
+        // media X marks as possibly sensitive is left out (it stays on X)
+        sensitive: sensitive && !!media,
+        img: !sensitive && typeof media?.media_url_https === "string" && /^https:\/\/pbs\.twimg\.com\/[^?#]+$/.test(media.media_url_https) ? media.media_url_https + "?name=small" : null,
       };
     });
-    // pictures as data URLs (roblox.com doesn't allow X's image host): the avatar and up to 4
-    const pics = await Promise.all([own.profile_image_url_https, ...posts.slice(0, 4).map((p) => p.img)].map((x) =>
-      typeof x === "string" && /^https:\/\/pbs\.twimg\.com\//.test(x) ? dataUrl(x.includes("/media/") ? x + "?name=small" : x) : null));
-    posts.forEach((p, i) => (p.img = pics[i + 1] || null));
-    return { handle: own.screen_name || handle, name: own.name || handle, avatar: pics[0], posts };
+    const avatar = typeof own.profile_image_url_https === "string" && /^https:\/\/pbs\.twimg\.com\//.test(own.profile_image_url_https) ? own.profile_image_url_https : null;
+    return { handle: own.screen_name || handle, name: own.name || handle, avatar, posts };
   })) || ((await chrome.storage.local.get("xl:" + k))["xl:" + k] ? { handle, limited: true } : null);
+}
+
+// what a profile gets: the stored posts with their pictures inlined (the avatar and up to 4)
+async function xFeed(handle) {
+  const d = await xPosts(handle);
+  if (!d?.posts) return d;
+  const pics = await Promise.all([d.avatar, ...d.posts.slice(0, 4).map((p) => p.img)].map(inline));
+  return { ...d, avatar: pics[0], posts: d.posts.map((p, i) => ({ ...p, img: i < 4 ? pics[i + 1] : null })) };
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
@@ -613,7 +655,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
         if (!on("profile") || !on("socials")) return null;
         if (msg.service === "youtube" && on("socialsYoutube")) return youtube(String(msg.url || ""));
         if (msg.service === "twitch" && on("socialsTwitch")) return twitch(String(msg.login || "").toLowerCase());
-        if (msg.service === "x" && on("socialsX")) return xPosts(String(msg.handle || ""));
+        if (msg.service === "x" && on("socialsX")) return xFeed(String(msg.handle || ""));
         return null;
       }
       case "rcx-stats": {
