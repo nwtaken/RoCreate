@@ -184,10 +184,12 @@ html.rc-streamer .rcx-rbx-row:hover .rcx-rbx-usd { filter: none; }
 /* streamer mode on Buy Robux (the balance pill) and My Transactions (balance and summary) */
 html.rc-streamer .icon-filled-robux + span.font-builder-extended,
 html.rc-streamer #transactions-web-app .balance-label,
-html.rc-streamer #transactions-web-app .summary .amount-display { filter: blur(7px); transition: filter .15s; }
+html.rc-streamer #transactions-web-app .summary .amount-display,
+html.rc-streamer #transactions-web-app :is(.rovalra-spent-per-creator-summary, .rovalra-spent-per-game-summary) .text-robux { filter: blur(7px); transition: filter .15s; }
 html.rc-streamer .icon-filled-robux + span.font-builder-extended:hover,
 html.rc-streamer #transactions-web-app .balance-label:hover,
-html.rc-streamer #transactions-web-app .summary tr:hover .amount-display { filter: none; }
+html.rc-streamer #transactions-web-app .summary tr:hover .amount-display,
+html.rc-streamer #transactions-web-app :is(.rovalra-spent-per-creator-summary, .rovalra-spent-per-game-summary) .text-robux:hover { filter: none; }
 /* streamer mode on Settings > Account info: names, phone, email, birthday and age group
    stay blurred until you point at the row */
 html.rc-streamer #settings-container .settings-text-lines-container { filter: blur(7px); transition: filter .15s; }

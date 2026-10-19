@@ -757,6 +757,19 @@ html.rocreate-on.rcw:not(.rcp2) {
     border: 1px solid var(--rw-line) !important;
     border-radius: var(--rw-r-sm) !important;
   }
+  /* legacy item pages (badges, older passes and assets): one card, rounded image stage */
+  & #item-container > .section-content.top-section {
+    background: var(--rw-panel) !important;
+    border: 1px solid var(--rw-line) !important;
+    border-radius: var(--rw-r) !important;
+    padding: var(--rw-pad) !important;
+  }
+  & #item-container .item-thumbnail-container :is(#AssetThumbnail, .asset-thumb-container) {
+    background: var(--rw-raised) !important;
+    border-radius: var(--rw-r-sm) !important;
+    overflow: hidden;
+  }
+  & #item-container .item-name-container { border-bottom-color: var(--rw-line) !important; }
   & #content :is(.purchase-modal, .item-purchase-container, .btn-container) [class*="btn-"] {
     min-height: 40px;
   }

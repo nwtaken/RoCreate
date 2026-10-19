@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.25.2",
+    "date": "2026-10-20",
+    "changes": [
+      "Workspace pages: badge and other older item pages get one card with a rounded image stage",
+      "Streamer mode also blurs the spending totals RoValra adds to My Transactions"
+    ]
+  },
+  {
     "version": "0.25.1",
     "date": "2026-10-20",
     "changes": [
