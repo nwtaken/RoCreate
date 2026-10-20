@@ -36,6 +36,9 @@
 .d-layer.on { opacity: 1; }
 .d-layer.wipe { opacity: 1; clip-path: inset(0 0 0 100%); }
 .d-layer.wipe.go { clip-path: inset(0 0 0 0); transition: clip-path 1.8s cubic-bezier(.6, .05, .25, 1); }
+.d-sprites { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.d-sprite { position: absolute; background-repeat: no-repeat; background-size: 1440px 900px; will-change: transform, opacity; }
+.d-clip { position: absolute; overflow: hidden; }
 .d-sharp { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; opacity: 0; transition: opacity .3s ease; pointer-events: none; }
 .d-sharp.on { opacity: 1; }
 .d-glow { position: absolute; top: 0; bottom: 0; left: 100%; width: 3px; background: #4ef0d1; box-shadow: 0 0 22px 6px rgba(78, 240, 209, .55); opacity: 0; z-index: 5; }
