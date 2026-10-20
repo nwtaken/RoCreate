@@ -719,13 +719,8 @@ html.rocreate-on.rcw:not(.rcp2) {
   }
 
   /* 2.2 Item, bundle and Look pages: thumbnail stage, purchase panel, resale */
-  & #item-details-container #item-info-container-frontend {
-    display: flow-root;
-    background: var(--rw-panel) !important;
-    border: 1px solid var(--rw-line) !important;
-    border-radius: var(--rw-r) !important;
-    padding: var(--rw-pad) !important;
-  }
+  /* (the details column keeps Roblox's own box: wrapping it in a panel made it a new layout
+     context next to the floated picture and squeezed the details into a narrow strip) */
   & #item-details-container #item-thumbnail-container-frontend :is(img, canvas, .thumbnail-2d-container) {
     border-radius: var(--rw-r-sm) !important;
   }

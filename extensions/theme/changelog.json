@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.26.3",
+    "date": "2026-10-20",
+    "changes": [
+      "Workspace pages: Marketplace item pages keep Roblox's own layout for the details column, which a panel had squeezed into a narrow strip"
+    ]
+  },
+  {
     "version": "0.26.2",
     "date": "2026-10-20",
     "changes": [
