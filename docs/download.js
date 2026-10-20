@@ -138,13 +138,15 @@
       for (const m of text(await get(optionsPath)).matchAll(/(?:src|href)="([\w./-]+)"/g)) files.add(m[1]);
     }
 
+    // files sit at the ZIP's root: Windows' Extract All and the Mac's Archive Utility then both make
+    // one RoCreate folder with manifest.json directly inside (a top folder in the ZIP nested it twice on Windows)
     const out = [
-      { name: "RoCreate/manifest.json", data: bytes(JSON.stringify(manifest, null, 2) + "\n") },
-      { name: "RoCreate/config.json", data: bytes(JSON.stringify({ features }, null, 2) + "\n") },
+      { name: "manifest.json", data: bytes(JSON.stringify(manifest, null, 2) + "\n") },
+      { name: "config.json", data: bytes(JSON.stringify({ features }, null, 2) + "\n") },
     ];
-    if (popup) out.push({ name: "RoCreate/" + popupPath, data: popup });
+    if (popup) out.push({ name: popupPath, data: popup });
     const rest = [...files].filter((f) => f !== popupPath && f !== "manifest.json" && f !== "config.json" && !leave.has(f));
-    out.push(...(await Promise.all(rest.map(async (f) => ({ name: "RoCreate/" + f, data: await get(f) })))));
+    out.push(...(await Promise.all(rest.map(async (f) => ({ name: f, data: await get(f) })))));
     return zip(out);
   }
 

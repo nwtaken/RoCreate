@@ -93,10 +93,12 @@ badge with an X. *(Example names, except builderman.)*
 
 The Chrome Web Store listing is on its way. Until then:
 
-1. Get a ZIP from the [download page](https://rocreate.org/download.html) and unzip it. Keep the
-   folder, because Chrome loads the extension from it.
-2. Open `chrome://extensions` and turn on **Developer mode**.
-3. Click **Load unpacked** and pick the **RoCreate** folder.
+1. Get a ZIP from the [download page](https://rocreate.org/download.html) and unzip it (on Windows:
+   right-click, **Extract All**). Keep the folder, because Chrome loads the extension from it.
+2. Open `chrome://extensions` (Edge: `edge://extensions`) and turn on **Developer mode**.
+3. Click **Load unpacked** and pick the **RoCreate** folder, the one with `manifest.json` directly inside.
+
+Works in Chrome, Edge and Brave on Windows and macOS.
 
 To update, download again and unzip over the same folder. RoCreate notices the new version and
 reloads itself within a minute.
