@@ -205,6 +205,9 @@ section.tight { padding: 56px 0; }
 .mini-steps li::before { content: counter(s); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--blue); color: #fff; font-weight: 800; font-size: 13px; }
 .install-cta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .install-cta .note { margin: 0; }
+.install-cta a.note { color: var(--muted); }
+.install-cta a.note:hover { color: var(--text); }
+.install-sub { color: var(--muted); margin: 0; }
 .faq-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; margin-top: 8px; }
 .glance { margin-top: 24px; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; background: var(--panel); }
 .glance summary { font-size: 15px; }

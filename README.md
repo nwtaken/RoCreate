@@ -91,7 +91,9 @@ badge with an X. *(Example names, except builderman.)*
 
 ## Install
 
-The Chrome Web Store listing is on its way. Until then:
+**[Add RoCreate from the Chrome Web Store](https://chromewebstore.google.com/detail/oannkfofcfkcjmoiolglgifhcoadojck)**: one click, and it updates itself.
+
+To pick your own features instead:
 
 1. Get a ZIP from the [download page](https://rocreate.org/download.html) and unzip it (on Windows:
    right-click, **Extract All**). Keep the folder, because Chrome loads the extension from it.
