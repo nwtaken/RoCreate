@@ -28,6 +28,8 @@ Do not blindly select "no user data". The extension handles contextual profile/g
 
 The prepared dashboard draft selects Personally identifiable information (Roblox identifiers and public names), Financial and payment information (optional virtual-currency balances and transaction totals), Web history (contextual game/profile lookups, not a general history log), and Website content. Health information, Authentication information, Personal communications, Location and User activity are not selected. The three limited-use certifications are checked in the draft. Review these choices before submission.
 
+Since 0.19 to 0.26: Quick jump sends the text a user types (after a pause, two or more characters) to Roblox's own search endpoints, like the site's search bar; review whether Google's "User activity" or "Website content" wording applies. Money tools read transaction history, community sales, audit logs and member lists from Roblox only when the user requests an export, and build the CSV locally; keep "Financial and payment information" selected and mention transaction history. Your experiences reads the user's own and managed experiences' public statistics from Roblox. None of this leaves the browser except as requests to Roblox.
+
 Private game notes are stored locally and included only in user-requested local backups. They are not sent in statistics requests. No passwords, cookie values or payment-card data are read by extension code. No analytics or RoCreate server exists. User data is not sold or used for unrelated advertising, profiling or creditworthiness decisions.
 
 ## Remote code
