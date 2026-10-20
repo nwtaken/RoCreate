@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.26.2",
+    "date": "2026-10-20",
+    "changes": [
+      "The Home greeting no longer goes blank when a restored page already carries RoCreate's greeting"
+    ]
+  },
+  {
     "version": "0.26.1",
     "date": "2026-10-20",
     "changes": [

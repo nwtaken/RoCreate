@@ -80,7 +80,10 @@
     const skip = '.left-nav, [role="dialog"], [class*="dialog"], [class*="modal"], footer, #header';
     const marked = document.querySelector("[data-rc-greeting]");
     if (marked) {
-      if (marked.textContent !== phrase) marked.textContent = phrase;
+      // the heading can keep its marker while this script starts fresh (a restored page),
+      // so pick a phrase here too instead of writing an empty one
+      const text = pick(name);
+      if (marked.textContent !== text) marked.textContent = text;
       return;
     }
     const title = [...document.querySelectorAll("h1")].find((h) => !h.closest(skip) && h.textContent.trim());
