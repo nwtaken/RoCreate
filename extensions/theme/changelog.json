@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.26.1",
+    "date": "2026-10-20",
+    "changes": [
+      "Settings backups now include the Workspace pages, Quick jump, Money tools and Your experiences switches"
+    ]
+  },
+  {
     "version": "0.26.0",
     "date": "2026-10-20",
     "changes": [
