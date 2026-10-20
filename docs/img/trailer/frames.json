@@ -1,0 +1,64 @@
+{
+ "targets": {
+  "stats-revenue": {
+   "x": 179,
+   "y": 165
+  },
+  "stats-pill": {
+   "x": 665,
+   "y": 330
+  },
+  "game-chart": {
+   "x": 720,
+   "y": 667
+  },
+  "mine-refresh": {
+   "x": 1317,
+   "y": 190
+  },
+  "money-export": {
+   "x": 761,
+   "y": 523
+  },
+  "streamer-balance": {
+   "x": 720,
+   "y": 212
+  },
+  "popup-streamer": {
+   "x": 285,
+   "y": 311
+  },
+  "profile-video": {
+   "x": 170,
+   "y": 320
+  }
+ },
+ "zooms": {
+  "stats-zoom": {
+   "x": 12,
+   "y": 145,
+   "w": 884,
+   "h": 553
+  },
+  "game-zoom": {
+   "x": 219,
+   "y": 273.75,
+   "w": 1002,
+   "h": 626
+  },
+  "mine-zoom": {
+   "x": 15,
+   "y": 47,
+   "w": 857,
+   "h": 536
+  },
+  "money-zoom": {
+   "x": 37,
+   "y": 179,
+   "w": 1018,
+   "h": 636
+  }
+ },
+ "popupW": 320,
+ "popupH": 440
+}
