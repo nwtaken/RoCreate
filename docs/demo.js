@@ -2,8 +2,8 @@
    with RoCreate running (signed in as the official Roblox account; transaction amounts are
    examples). This script plays them like a trailer: crossfades, a before and after wipe,
    camera zooms into sharp close-ups, a cursor that clicks the real buttons where they are,
-   and RoCreate's real popup. It pauses when off screen or hidden; with reduced motion it
-   still steps through the scenes, without any movement. */
+   and RoCreate's real popup. It pauses when off screen or hidden, and has a pause button.
+   It animates even when the system asks for reduced motion: it is the product trailer. */
 (() => {
   const stage = document.getElementById("demo");
   if (!stage) return;

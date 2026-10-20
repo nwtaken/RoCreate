@@ -85,6 +85,3 @@
 .demo-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 10px; }
 @keyframes demo-fill { from { width: 0; } to { width: 100%; } }
 
-@media (prefers-reduced-motion: reduce) {
-  .demo *, .demo *::before, .demo *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
-}
