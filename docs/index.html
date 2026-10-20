@@ -4,14 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RoCreate: Roblox, like the Creator Hub</title>
-  <meta name="description" content="A free Chrome extension that gives roblox.com a clean Creator Hub look and adds game revenue, Robux and profile insights.">
+  <meta name="description" content="A free Chrome extension that gives roblox.com a clean Creator Hub look and adds game revenue, Quick jump, money tools, live stats for your experiences and rebuilt profiles.">
   <meta property="og:title" content="RoCreate: Roblox, like the Creator Hub">
-  <meta property="og:description" content="A free Chrome extension that gives roblox.com a clean Creator Hub look and adds game revenue, Robux and profile insights.">
+  <meta property="og:description" content="A free Chrome extension that gives roblox.com a clean Creator Hub look and adds game revenue, Quick jump, money tools, live stats for your experiences and rebuilt profiles.">
   <meta property="og:image" content="https://rocreate.org/img/og.jpg">
   <meta property="og:url" content="https://rocreate.org/">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="img/icon-128.png">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="demo.css">
 </head>
 <body>
   <header class="nav">
@@ -19,6 +20,7 @@
       <a class="brand" href="/"><img src="img/icon-128.png" alt="">ROCREATE</a>
       <nav>
         <a class="hide-sm" href="#features">Features</a>
+        <a class="hide-sm" href="#gallery">Screenshots</a>
         <a href="download.html">Download</a>
         <a class="hide-sm" href="#faq">FAQ</a>
         <a class="hide-sm" href="changelog.html">Changelog</a>
@@ -28,221 +30,139 @@
   </header>
 
   <main>
-    <section class="hero">
+    <section class="hero hero-demo">
       <div class="wrap">
         <h1>Roblox, like the Creator Hub.</h1>
-        <p class="lead">RoCreate is a free Chrome extension. It gives roblox.com a clean, flat look and adds the numbers creators care about: game revenue, your Robux, inventory value and more.</p>
+        <p class="lead">A free Chrome extension that gives roblox.com a clean workspace look and the tools creators use every day.</p>
         <div class="cta">
           <a class="btn primary" href="download.html">Download for Chrome</a>
-          <a class="btn" href="https://github.com/nwtaken/RoCreate">View the code</a>
+          <a class="btn" href="#features">See every feature</a>
         </div>
-        <p class="note">Free and open source. Works alongside RoValra.</p>
-        <img class="shot" src="img/games.jpg" alt="The Roblox Games page with RoCreate: a dark Creator Hub look, a sort bar and revenue on every game card" width="1440" height="860">
+        <div class="demo-wrap">
+          <div id="demo" class="demo-stage"><img class="demo-poster" src="img/games.jpg" alt="The Roblox Games page with RoCreate: a dark Creator Hub look, a sort bar and revenue on every game card" width="2160" height="1290"></div>
+          <div id="demo-controls" class="demo-controls" aria-label="Demo scenes"></div>
+          <p class="demo-note">A live demo made of HTML with example names and numbers, not a recording. Pick a scene to jump to it.</p>
+        </div>
       </div>
     </section>
 
-    <section id="features">
+    <section id="features" class="tight">
       <div class="wrap">
         <p class="eyebrow">Features</p>
-        <h2>Everything a creator checks, right where you look.</h2>
-
-        <div class="row">
-          <div class="text">
-            <h3>Game stats on every card</h3>
-            <p>Every game card shows its estimated revenue with a trend arrow, plus total visits.</p>
-            <ul>
-              <li>Point at a card's stats for exact numbers and a 7-day player graph.</li>
-              <li>Sort the Games page by revenue, visits, what's rising, players online, or revenue per player.</li>
-            </ul>
-          </div>
-          <img class="shot" src="img/games-cards.jpg" alt="Game cards with revenue and visit pills in the corner" loading="lazy">
+        <h2>Everything you check, right where you look.</h2>
+        <div class="tiles">
+          <a class="tile" href="#demo" data-chapter="look"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 9v11"/></svg><b>The Creator Hub look</b><span>Every page flat and dark, with your accent color.</span></a>
+          <a class="tile" href="#demo" data-chapter="stats"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><b>Game stats</b><span>Revenue and visits on every card. Sort by money.</span></a>
+          <a class="tile" href="#demo" data-chapter="jump"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg><b>Quick jump</b><span>Ctrl K to any page, game, person or item.</span></a>
+          <a class="tile" href="#demo" data-chapter="game"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 4-7 5 9"/></svg><b>Game pages</b><span>Revenue, players and a 7-day chart.</span></a>
+          <a class="tile" href="#demo" data-chapter="mine"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/></svg><b>Your experiences</b><span>Live players for your games, right on Home.</span></a>
+          <a class="tile" href="#demo" data-chapter="money"><svg viewBox="0 0 24 24"><path d="M12 3v18M17 7.5c-1-1.5-3-2-5-2-2.5 0-4.5 1.2-4.5 3.2 0 4.6 9.5 2.4 9.5 7 0 2-2 3.3-5 3.3-2.2 0-4-.8-5-2.3"/></svg><b>Money tools</b><span>DevEx estimate and CSV exports.</span></a>
+          <a class="tile" href="#demo" data-chapter="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20c1.2-3.8 4-5.5 7.5-5.5s6.3 1.7 7.5 5.5"/></svg><b>Profiles, rebuilt</b><span>Their videos, streams and posts, on the profile.</span></a>
+          <a class="tile" href="#demo" data-chapter="streamer"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><path d="M4 20L20 4"/></svg><b>Streamer mode</b><span>Blur your Robux and account info.</span></a>
         </div>
-
-        <div class="row flip">
-          <div class="text">
-            <h3>A stats strip on every game page</h3>
-            <p>Estimated revenue, players and visits with this week's change, revenue per player, rating, global rank and average session time, plus a full 7-day player chart.</p>
-            <ul>
-              <li>Copy the universe or place ID in one click.</li>
-              <li>Press Watch to follow a game from the toolbar popup.</li>
-              <li>Estimates come from Creator Exchange.</li>
-            </ul>
-          </div>
-          <img class="shot" src="img/game.jpg" alt="A game page with RoCreate's stats strip under the header" loading="lazy">
-        </div>
-
-        <div class="feature-wide">
-          <div class="text">
-            <h3>Profiles, rebuilt</h3>
-            <p>Every profile gets a new layout, built from scratch:</p>
-            <ul>
-              <li><b>Latest from them:</b> their YouTube videos, Twitch streams, broadcasts and clips, and X posts, playable right on the profile. RoCreate finds the links in their bio, their experiences and the communities they own, and says where each came from.</li>
-              <li>A header with badges, live status, a "Live on Twitch" banner, counts, bio and links.</li>
-              <li>Their experiences with players and estimated revenue, communities, badges and favorites.</li>
-              <li>Their avatar and what they wear, inventory value with its full history, every official Roblox item they own with prices, and friends with mutuals first.</li>
-              <li>Native RoCreate sections throughout, with RoValra name colors, badges, pronouns, status, views, frames, avatar borders and private notes. Includes outfits, wearing categories, hidden experiences and community sorting.</li>
-              <li>Optional section shortcuts and search filters make long profiles easier to browse. Switch off the official item scan for lighter browsing.</li>
-              <li>Roblox's own layout is one click away, and its Add Friend and menu buttons keep working.</li>
-            </ul>
-          </div>
-          <img class="shot" src="img/profile2.jpg" alt="Roblox's official profile in RoCreate's new layout, with its latest YouTube videos" loading="lazy">
-        </div>
-
-        <div class="row">
-          <div class="text">
-            <h3>Community pages, summed up</h3>
-            <p>Open any community and see its estimated revenue, players and visits across all its public games, plus a list of its top earners.</p>
-          </div>
-          <img class="shot" src="img/group.jpg" alt="A community page with RoCreate's totals above the tabs" loading="lazy">
-        </div>
-
-        <div class="row flip">
-          <div class="text">
-            <h3>Everything in one popup</h3>
-            <ul>
-              <li>Compact settings groups remember what you opened. Switch features on or off, pick an accent color, or reduce RoCreate animations.</li>
-              <li>Streamer mode blurs your Robux and your account info until you point at them.</li>
-              <li>Your watchlist with live revenue and players, searchable and sortable. Open its optional dashboard for totals, sorting and CSV downloads.</li>
-              <li>Spike alerts: a notification when a watched game suddenly jumps.</li>
-              <li>What's new after every update. Open it with Alt+Shift+R.</li>
-              <li>An options page to back up and restore settings, watched games and private game notes.</li>
-            </ul>
-          </div>
-          <img class="shot popup-shot" src="img/popup.png" alt="The RoCreate popup with compact settings and an example watchlist" loading="lazy">
-        </div>
-
-        <div class="row">
-          <div class="text">
-            <h3>A workspace for your watched games</h3>
-            <p>Open the watchlist dashboard from the popup. Search by name or universe ID, compare player and estimated revenue totals, sort games and download a CSV.</p>
-            <p>Keep a private scratchpad for each game. Notes stay on this device, can be switched off, and are included in your own backup files.</p>
-            <p class="note left">Shown with example names and data.</p>
-          </div>
-          <img class="shot" src="img/watchlist.jpg" alt="RoCreate's watchlist dashboard with example games and private notes" loading="lazy">
-        </div>
-
-        <div class="row">
-          <div class="text">
-            <h3>Your Robux, in full</h3>
-            <p>Open the Robux menu to see your pending Robux and the funds of every group you manage, with a total and roughly what it's worth through DevEx. Click a group to open its revenue page.</p>
-            <p>Switch on sales alerts and RoCreate tells you when your pending Robux or a group's funds go up.</p>
-            <p class="note left">Shown with example data.</p>
-          </div>
-          <img class="shot" src="img/robux-menu.jpg" alt="The Robux menu with pending Robux and group funds (example data)" loading="lazy">
-        </div>
-
-        <div class="row flip">
-          <div class="text">
-            <h3>Know who you're dealing with</h3>
-            <ul>
-              <li>Real Roblox staff get the Roblox logo next to their name, anywhere on the site.</li>
-              <li>Optional: accounts flagged on RobloxVerifieds, or that lost their verified badge, get a red badge with an X. Hover it for the reasons.</li>
-            </ul>
-            <p class="note left">Example names, except builderman.</p>
-          </div>
-          <img class="shot" src="img/badges.jpg" alt="Friends with an admin badge and red flagged badges (example names)" loading="lazy">
-        </div>
-
-        <div class="cards">
-          <div class="card"><h3>Make it yours</h3><p>Six accent colors for buttons and highlights, applied instantly.</p></div>
-          <div class="card"><h3>Pick your features</h3><p>Take everything, or build a copy with only the features and services you want.</p></div>
-          <div class="card"><h3>Clean and fast</h3><p>A flat, dark Creator Hub style for the whole site. Every part can be switched off from the popup.</p></div>
-        </div>
+        <p class="also">Also: a watchlist dashboard, spike and sales alerts, a Robux menu with your community funds, admin and flagged badges, backups. Every part has its own switch.</p>
       </div>
     </section>
 
-    <section id="glance">
+    <section id="gallery" class="tight">
       <div class="wrap">
-        <p class="eyebrow">At a glance</p>
-        <h2>Every feature, where it shows and where its data comes from</h2>
-        <div class="table-wrap">
-          <table class="features">
-            <tr><th>Feature</th><th>Where</th><th>Data from</th><th>Optional</th></tr>
-            <tr><td>Creator Hub theme</td><td>All of roblox.com</td><td>Nothing outside Roblox</td><td>Switch it off in the popup</td></tr>
-            <tr><td>Quick jump (Ctrl+K)</td><td>Every roblox.com page</td><td>Roblox search, while you type</td><td>Yes</td></tr>
-            <tr><td>Money tools</td><td>My Transactions and community admin pages</td><td>Roblox</td><td>Yes</td></tr>
-            <tr><td>Your experiences</td><td>Home</td><td>Roblox</td><td>Yes</td></tr>
-            <tr><td>Workspace pages</td><td>Every page except profiles, plus menus and dialogs</td><td>Nothing outside Roblox</td><td>Yes</td></tr>
-            <tr><td>Game stats</td><td>Game cards and game pages</td><td>Creator Exchange</td><td>Yes</td></tr>
-            <tr><td>Revenue per player, ID copy</td><td>Game pages</td><td>Creator Exchange, Roblox</td><td>With game stats</td></tr>
-            <tr><td>Watchlist</td><td>The toolbar popup and optional dashboard</td><td>Creator Exchange</td><td>With game stats</td></tr>
-            <tr><td>Private game notes</td><td>Watchlist dashboard</td><td>Your device only</td><td>Yes</td></tr>
-            <tr><td>Reduced motion</td><td>RoCreate animations and profile shortcuts</td><td>Your setting only</td><td>Yes</td></tr>
-            <tr><td>Spike alerts</td><td>Desktop notifications</td><td>Creator Exchange</td><td>Yes, off until you switch it on</td></tr>
-            <tr><td>Community totals</td><td>Community pages</td><td>Roblox, Creator Exchange</td><td>With game stats</td></tr>
-            <tr><td>Accent colors</td><td>All of roblox.com and the popup</td><td>Nothing outside Roblox</td><td>Pick one in the popup</td></tr>
-            <tr><td>Streamer mode</td><td>Your Robux, and Settings &gt; Account info</td><td>Nothing outside Roblox</td><td>Yes, off by default</td></tr>
-            <tr><td>Robux menu</td><td>The top bar</td><td>Roblox</td><td>Yes</td></tr>
-            <tr><td>Sales alerts</td><td>Desktop notifications</td><td>Roblox</td><td>Yes, off until you switch it on</td></tr>
-            <tr><td>Profiles, rebuilt</td><td>Profiles</td><td>Roblox, Rolimons, Creator Exchange</td><td>Yes, each part separately</td></tr>
-            <tr><td>Social feeds</td><td>Profiles</td><td>YouTube, Twitch, X</td><td>Yes, each service separately</td></tr>
-            <tr><td>Roblox admin badges</td><td>Names across the site</td><td>Roblox</td><td>Yes</td></tr>
-            <tr><td>Flagged account badges</td><td>Names across the site</td><td>RobloxVerifieds</td><td>Yes, off by default in custom builds</td></tr>
-          </table>
+        <div class="gallery-head">
+          <div><p class="eyebrow">Screenshots</p><h2>The real thing</h2></div>
+          <div class="gallery-nav"><button type="button" class="demo-play" data-go="-1" aria-label="Previous screenshots"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M8 1L3 6l5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><button type="button" class="demo-play" data-go="1" aria-label="Next screenshots"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M4 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div>
+        </div>
+        <div class="gallery" tabindex="0" aria-label="Screenshots, scroll sideways">
+          <figure><img src="img/games.jpg" alt="The Games page with revenue on every card and the sort bar" loading="lazy"><figcaption>Games page, sorted by revenue</figcaption></figure>
+          <figure><img src="img/game.jpg" alt="A game page with RoCreate's stats strip and 7-day chart" loading="lazy"><figcaption>Stats strip on a game page</figcaption></figure>
+          <figure><img src="img/quickjump.jpg" alt="Quick jump with grouped results for a search (example data)" loading="lazy"><figcaption>Quick jump <em>example data</em></figcaption></figure>
+          <figure><img src="img/experiences.jpg" alt="The Your experiences table on Home with live players (example data)" loading="lazy"><figcaption>Your experiences on Home <em>example data</em></figcaption></figure>
+          <figure><img src="img/profile2.jpg" alt="Roblox's official profile in RoCreate's layout, with its latest YouTube videos" loading="lazy"><figcaption>A rebuilt profile with its videos</figcaption></figure>
+          <figure><img src="img/money.jpg" alt="The DevEx estimate and CSV export card on My Transactions (example data)" loading="lazy"><figcaption>Money tools <em>example data</em></figcaption></figure>
+          <figure><img src="img/group.jpg" alt="A community page with RoCreate's analytics above the tabs" loading="lazy"><figcaption>Community analytics</figcaption></figure>
+          <figure><img src="img/watchlist.jpg" alt="The watchlist dashboard with example games and private notes" loading="lazy"><figcaption>Watchlist dashboard <em>example data</em></figcaption></figure>
+          <figure><img src="img/robux-menu.jpg" alt="The Robux menu with pending Robux and community funds (example data)" loading="lazy"><figcaption>Robux menu <em>example data</em></figcaption></figure>
+          <figure class="narrow"><img src="img/popup.png" alt="The RoCreate popup with grouped switches" loading="lazy"><figcaption>The popup</figcaption></figure>
+          <figure><img src="img/badges.jpg" alt="Friends with an admin badge and flagged badges (example names)" loading="lazy"><figcaption>Admin and flagged badges <em>example names</em></figcaption></figure>
         </div>
       </div>
     </section>
 
-    <section id="install" class="install">
-      <div class="wrap">
-        <p class="eyebrow">Download</p>
-        <h2>Everything, or just what you want</h2>
-        <p class="note left">Get the full bundle in one click, or pick your features and the services RoCreate may contact. Anything you leave out isn't in your copy at all.</p>
-        <a class="btn primary" href="download.html">Go to the download page</a>
-      </div>
-    </section>
-
-    <section id="next">
-      <div class="wrap">
-        <p class="eyebrow">Coming next</p>
-        <h2>What we're working on</h2>
-        <div class="roadmap">
-          <div class="card"><b>In progress</b><h3>Chrome Web Store</h3><p>A one-click install that updates itself.</p></div>
-          <div class="card"><b>Waiting on access</b><h3>Rotector flags</h3><p>A warning badge for accounts Rotector has flagged, credited to Rotector with its appeal link. It needs approved API access first.</p></div>
-          <div class="card"><b>New in 0.18</b><h3>Friends and communities</h3><p>Roomier Friends cards and a cleaner Communities sidebar, with optional local search and sorting of loaded results. See the <a href="changelog.html">changelog</a>.</p></div>
+    <section id="install" class="install tight">
+      <div class="wrap install-row">
+        <div>
+          <h2>Install it in a minute</h2>
+          <ol class="mini-steps"><li>Download the ZIP</li><li>Unzip it</li><li>Load it in Chrome</li></ol>
+        </div>
+        <div class="install-cta">
+          <a class="btn primary" href="download.html">Get RoCreate</a>
+          <span class="note">Everything, or only the parts you pick.</span>
         </div>
       </div>
     </section>
 
-    <section id="faq">
+    <section id="faq" class="tight">
       <div class="wrap">
         <p class="eyebrow">FAQ</p>
         <h2>Questions</h2>
-        <details>
-          <summary>Is it safe?</summary>
-          <p>RoCreate runs only in your browser. There's no RoCreate server, no account and no tracking, and all of the code is open on GitHub. The <a href="privacy.html">privacy policy</a> lists every site it talks to.</p>
-        </details>
-        <details>
-          <summary>Does it work with RoValra?</summary>
-          <p>Yes. RoCreate is built to run next to RoValra, and each keeps its own features.</p>
-        </details>
-        <details>
-          <summary>Where do the numbers come from?</summary>
-          <p>Game revenue estimates come from Creator Exchange, and inventory values from Rolimons. Everything else comes from Roblox itself. Revenue figures are estimates, not Roblox's official numbers.</p>
-        </details>
-        <details>
-          <summary>Is it on the Chrome Web Store?</summary>
-          <p>Not yet. Until it is, you load it from the <a href="download.html">download page</a> in three steps. The Chrome Web Store version will update itself.</p>
-        </details>
-        <details>
-          <summary>How do I update?</summary>
-          <p>Download again and unzip over the same folder. RoCreate notices the new version, reloads itself within a minute, and its popup shows what changed. Every release is on the <a href="changelog.html">changelog</a>.</p>
-        </details>
-        <details>
-          <summary>Does it slow Roblox down?</summary>
-          <p>It only looks up what's on your screen, keeps the results on your device so pages load fast the next time, and waits out rate limits instead of hammering Roblox.</p>
-        </details>
-        <details>
-          <summary>Why do some games have no stats?</summary>
-          <p>Creator Exchange only tracks games with enough players. Smaller games simply show no stats.</p>
-        </details>
-        <details>
-          <summary>Can I turn parts off?</summary>
-          <p>Yes. Every feature has a switch in the popup. You can also leave features out entirely on the download page, and then RoCreate never contacts their services.</p>
-        </details>
-        <details>
-          <summary>Is RoCreate made by Roblox?</summary>
-          <p>No. RoCreate is an independent, free project and isn't affiliated with Roblox Corporation.</p>
+        <div class="faq-grid">
+          <details>
+            <summary>Is it safe?</summary>
+            <p>It runs only in your browser. No RoCreate server, account or tracking, and all of the code is on GitHub. The <a href="privacy.html">privacy policy</a> lists every site it talks to.</p>
+          </details>
+          <details>
+            <summary>Does it work with RoValra?</summary>
+            <p>Yes. RoCreate runs next to RoValra, and each keeps its own features.</p>
+          </details>
+          <details>
+            <summary>Where do the numbers come from?</summary>
+            <p>Revenue estimates come from Creator Exchange and collectible values from Rolimons. Everything else comes from Roblox itself.</p>
+          </details>
+          <details>
+            <summary>Can I turn parts off?</summary>
+            <p>Every feature has a switch in the popup. On the <a href="download.html">download page</a> you can also leave features out entirely.</p>
+          </details>
+          <details>
+            <summary>How do I update?</summary>
+            <p>Download again and unzip over the same folder. RoCreate reloads itself within a minute and shows what changed. Every release is on the <a href="changelog.html">changelog</a>.</p>
+          </details>
+          <details>
+            <summary>Is it on the Chrome Web Store?</summary>
+            <p>Not yet; it's on its way. Next up after that: Rotector flags, once API access is approved.</p>
+          </details>
+          <details>
+            <summary>Does it slow Roblox down?</summary>
+            <p>It only looks up what's on your screen, caches results on your device and waits out rate limits instead of hammering Roblox.</p>
+          </details>
+          <details>
+            <summary>Is RoCreate made by Roblox?</summary>
+            <p>No. It's an independent, free project, not affiliated with Roblox Corporation.</p>
+          </details>
+        </div>
+        <details class="glance">
+          <summary>Every feature, where it shows and where its data comes from</summary>
+          <div class="table-wrap">
+            <table class="features">
+              <tr><th>Feature</th><th>Where</th><th>Data from</th><th>Optional</th></tr>
+              <tr><td>Creator Hub theme</td><td>All of roblox.com</td><td>Nothing outside Roblox</td><td>Switch it off in the popup</td></tr>
+              <tr><td>Workspace pages</td><td>Every page except profiles, plus menus and dialogs</td><td>Nothing outside Roblox</td><td>Yes</td></tr>
+              <tr><td>Quick jump (Ctrl+K)</td><td>Every roblox.com page</td><td>Roblox search, while you type</td><td>Yes</td></tr>
+              <tr><td>Your experiences</td><td>Home</td><td>Roblox</td><td>Yes</td></tr>
+              <tr><td>Money tools</td><td>My Transactions and community admin pages</td><td>Roblox</td><td>Yes</td></tr>
+              <tr><td>Game stats</td><td>Game cards and game pages</td><td>Creator Exchange</td><td>Yes</td></tr>
+              <tr><td>Revenue per player, ID copy</td><td>Game pages</td><td>Creator Exchange, Roblox</td><td>With game stats</td></tr>
+              <tr><td>Watchlist</td><td>The toolbar popup and optional dashboard</td><td>Creator Exchange</td><td>With game stats</td></tr>
+              <tr><td>Private game notes</td><td>Watchlist dashboard</td><td>Your device only</td><td>Yes</td></tr>
+              <tr><td>Spike alerts</td><td>Desktop notifications</td><td>Creator Exchange</td><td>Yes, off until you switch it on</td></tr>
+              <tr><td>Community totals</td><td>Community pages</td><td>Roblox, Creator Exchange</td><td>With game stats</td></tr>
+              <tr><td>Accent colors, reduced motion</td><td>All of roblox.com and the popup</td><td>Your settings only</td><td>Yes</td></tr>
+              <tr><td>Streamer mode</td><td>Your Robux, transactions and Settings &gt; Account info</td><td>Nothing outside Roblox</td><td>Yes, off by default</td></tr>
+              <tr><td>Robux menu</td><td>The top bar</td><td>Roblox</td><td>Yes</td></tr>
+              <tr><td>Sales alerts</td><td>Desktop notifications</td><td>Roblox</td><td>Yes, off until you switch it on</td></tr>
+              <tr><td>Profiles, rebuilt</td><td>Profiles</td><td>Roblox, Rolimons, Creator Exchange</td><td>Yes, each part separately</td></tr>
+              <tr><td>Social feeds</td><td>Profiles</td><td>YouTube, Twitch, X</td><td>Yes, each service separately</td></tr>
+              <tr><td>Roblox admin badges</td><td>Names across the site</td><td>Roblox</td><td>Yes</td></tr>
+              <tr><td>Flagged account badges</td><td>Names across the site</td><td>RobloxVerifieds</td><td>Yes, off by default in custom builds</td></tr>
+            </table>
+          </div>
         </details>
       </div>
     </section>
@@ -259,5 +179,6 @@
     </div>
   </footer>
   <script src="/device-check.js"></script>
+  <script src="demo.js"></script>
 </body>
 </html>
