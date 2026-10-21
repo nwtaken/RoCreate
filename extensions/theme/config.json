@@ -25,6 +25,7 @@
     "workspace": true,
     "palette": true,
     "moneyTools": true,
-    "myGames": true
+    "myGames": true,
+    "traders": true
   }
 }

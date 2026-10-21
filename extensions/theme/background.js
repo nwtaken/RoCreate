@@ -397,6 +397,28 @@ async function rolimons(id) {
    quietly and the profile just leaves that feed out. */
 const SOCIAL_TTL = 60 * 60 * 1000, LIVE_TTL = 5 * 60 * 1000;
 
+/* ---- trader tools: Rolimons' public list of every collectible (one request, shared by every tab,
+   refreshed at most every 10 minutes). Fields: [name, acronym, rap, value, default, demand,
+   trend, projected, hyped, rare]; -1 means none. Only the asked-for ids go back to the page. */
+let itemValues = null, itemValuesAt = 0, itemValuesBusy = null;
+async function rolItems(ids) {
+  if (!itemValues || Date.now() - itemValuesAt > 10 * 60e3) {
+    itemValuesBusy ||= fetch("https://api.rolimons.com/items/v2/itemdetails", { credentials: "omit" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (j?.items) { itemValues = j.items; itemValuesAt = Date.now(); } })
+      .catch(() => {})
+      .finally(() => { itemValuesBusy = null; });
+    await itemValuesBusy;
+  }
+  if (!itemValues) return null;
+  const out = {};
+  for (const id of ids.slice(0, 300)) {
+    const v = itemValues[id];
+    if (v) out[id] = { rap: v[2], value: v[3], demand: v[5], trend: v[6], projected: v[7] === 1, hyped: v[8] === 1, rare: v[9] === 1 };
+  }
+  return out;
+}
+
 async function remember(k, ttl, make) {
   const { [k]: hit } = await chrome.storage.local.get(k);
   if (hit && Date.now() - hit.at < ttl) return hit.data;
@@ -642,6 +664,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
       case "rcx-open-options": // Quick jump's "RoCreate settings" action
         chrome.runtime.openOptionsPage();
         return true;
+      case "rcx-items":
+        return on("traders") && Array.isArray(msg.ids) ? rolItems(msg.ids.map(String).filter((x) => /^\d{1,15}$/.test(x))) : null;
       case "rcx-rolimons":
         return okId && profile("profileValue") ? rolimons(id) : null;
       case "rcx-rvuser":

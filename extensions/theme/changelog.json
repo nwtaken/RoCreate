@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.27.0",
+    "date": "2026-10-20",
+    "changes": [
+      "Trader tools on the Marketplace: Rolimons value and RAP, a deal percentage against the listed price, and projected, hyped and rare flags on every collectible card",
+      "A bar over the results sorts by best deal, keeps only items under value, or hides projected items",
+      "Item pages show value, RAP, demand, trend and the deal next to Best Price, with a link to Rolimons",
+      "Prices are read from the page, so no extra Roblox requests; Rolimons' public item list is fetched at most every 10 minutes"
+    ]
+  },
+  {
     "version": "0.26.3",
     "date": "2026-10-20",
     "changes": [
